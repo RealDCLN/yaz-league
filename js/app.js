@@ -472,7 +472,6 @@
       const geoguessr = form.geoguessr_url.value.trim();
       const discord = form.discord.value.trim();
       const email = form.email.value.trim();
-      const terms = form.terms.checked;
       const honey = form.website.value;
 
       form.querySelectorAll('input').forEach(i => i.classList.remove('invalid'));
@@ -491,7 +490,6 @@
       if (!/^https?:\/\/.+\..+/i.test(geoguessr)) { problems.push('Χρειάζεται έγκυρο URL προφίλ GeoGuessr.'); form.geoguessr_url.classList.add('invalid'); }
       if (discord.length < 2) { problems.push('Το Discord username είναι υποχρεωτικό.'); form.discord.classList.add('invalid'); }
       if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { problems.push('Το email δεν φαίνεται σωστό.'); form.email.classList.add('invalid'); }
-      if (!terms) { problems.push('Πρέπει να αποδεχτείς τους κανόνες.'); }
 
       if (problems.length) {
         msg.className = 'form-msg err';
