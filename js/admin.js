@@ -28,6 +28,11 @@
     return (place >= 1 && place <= PTS.length) ? PTS[place - 1] : 0;
   }
 
+  // Escape SQL LIKE wildcards so "_" and "%" in nicknames are matched literally.
+  function escapeLike(s) {
+    return String(s).replace(/[\\%_]/g, '\\$&');
+  }
+
   function toLocalInput(d) {
     return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) +
       'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
@@ -423,6 +428,7 @@
     btn.textContent = 'Αποθήκευση…';
 
     let matchId = null;
+    const createdPlayerIds = [];
     try {
       const loc = leagueSel === 'map' ? ($('mLocation').value.trim() || null) : null;
       const lat = leagueSel === 'map' ? (Number($('mLat').value) || null) : null;
@@ -440,7 +446,8 @@
 
       const resolved = [];
       for (const e of clean) {
-        const player = await resolveOrCreatePlayer(e.nickname);
+        const { player, created } = await resolveOrCreatePlayer(e.nickname);
+        if (created) createdPlayerIds.push(player.id);
         resolved.push({ player, entry: e });
       }
 
@@ -474,6 +481,12 @@
     } catch (err) {
       console.error('[admin] save failed:', err);
       if (matchId) { try { await sb.from('matches').delete().eq('id', matchId); } catch (_) {} }
+      // Roll back any players we auto-created for this failed attempt so a retry
+      // doesn't try to insert results for player IDs that no longer exist.
+      if (createdPlayerIds.length) {
+        try { await sb.from('players').delete().in('id', createdPlayerIds); } catch (_) {}
+        cache.players = cache.players.filter(p => !createdPlayerIds.includes(p.id));
+      }
       msg.className = 'form-msg err';
       msg.textContent = 'Αποτυχία: ' + (err.message || 'άγνωστο σφάλμα');
     } finally {
@@ -485,16 +498,21 @@
   async function resolveOrCreatePlayer(nickname) {
     const lower = nickname.toLowerCase();
     const existing = cache.players.find(p => p.nickname.toLowerCase() === lower);
-    if (existing) return existing;
+    if (existing) return { player: existing, created: false };
 
     const { data, error } = await sb.from('players').insert({ nickname }).select().single();
     if (error) {
-      const { data: again } = await sb.from('players').select('*').ilike('nickname', nickname).maybeSingle();
-      if (again) return again;
+      // Race: nickname may have been created between our cache read and insert.
+      // Escape LIKE wildcards so "_" and "%" in nicknames are matched literally.
+      const { data: again } = await sb.from('players')
+        .select('*')
+        .ilike('nickname', escapeLike(nickname))
+        .maybeSingle();
+      if (again) return { player: again, created: false };
       throw error;
     }
     cache.players.push(data);
-    return data;
+    return { player: data, created: true };
   }
 
   /* ==================== PLAYERS TAB ==================== */
