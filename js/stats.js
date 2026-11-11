@@ -18,12 +18,11 @@ window.YAZ = window.YAZ || {};
     return Array.from(set).sort((a, b) => a - b);
   }
 
-  function tierForRank(rank) {
-    const tiers = (YAZ.config && YAZ.config.tiers) || [];
-    for (let i = 0; i < tiers.length; i++) {
-      if (rank >= tiers[i].from && rank <= tiers[i].to) return tiers[i];
-    }
-    return { id: 'bronze', name: 'Χάλκινος' };
+  /* Ομάδα κατάταξης: κάθε N θέσεις = 1 ομάδα. Επιστρέφει μόνο αριθμό
+     (1, 2, 3, …) — χωρίς ονόματα. Το N έρχεται από config.groupSize. */
+  function groupForRank(rank) {
+    const size = (YAZ.config && Number(YAZ.config.groupSize)) || 4;
+    return Math.floor((rank - 1) / size) + 1;
   }
 
   function standings(players, matches, results) {
@@ -126,7 +125,7 @@ window.YAZ = window.YAZ || {};
 
     list.forEach((row, i) => {
       row.rank = i + 1;
-      row.tier = tierForRank(row.rank);
+      row.group = groupForRank(row.rank);
 
       /* Μετακίνηση θέσης από την προηγούμενη εβδομάδα */
       const h = row.rankHistory;
@@ -146,5 +145,5 @@ window.YAZ = window.YAZ || {};
     return d;
   }
 
-  YAZ.stats = { standings, weeksOf, nextFriday19, tierForRank };
+  YAZ.stats = { standings, weeksOf, nextFriday19, groupForRank };
 })(window.YAZ);

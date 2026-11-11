@@ -51,6 +51,13 @@
 
       fillHud();
       renderBoard();
+
+      // World map of past matches — safe if YAZ.map is absent (older deploy).
+      if (Y.map && typeof Y.map.init === 'function') {
+        try { Y.map.init({ matches: state.matches }); }
+        catch (err) { console.warn('[YAZ] map init failed', err); }
+      }
+
       // Now that we know the real match list, fix up the week number.
       updateWeekLabel();
     } catch (err) {
@@ -59,6 +66,7 @@
       if (tbody) {
         tbody.innerHTML = '<tr><td colspan="6" class="loading-row">Δεν ήταν δυνατή η φόρτωση της βαθμολογίας. Δοκίμασε ξανά σε λίγο.</td></tr>';
       }
+      // The map section still shows its shell, just with no pins.
     }
   }
 
@@ -126,8 +134,6 @@
   function resolveNextMatch() {
     let target = null;
 
-    // Only honor isoDate if it's valid AND in the future. A stale explicit
-    // date would otherwise freeze the timer at 00:00:00:00 forever.
     if (cfg.nextMatch && cfg.nextMatch.isoDate) {
       const candidate = new Date(cfg.nextMatch.isoDate);
       if (!isNaN(candidate.getTime()) && candidate.getTime() > Date.now()) {
@@ -233,12 +239,18 @@
     const list = sortedStandings();
 
     tbody.innerHTML = list.map(row => {
-      const rankClass = row.rank <= 3 ? ' rank-' + row.rank : '';
-      const tierId = row.tier ? row.tier.id : 'bronze';
-      const tierName = row.tier ? row.tier.name : 'Χάλκινος';
+      const rankClass = row.rank <= 3 ? 'rank-' + row.rank : '';
+      const group = row.group || 1;
+      const groupClass = 'group-' + (group % 2 === 0 ? 'even' : 'odd');
+      const isGroupStart = row.rank > 1 && ((row.rank - 1) % 4 === 0);
+      const trClass = [
+        rankClass,
+        groupClass,
+        isGroupStart ? 'group-start' : ''
+      ].filter(Boolean).join(' ');
 
       return '' +
-        '<tr class="' + rankClass.trim() + '">' +
+        '<tr class="' + trClass + '" data-group="' + group + '">' +
           '<td class="col-rank">' +
             '<div class="rank-cell">' +
               '<span class="rank-badge">' + row.rank + '</span>' +
@@ -250,7 +262,6 @@
               '<span class="avatar" aria-hidden="true">' + escapeHtml(initials(row.nickname)) + '</span>' +
               '<span class="player-meta">' +
                 '<span class="player-name">' + escapeHtml(row.nickname) + '</span>' +
-                '<span class="tier-chip tier-' + tierId + '">' + escapeHtml(tierName) + '</span>' +
               '</span>' +
             '</button>' +
           '</td>' +
@@ -327,13 +338,11 @@
     const modal = document.getElementById('playerModal');
     if (!modal) return;
 
-    const tier = row.tier || { id: 'bronze', name: 'Χάλκινος' };
-
     const banner = document.getElementById('pmTierBanner');
-    banner.className = 'pm-tier-banner tier-' + tier.id;
-    document.getElementById('pmTierName').textContent = tier.name;
+    banner.className = 'pm-tier-banner';
+    document.getElementById('pmTierName').textContent = 'Group ' + (row.group || 1);
 
-    document.getElementById('pmAvatar').className = 'pm-avatar tier-' + tier.id;
+    document.getElementById('pmAvatar').className = 'pm-avatar';
     document.getElementById('pmAvatar').textContent = initials(row.nickname);
     document.getElementById('pmName').textContent = row.nickname;
     document.getElementById('pmRank').textContent =

@@ -368,7 +368,7 @@
     }
 
     tbody.innerHTML = rows.map((r, i) => {
-      const marker = r.isNew ? ' <span class="tier-chip tier-teal">νέος</span>' : '';
+      const marker = r.isNew ? ' <span class="badge-new">νέος</span>' : '';
       return '<tr>' +
         '<td class="num">' + (i + 1) + '</td>' +
         '<td>' + esc(r.name) + marker + '</td>' +

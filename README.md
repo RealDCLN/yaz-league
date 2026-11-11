@@ -9,8 +9,7 @@ Static site (HTML/CSS/JS, χωρίς build step) με προαιρετικό bac
 ## Σχεδιαστική κατεύθυνση
 
 Χάρτης θησαυρού σε σκοτεινό δωμάτιο πλοιάρχου: βαθύ navy υπόβαθρο, χρυσές γραμμές διαδρομής,
-περγαμηνή για το εγχειρίδιο κανόνων, χαραγμένες γωνίες (chamfer), μονοπλάγια ψηφία τύπου HUD
-και **rank tiers** (Διαμάντι → Πλατίνα → Χρυσός → Ασήμι → Χάλκινος) στην κατάταξη.
+περγαμηνή για το εγχειρίδιο κανόνων, χαραγμένες γωνίες (chamfer), μονοπλάγια ψηφία τύπου HUD.
 
 - Γραμματοσειρές: **Cinzel** / **Cinzel Decorative** (τίτλοι), **Inter** (κείμενο), **JetBrains Mono** (νούμερα, HUD)
 - Χρώματα: `#0F1626` night · `#F0E4C8` parchment · `#E3B341` gold · `#E2572B` terracotta · `#3FBFAE` teal
@@ -22,7 +21,7 @@ Static site (HTML/CSS/JS, χωρίς build step) με προαιρετικό bac
 
 | Σελίδα | Περιεχόμενο |
 |---|---|
-| `index.html` | Hero + HUD + countdown, διαδραστικός χάρτης με route line, κατάταξη με tiers, κανόνες, εγγραφή |
+| `index.html` | Hero + HUD + countdown, παγκόσμιος χάρτης με pins & route line, κατάταξη με οπτική ομαδοποίηση ανά 4, κανόνες, εγγραφή |
 | `admin.html` | Κρυφό portal διαχείρισης (`/admin`) |
 | `404.html` | Σελίδα σφάλματος |
 
@@ -30,9 +29,11 @@ Static site (HTML/CSS/JS, χωρίς build step) με προαιρετικό bac
 
 - HUD στατιστικά σεζόν (παίκτες / αγώνες / αγωνιστικές)
 - Countdown στην επόμενη Παρασκευή 19:00 με LIVE badge στο τελευταίο 60λεπτο
-- Διαδραστικός χάρτης: pins ανά αγωνιστική, διαδρομή εβδομάδων, tooltip, «Τυχαία τοποθεσία»
-- Κατάταξη με ταξινομήσιμες στήλες, μετακίνηση θέσης (▲▼), tier chips, χρυσά/ασημένια/χάλκινα top-3
-- Modal προφίλ: tier banner, XP bar προς τον πρωτοπόρο, στατιστικά, γράφημα πορείας θέσης (Chart.js)
+- **Παγκόσμιος χάρτης αγωνιστικών**: κάθε τοποθεσία ως pin, διαδρομή εβδομάδων, tooltip,
+  φίλτρα ανά εβδομάδα, «Τυχαία τοποθεσία»
+- Κατάταξη με ταξινομήσιμες στήλες, μετακίνηση θέσης (▲▼), και **οπτική ομαδοποίηση ανά 4 θέσεις**
+  (εναλλασσόμενη λωρίδα + διαχωριστικό κάθε 4), χρυσά/ασημένια/χάλκινα top-3
+- Modal προφίλ: Group badge, XP bar προς τον πρωτοπόρο, στατιστικά, γράφημα πορείας θέσης (Chart.js)
 - Φόρμα εγγραφής με honeypot
 - Admin: αυτόματοι πόντοι, concept bonus, live preview, εγκρίσεις, ιστορικό
 
@@ -56,11 +57,11 @@ yaz-league/
 │   ├── styles.css
 │   └── admin.css
 ├── js/
-│   ├── config.js      ← ⚙️ ρυθμίσεις, links, tiers
+│   ├── config.js      ← ⚙️ ρυθμίσεις, links, groupSize
 │   ├── seed.js        ← demo δεδομένα (40 παίκτες, 8 εβδομάδες)
-│   ├── stats.js       ← στατιστικά + rank tiers + μετακίνηση θέσης
+│   ├── stats.js       ← στατιστικά + ομαδοποίηση + μετακίνηση θέσης
 │   ├── data.js        ← Supabase ή demo
-│   ├── map.js         ← χάρτης + route line
+│   ├── map.js         ← παγκόσμιος χάρτης + route line
 │   ├── app.js         ← αρχική σελίδα
 │   └── admin.js       ← διαχείριση
 └── supabase/
@@ -134,10 +135,11 @@ adminEmail: 'to-email-sou@example.com',
 
 ```
 links: {
-  discord:  'https://discord.gg/ΤΟ-ΠΡΑΓΜΑΤΙΚΟ-INVITE',
-  tiktok:   'https://www.tiktok.com/@de.voyageur',
-  youtube:  'https://www.youtube.com/@de.voyageur',
-  linktree: 'https://linktr.ee/De.voyageur'
+  discord:   'https://discord.gg/ΤΟ-ΠΡΑΓΜΑΤΙΚΟ-INVITE',
+  tiktok:    'https://www.tiktok.com/@de.voyageur',
+  youtube:   'https://www.youtube.com/@de.voyageur',
+  instagram: 'https://www.instagram.com/de.voyageur/',
+  linktree:  'https://linktr.ee/De.voyageur'
 }
 ```
 
@@ -171,11 +173,13 @@ links: {
 - Ημερομηνία (αυτόματη: επόμενη Παρασκευή 19:00).
 - **Χάρτης** ή **Quiz**.
 - Για χάρτη: τοποθεσία + συντεταγμένες (Google Maps → δεξί κλικ → «What's here»).
+
 3. **«+ Πρόσθεσε παίκτη»** — με σειρά κατάταξης (πρώτος ο νικητής).
 
 - Πόντοι αυτόματοι (12-9-8-…-1).
 - Στον χάρτη τσέκαρε **«+3»** σε όποιον βρήκε το concept.
 - Βελάκια ↑↓ αλλάζουν σειρά.
+
 4. Δες την **προεπισκόπηση**.
 5. **«Αποθήκευση αγωνιστικής»** — η κατάταξη ενημερώνεται αμέσως.
 
@@ -191,7 +195,7 @@ links: {
 
 ---
 
-## Αλλαγή ημερομηνίας / tiers
+## Αλλαγή ημερομηνίας / ομαδοποίησης
 
 `js/config.js`:
 
@@ -201,14 +205,13 @@ nextMatch: { weekNumber: 12, isoDate: '2026-12-04T20:00:00+02:00' }
 
 Άφησέ τα `null` για αυτόματο υπολογισμό.
 
-Τα rank tiers είναι επίσης εκεί:
+Η ομαδοποίηση της κατάταξης:
 
 ```
-tiers: [
-  { id: 'diamond',  name: 'Διαμάντι', from: 1,  to: 3 },
-  ...
-]
+groupSize: 4
 ```
+
+Κάθε N θέσεις σχηματίζουν μία οπτική ομάδα (εναλλασσόμενη λωρίδα + διαχωριστικό). Χωρίς ονόματα.
 
 ---
 
@@ -220,7 +223,7 @@ tiers: [
 | −`matches` | SELECT | ALL |
 | −`results` | SELECT | ALL |
 | −`registrations` | INSERT (`pending` only) | SELECT/UPDATE/DELETE |
-⚙
+| ⚙ |  |  |
 
 Όλοι βλέπουν τη βαθμολογία. Μόνο ο λογαριασμός με το email του διαχειριστή γράφει.
 
@@ -246,11 +249,13 @@ tiers: [
 
 **Demo δεδομένα στην κατάταξη** → Κενά/λάθος keys στο `js/config.js`. Δες console (F12) για `[YAZ] Supabase δεν απάντησε`.
 
+**Κενή κατάταξη / σφάλμα φόρτωσης** → Αν τα keys είναι σωστά αλλά το Supabase δεν απαντήσει, το site δείχνει error state αντί να πέσει σε demo. Έλεγξε το console (F12).
+
 **«Ο λογαριασμός δεν έχει δικαιώματα διαχειριστή»** → Το email στο `is_admin()` δεν ταιριάζει με το `adminEmail`. Ξανατρέξε το schema.
 
 **«Υπάρχει ήδη καταχώριση»** → Διάγραψε την παλιά από **«Αγωνιστικές»**.
 
-**Κενός χάρτης** → Χωρίς internet δεν φορτώνει το περίγραμμα ηπείρων· τα pins δουλεύουν.
+**Κενός χάρτης** → Χωρίς internet δεν φορτώνει το περίγραμμα ηπείρων (D3 + world-atlas CDN)· τα pins δουλεύουν κανονικά.
 
 ---
 
@@ -266,4 +271,4 @@ HTML5 · CSS3 · Vanilla JS · [Supabase](https://supabase.com/) · [D3.js](http
 Τα demo δεδομένα είναι εικονικά.
 
 ---
-<p align="center"><em>Made for the YAZ LEAGUE community</em></p>
+<p align="center"><em>Made by DCLN</em></p>

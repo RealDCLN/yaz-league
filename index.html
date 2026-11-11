@@ -48,6 +48,7 @@
     </button>
     <nav class="main-nav" id="mainNav" aria-label="Κύρια πλοήγηση">
       <a href="#arxiki">Αρχική</a>
+      <a href="#xartis">Χάρτης</a>
       <a href="#katataxi">Κατάταξη</a>
       <a href="#kanones">Κανόνες</a>
       <a href="#egrafi">Εγγραφή</a>
@@ -121,6 +122,27 @@
     </div>
   </section>
 
+  <!-- ================= WORLD MAP ================= -->
+  <section class="section section-map" id="xartis">
+    <div class="wrap">
+      <header class="section-head reveal">
+        <p class="eyebrow">Παγκόσμιος χάρτης</p>
+        <h2 class="section-title">Οι διαδρομές μας</h2>
+        <p class="section-sub">Κάθε pin είναι μια αγωνιστική. Κάθε γραμμή, ένα ταξίδι. Πάτησε σε ένα pin για την τοποθεσία.</p>
+      </header>
+      <div class="map-shell reveal">
+        <div class="map-canvas">
+          <svg id="worldSvg" viewBox="0 0 1000 500" aria-label="Χάρτης αγωνιστικών" role="img"></svg>
+        </div>
+        <div class="map-tooltip" id="mapTooltip" aria-hidden="true"></div>
+      </div>
+      <div class="map-controls">
+        <div class="week-chips" id="weekChips"></div>
+        <button class="btn btn-outline btn-sm" id="randomPinBtn" type="button">Τυχαία τοποθεσία</button>
+      </div>
+    </div>
+  </section>
+
   <!-- ================= LEADERBOARD ================= -->
   <section class="section section-board" id="katataxi">
     <div class="wrap">
@@ -147,13 +169,6 @@
               <tr><td colspan="6" class="loading-row">Φόρτωση βαθμολογίας…</td></tr>
             </tbody>
           </table>
-        </div>
-        <div class="board-legend">
-          <span class="tier-chip tier-diamond">Διαμάντι · 1–3</span>
-          <span class="tier-chip tier-platinum">Πλατίνα · 4–8</span>
-          <span class="tier-chip tier-gold">Χρυσός · 9–15</span>
-          <span class="tier-chip tier-silver">Ασήμι · 16–25</span>
-          <span class="tier-chip tier-bronze">Χάλκινος · 26+</span>
         </div>
         <p class="board-note">Σε ισοπαλία πόντων μετράνε κατά σειρά: νίκες, βάθρα, αλφαβητική σειρά.</p>
       </div>
@@ -283,7 +298,7 @@
   </div>
   <div class="wrap footer-bottom">
     <p>© <span id="year">2026</span> YAZ LEAGUE · Με επιφύλαξη παντός δικαιώματος.</p>
-    <p class="made-for">Made for the YAZ LEAGUE community</p>
+    <p class="made-for">Made by DCLN</p>
   </div>
 </footer>
 
@@ -291,8 +306,8 @@
 <div class="modal" id="playerModal" role="dialog" aria-modal="true" aria-labelledby="pmName" hidden>
   <div class="modal-card frame">
     <button class="modal-close" id="pmClose" aria-label="Κλείσιμο">×</button>
-    <div class="pm-tier-banner tier-gold" id="pmTierBanner">
-      <span class="pm-tier-name" id="pmTierName">Χρυσός</span>
+    <div class="pm-tier-banner" id="pmTierBanner">
+      <span class="pm-tier-name" id="pmTierName">Group —</span>
       <span class="pm-tier-rank" id="pmRank">Θέση —</span>
     </div>
     <div class="pm-head">
@@ -319,10 +334,13 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/d3@7" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3" defer></script>
 <script src="js/config.js"></script>
 <script src="js/seed.js"></script>
 <script src="js/stats.js"></script>
 <script src="js/data.js"></script>
+<script src="js/map.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

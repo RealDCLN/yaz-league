@@ -167,3 +167,19 @@
 .admin-card .form-msg.err{color:#F09A7E}
 
 .empty{color:var(--text-3);font-size:.86rem;font-style:italic;padding:.8rem 0}
+
+/* new-player marker in preview */
+.badge-new{
+  display:inline-block;
+  padding:.1rem .45rem;
+  margin-left:.35rem;
+  font-family:var(--mono);
+  font-size:.55rem;
+  font-weight:700;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color:var(--teal);
+  border:1px solid rgba(63,191,174,.4);
+  background:rgba(63,191,174,.08);
+  clip-path:polygon(4px 0,100% 0,100% calc(100% - 4px),calc(100% - 4px) 100%,0 100%,0 4px);
+}
