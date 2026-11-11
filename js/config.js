@@ -21,10 +21,11 @@ window.YAZ.config = {
 
   /* --- Σύνδεσμοι ------------------------------------------------ */
   links: {
-    discord:  'https://discord.gg/ScXAjR2A8B',
-    tiktok:   'https://www.tiktok.com/@de.voyageur',
-    youtube:  'https://www.youtube.com/@Devoyageur',
-    linktree: 'https://linktr.ee/De.voyageur'
+    discord:   'https://discord.gg/ScXAjR2A8B',
+    tiktok:    'https://www.tiktok.com/@de.voyageur',
+    youtube:   'https://www.youtube.com/@Devoyageur',
+    instagram: 'https://www.instagram.com/de.voyageur/',
+    linktree:  'https://linktr.ee/De.voyageur'
   },
 
   /* --- Επόμενη αγωνιστική ---------------------------------------

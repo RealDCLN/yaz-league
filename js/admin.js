@@ -212,6 +212,10 @@
     const update = () => {
       league = sel.value;
       row.style.display = league === 'map' ? '' : 'none';
+      // The concept bonus only applies to the map league (rules state quiz
+      // has no concept bonus). Clear stale flags so a checked box can't
+      // leak into a quiz result and silently award +3.
+      if (league !== 'map') entries.forEach(e => { e.concept = false; });
       renderEntries();
       renderPreview();
     };
@@ -344,7 +348,9 @@
       const name = (e.nickname || '').trim();
       const player = name ? playersByName.get(name.toLowerCase()) : null;
       const current = player ? (totals.get(String(player.id)) || 0) : 0;
-      const pts = pointsFor(i + 1) + (e.concept ? CONCEPT_BONUS : 0);
+      // Concept bonus is map-only. Guard the preview the same way the save
+      // path does so the projected totals don't mislead the admin.
+      const pts = pointsFor(i + 1) + ((league === 'map' && e.concept) ? CONCEPT_BONUS : 0);
       return {
         name: name || '—',
         matchPts: pts,
@@ -451,13 +457,18 @@
         resolved.push({ player, entry: e });
       }
 
+      // Defense-in-depth: enforce that the concept bonus only applies to
+      // the map league. Even if stale state or a crafted request sneaks a
+      // concept:true into a quiz entry, it can't corrupt the results here.
+      const applyConcept = leagueSel === 'map';
+
       const resultRows = resolved.map(r => ({
         match_id: matchId,
         player_id: r.player.id,
         placement: r.entry.place,
-        points: pointsFor(r.entry.place) + (r.entry.concept ? CONCEPT_BONUS : 0),
+        points: pointsFor(r.entry.place) + (applyConcept && r.entry.concept ? CONCEPT_BONUS : 0),
         raw_score: null,
-        concept_bonus: !!r.entry.concept
+        concept_bonus: !!(applyConcept && r.entry.concept)
       }));
 
       const { error: rErr } = await sb.from('results').insert(resultRows);
