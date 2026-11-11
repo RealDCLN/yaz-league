@@ -18,13 +18,13 @@ window.YAZ.config = {
   /* --- Admin ----------------------------------------------------
      Πρέπει να είναι ΑΚΡΙΒΩΣ το ίδιο email με το schema.sql.
      ------------------------------------------------------------- */
-  adminEmail: 'devoyageur@yazleague.gr',
+  adminEmail: 'filipposliv99@gmail.com',
 
   /* --- Σύνδεσμοι ------------------------------------------------ */
   links: {
-    discord:  'https://discord.gg/yazleague',
+    discord:  'https://discord.gg/ScXAjR2A8B',
     tiktok:   'https://www.tiktok.com/@de.voyageur',
-    youtube:  'https://www.youtube.com/@de.voyageur',
+    youtube:  'https://www.youtube.com/@Devoyageur',
     linktree: 'https://linktr.ee/De.voyageur'
   },
 
