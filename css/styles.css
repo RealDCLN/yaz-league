@@ -738,3 +738,36 @@ a{color:inherit}
   *,*::before,*::after{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important;scroll-behavior:auto !important}
   .reveal{opacity:1;transform:none}
 }
+
+
+/* ============================ GLOBE ============================ */
+.section-globe{padding-top:clamp(1.6rem,4vw,2.6rem)}
+
+.globe-shell{
+  position:relative;
+  width:min(680px, 100%);
+  aspect-ratio:1/1;
+  margin-inline:auto;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(63,191,174,.08), transparent 55%),
+    radial-gradient(circle at 50% 50%, rgba(227,179,65,.05), transparent 72%);
+  border:1px solid var(--line-mid);
+  box-shadow:var(--shadow-md), inset 0 0 90px rgba(0,0,0,.5);
+  overflow:hidden;
+  clip-path:polygon(var(--cut) 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%, 0 var(--cut));
+}
+
+#globeViz{width:100%;height:100%;cursor:grab}
+#globeViz:active{cursor:grabbing}
+
+.globe-empty{
+  position:absolute;inset:0;display:grid;place-items:center;
+  text-align:center;padding:2rem;color:var(--text-3);
+  font-style:italic;font-size:.9rem;
+}
+
+.globe-controls{display:flex;justify-content:center;margin-top:1.2rem}
+
+@media (max-width:540px){
+  .globe-shell{width:100%}
+}
