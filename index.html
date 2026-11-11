@@ -138,17 +138,18 @@
                 <th scope="col" class="th-rank" data-sort="rank" aria-sort="ascending">Θέση</th>
                 <th scope="col" class="th-player" data-sort="nickname">Παίκτης</th>
                 <th scope="col" class="num" data-sort="points">Πόντοι</th>
+                <th scope="col" class="num" data-sort="wildcards">Wildcards</th>
                 <th scope="col" class="num" data-sort="games">Αγώνες</th>
                 <th scope="col" class="num" data-sort="wins">Νίκες</th>
                 <th scope="col" class="num" data-sort="podiums">Βάθρα</th>
               </tr>
             </thead>
             <tbody id="boardBody">
-              <tr><td colspan="6" class="loading-row">Φόρτωση βαθμολογίας…</td></tr>
+              <tr><td colspan="7" class="loading-row">Φόρτωση βαθμολογίας…</td></tr>
             </tbody>
           </table>
         </div>
-        <p class="board-note">Σε ισοπαλία πόντων μετράνε κατά σειρά: νίκες, βάθρα, αλφαβητική σειρά.</p>
+        <p class="board-note">Σε ισοπαλία πόντων μετράνε τα wildcards.</p>
       </div>
     </div>
   </section>
@@ -159,7 +160,7 @@
       <header class="section-head reveal">
         <p class="eyebrow">Πώς παίζεται</p>
         <h2 class="section-title">Κανόνες</h2>
-        <p class="section-sub">Δύο leagues κάθε Παρασκευή. Έως 12 πόντοι από κάθε league, συν 3 bonus για το concept στον χάρτη.</p>
+        <p class="section-sub">Δύο leagues κάθε Παρασκευή. Έως 12 πόντοι από κάθε league, συν 3 bonus για το concept στον χάρτη. Ο νικητής κάθε league κερδίζει 1 wildcard.</p>
       </header>
       <div class="rules-grid">
         <article class="rule-card reveal">
@@ -203,8 +204,9 @@
             <li><span class="score-pos">11η και κάτω</span><span class="score-pts">0</span></li>
           </ul>
           <p class="rule-foot">
+            Ο νικητής κάθε league (1η θέση) κερδίζει <strong>1 wildcard</strong>.
             Μέγιστο ανά εβδομάδα: <strong>12</strong> από τον χάρτη + <strong>12</strong> από το quiz + <strong>3</strong> bonus concept = <strong>27 πόντοι</strong>.
-            Σε ισοπαλία πόντων μετράνε κατά σειρά: νίκες, βάθρα, αλφαβητική σειρά.
+            Σε ισοπαλία πόντων μετράνε τα wildcards.
           </p>
         </article>
       </div>
@@ -218,31 +220,23 @@
         <p class="eyebrow">Μπες στη league</p>
         <h2 class="section-title">Εγγραφή</h2>
         <p class="section-sub">
-          Συμπλήρωσε τη φόρμα και θα σε βρούμε στο Discord πριν την επόμενη αγωνιστική.
+          Συμπλήρωσε τη φόρμα και θα επικοινωνήσουμε μαζί σου πριν την επόμενη αγωνιστική.
           Οι θέσεις είναι περιορισμένες και οι εγγραφές εγκρίνονται χειροκίνητα.
         </p>
         <ul class="signup-list">
-          <li>Ένα προφίλ GeoGuessr είναι υποχρεωτικό.</li>
-          <li>Χρειάζεσαι λογαριασμό Discord για τη φωνή και το scoreboard.</li>
+          <li>Το ψευδώνυμο εμφανίζεται δημόσια στην κατάταξη.</li>
+          <li>Το πραγματικό σου όνομα μένει ιδιωτικό — το βλέπει μόνο ο διοργανωτής.</li>
           <li>Δεν υπάρχει κόστος συμμετοχής.</li>
         </ul>
       </div>
       <form class="signup-form panel-light reveal" id="signupForm" novalidate>
         <div class="field">
-          <label for="regNickname">Όνομα / Ψευδώνυμο <span aria-hidden="true">*</span></label>
+          <label for="regNickname">Ψευδώνυμο (δημόσιο) <span aria-hidden="true">*</span></label>
           <input id="regNickname" name="nickname" type="text" required maxlength="40" autocomplete="nickname" placeholder="π.χ. MAPMAKER_GR">
         </div>
         <div class="field">
-          <label for="regGeo">Προφίλ GeoGuessr (URL) <span aria-hidden="true">*</span></label>
-          <input id="regGeo" name="geoguessr_url" type="url" required placeholder="https://www.geoguessr.com/user/…" inputmode="url">
-        </div>
-        <div class="field">
-          <label for="regDiscord">Discord username <span aria-hidden="true">*</span></label>
-          <input id="regDiscord" name="discord" type="text" required maxlength="40" placeholder="π.χ. mapmaker_gr">
-        </div>
-        <div class="field">
-          <label for="regEmail">Email <span class="optional">(προαιρετικό)</span></label>
-          <input id="regEmail" name="email" type="email" autocomplete="email" placeholder="you@example.com">
+          <label for="regFirst">Πραγματικό όνομα <span class="optional">(ιδιωτικό)</span> <span aria-hidden="true">*</span></label>
+          <input id="regFirst" name="first_name" type="text" required maxlength="40" autocomplete="given-name" placeholder="π.χ. Γιώργος">
         </div>
         <div class="hp-field" aria-hidden="true">
           <label for="regWebsite">Website</label>
@@ -289,7 +283,6 @@
       <div class="pm-avatar" id="pmAvatar" aria-hidden="true">ML</div>
       <div>
         <h3 class="pm-name" id="pmName">Παίκτης</h3>
-        <div class="pm-links" id="pmLinks"></div>
       </div>
     </div>
     <div class="pm-xp">

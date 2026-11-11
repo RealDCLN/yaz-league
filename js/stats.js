@@ -1,6 +1,7 @@
 /* ============================================================
    YAZ LEAGUE — Υπολογισμός στατιστικών (client-side)
    Όλα τα νούμερα της κατάταξης βγαίνουν από τα results.
+   Κατάταξη: πόντοι → wildcards. Τίποτα άλλο.
    ============================================================ */
 
 window.YAZ = window.YAZ || {};
@@ -33,16 +34,16 @@ window.YAZ = window.YAZ || {};
       rows.set(String(p.id), {
         id: p.id,
         nickname: p.nickname,
-        geoguessr_url: p.geoguessr_url || '',
-        discord: p.discord || '',
         is_active: p.is_active !== false,
         points: 0,
         games: 0,
         wins: 0,
         podiums: 0,
+        wildcards: 0,
         best: 0,
         bestPlacement: Infinity,
         perWeek: new Map(),
+        perWeekWildcards: new Map(),
         perMatch: []
       });
     });
@@ -60,7 +61,11 @@ window.YAZ = window.YAZ || {};
 
       row.points += pts;
       row.games += 1;
-      if (placement === 1) row.wins += 1;
+      if (placement === 1) {
+        row.wins += 1;
+        row.wildcards += 1;
+        row.perWeekWildcards.set(week, (row.perWeekWildcards.get(week) || 0) + 1);
+      }
       if (placement > 0 && placement <= 3) row.podiums += 1;
       if (raw > row.best) row.best = raw;
       if (placement > 0 && placement < row.bestPlacement) row.bestPlacement = placement;
@@ -79,34 +84,38 @@ window.YAZ = window.YAZ || {};
     const weeks = weeksOf(matches);
     const list = Array.from(rows.values());
 
-    /* Πορεία θέσης: σωρευτική βαθμολογία μετά από κάθε εβδομάδα */
+    /* Πορεία θέσης: σωρευτική βαθμολογία μετά από κάθε εβδομάδα.
+       Ισοπαλία σε πόντους+wildcards → ίδια θέση. */
     weeks.forEach(w => {
       const cumulative = list.map(row => {
-        let total = 0;
-        row.perWeek.forEach((v, k) => { if (k <= w) total += v; });
-        return { row, total };
+        let pts = 0;
+        let wc = 0;
+        row.perWeek.forEach((v, k) => { if (k <= w) pts += v; });
+        row.perWeekWildcards.forEach((v, k) => { if (k <= w) wc += v; });
+        return { row, pts, wc };
       });
 
       cumulative.sort((a, b) => {
-        if (b.total !== a.total) return b.total - a.total;
-        if (b.row.wins !== a.row.wins) return b.row.wins - a.row.wins;
-        if (b.row.podiums !== a.row.podiums) return b.row.podiums - a.row.podiums;
-        return a.row.nickname.localeCompare(b.row.nickname, 'el');
+        if (b.pts !== a.pts) return b.pts - a.pts;
+        if (b.wc !== a.wc) return b.wc - a.wc;
+        return String(a.row.id).localeCompare(String(b.row.id));
       });
 
-      let lastTotal = null;
+      let lastPts = null;
+      let lastWc = null;
       let lastRank = 0;
       cumulative.forEach((entry, i) => {
         let rank;
-        if (lastTotal !== null && entry.total === lastTotal) {
+        if (lastPts !== null && entry.pts === lastPts && entry.wc === lastWc) {
           rank = lastRank;
         } else {
           rank = i + 1;
           lastRank = rank;
-          lastTotal = entry.total;
+          lastPts = entry.pts;
+          lastWc = entry.wc;
         }
         if (!entry.row.rankHistory) entry.row.rankHistory = [];
-        entry.row.rankHistory.push({ week: w, rank: rank, points: entry.total });
+        entry.row.rankHistory.push({ week: w, rank: rank, points: entry.pts, wildcards: entry.wc });
       });
     });
 
@@ -116,11 +125,11 @@ window.YAZ = window.YAZ || {};
       if (!isFinite(row.bestPlacement)) row.bestPlacement = null;
     });
 
+    /* Κανονική κατάταξη: πόντοι, μετά wildcards. */
     list.sort((a, b) => {
       if (b.points !== a.points) return b.points - a.points;
-      if (b.wins !== a.wins) return b.wins - a.wins;
-      if (b.podiums !== a.podiums) return b.podiums - a.podiums;
-      return a.nickname.localeCompare(b.nickname, 'el');
+      if (b.wildcards !== a.wildcards) return b.wildcards - a.wildcards;
+      return String(a.id).localeCompare(String(b.id));
     });
 
     list.forEach((row, i) => {

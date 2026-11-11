@@ -64,7 +64,7 @@
       console.error('[YAZ] data load failed:', err);
       const tbody = document.getElementById('boardBody');
       if (tbody) {
-        tbody.innerHTML = '<tr><td colspan="6" class="loading-row">Δεν ήταν δυνατή η φόρτωση της βαθμολογίας. Δοκίμασε ξανά σε λίγο.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" class="loading-row">Δεν ήταν δυνατή η φόρτωση της βαθμολογίας. Δοκίμασε ξανά σε λίγο.</td></tr>';
       }
       // The map section still shows its shell, just with no pins.
     }
@@ -232,7 +232,7 @@
     if (!tbody) return;
 
     if (!state.standings.length) {
-      tbody.innerHTML = '<tr><td colspan="6" class="loading-row">Δεν υπάρχουν ακόμη αποτελέσματα.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7" class="loading-row">Δεν υπάρχουν ακόμη αποτελέσματα.</td></tr>';
       return;
     }
 
@@ -266,6 +266,7 @@
             '</button>' +
           '</td>' +
           '<td class="num">' + row.points + '</td>' +
+          '<td class="num" title="Wildcards — νίκες σε league">' + row.wildcards + '</td>' +
           '<td class="num">' + row.games + '</td>' +
           '<td class="num">' + row.wins + '</td>' +
           '<td class="num">' + row.podiums + '</td>' +
@@ -349,15 +350,6 @@
       'Θέση ' + row.rank + ' / ' + state.standings.length +
       (row.bestPlacement ? ' · Top ' + row.bestPlacement : '');
 
-    const links = [];
-    if (row.geoguessr_url) {
-      links.push('<a href="' + escapeAttr(row.geoguessr_url) + '" target="_blank" rel="noopener">GeoGuessr ↗</a>');
-    }
-    if (row.discord) {
-      links.push('<a href="' + escapeAttr(cfg.links.discord) + '" target="_blank" rel="noopener">Discord · ' + escapeHtml(row.discord) + '</a>');
-    }
-    document.getElementById('pmLinks').innerHTML = links.join('');
-
     const leaderPoints = state.standings[0] ? state.standings[0].points : 0;
     const pct = leaderPoints > 0 ? Math.max(2, Math.min(100, (row.points / leaderPoints) * 100)) : 0;
     document.getElementById('pmXpVal').textContent = row.points + ' / ' + leaderPoints + ' πόντοι';
@@ -369,6 +361,7 @@
       ['Σύνολο πόντων', row.points],
       ['Αγώνες', row.games],
       ['Νίκες', row.wins],
+      ['Wildcards', row.wildcards],
       ['Βάθρα', row.podiums],
       ['Μ.Ο. ανά αγώνα', row.avg.toFixed(2)],
       ['Καλύτερο σκορ', Math.round(row.best).toLocaleString('el-GR')]
@@ -469,9 +462,7 @@
       const btn = document.getElementById('signupBtn');
 
       const nickname = form.nickname.value.trim();
-      const geoguessr = form.geoguessr_url.value.trim();
-      const discord = form.discord.value.trim();
-      const email = form.email.value.trim();
+      const firstName = form.first_name.value.trim();
       const honey = form.website.value;
 
       form.querySelectorAll('input').forEach(i => i.classList.remove('invalid'));
@@ -480,54 +471,4 @@
 
       if (honey) {
         msg.className = 'form-msg ok';
-        msg.textContent = 'Ευχαριστούμε! Η αίτησή σου καταχωρήθηκε.';
-        form.reset();
-        return;
-      }
-
-      const problems = [];
-      if (nickname.length < 2) { problems.push('Το ψευδώνυμο είναι υποχρεωτικό.'); form.nickname.classList.add('invalid'); }
-      if (!/^https?:\/\/.+\..+/i.test(geoguessr)) { problems.push('Χρειάζεται έγκυρο URL προφίλ GeoGuessr.'); form.geoguessr_url.classList.add('invalid'); }
-      if (discord.length < 2) { problems.push('Το Discord username είναι υποχρεωτικό.'); form.discord.classList.add('invalid'); }
-      if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { problems.push('Το email δεν φαίνεται σωστό.'); form.email.classList.add('invalid'); }
-
-      if (problems.length) {
-        msg.className = 'form-msg err';
-        msg.textContent = problems.join(' ');
-        return;
-      }
-
-      btn.disabled = true;
-      btn.textContent = 'Αποστολή…';
-
-      const res = await Y.data.submitRegistration({
-        nickname, geoguessr_url: geoguessr, discord, email
-      });
-
-      btn.disabled = false;
-      btn.textContent = 'Στείλε αίτηση';
-
-      if (res.ok) {
-        msg.className = 'form-msg ok';
-        msg.textContent = 'Ευχαριστούμε, ' + nickname + '! Η αίτησή σου καταχωρήθηκε και θα ελεγχθεί πριν την επόμενη αγωνιστική.';
-        form.reset();
-      } else {
-        msg.className = 'form-msg err';
-        msg.textContent = 'Κάτι πήγε στραβά. Δοκίμασε ξανά σε λίγο ή στείλε μήνυμα στο Discord.';
-        console.error('[YAZ] registration error:', res.error);
-      }
-    });
-  }
-
-  /* ---------------- utils ---------------- */
-
-  function escapeHtml(str) {
-    return String(str == null ? '' : str).replace(/[&<>"']/g, ch => ({
-      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-    }[ch]));
-  }
-
-  function escapeAttr(str) {
-    return escapeHtml(str).replace(/`/g, '&#96;');
-  }
-})();
+        msg.textContent = 'Ευχαριστούμε! Η αίτησή σου
