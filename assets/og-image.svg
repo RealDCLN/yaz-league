@@ -1,30 +1,39 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630" role="img" aria-label="YAZ LEAGUE — Το απόλυτο πρωτάθλημα γεωγραφίας">
   <defs>
-    <radialGradient id="glow" cx="50%" cy="50%" r="60%">
-      <stop offset="0%" stop-color="#E3B341" stop-opacity="0.14"/>
-      <stop offset="100%" stop-color="#0F1626" stop-opacity="0"/>
+    <radialGradient id="bg" cx="50%" cy="25%" r="85%">
+      <stop offset="0%" stop-color="#1D2A44"/>
+      <stop offset="100%" stop-color="#0F1626"/>
     </radialGradient>
-    <pattern id="grid" width="52" height="52" patternUnits="userSpaceOnUse">
-      <path d="M 52 0 L 0 0 0 52" fill="none" stroke="#E3B341" stroke-opacity="0.06" stroke-width="1"/>
+    <pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse">
+      <path d="M60 0 H0 V60" fill="none" stroke="#E3B341" stroke-width="1" opacity="0.06"/>
     </pattern>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#E3B341" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#E3B341" stop-opacity="0"/>
+    </radialGradient>
   </defs>
-  <rect width="1200" height="630" fill="#0F1626"/>
+
+  <rect width="1200" height="630" fill="url(#bg)"/>
   <rect width="1200" height="630" fill="url(#grid)"/>
-  <rect width="1200" height="630" fill="url(#glow)"/>
-  <g transform="translate(930, 315)" opacity="0.9">
-    <circle r="200" fill="none" stroke="#E3B341" stroke-width="1.5" stroke-opacity="0.25"/>
-    <circle r="160" fill="none" stroke="#E3B341" stroke-width="0.8" stroke-opacity="0.4" stroke-dasharray="3 8"/>
-    <circle r="120" fill="none" stroke="#E3B341" stroke-width="0.6" stroke-opacity="0.2"/>
-    <path d="M0 -180 L18 -20 L0 180 L-18 -20 Z" fill="#E2572B"/>
-    <path d="M-180 0 L-20 -18 L180 0 L-20 18 Z" fill="#E3B341" opacity="0.9"/>
+
+  <!-- compass glow -->
+  <circle cx="900" cy="315" r="260" fill="url(#glow)"/>
+
+  <!-- compass rose -->
+  <g transform="translate(900 315)" opacity="0.92">
+    <circle r="180" fill="none" stroke="#E3B341" stroke-width="2" opacity="0.4"/>
+    <circle r="140" fill="none" stroke="#E3B341" stroke-width="1" stroke-dasharray="3 6" opacity="0.5"/>
+    <path d="M0 -170 L24 0 L0 170 L-24 0 Z" fill="#E2572B" opacity="0.92"/>
+    <path d="M-170 0 L0 -24 L170 0 L0 24 Z" fill="#E3B341" opacity="0.72"/>
     <circle r="10" fill="#F0E4C8"/>
   </g>
-  <text x="90" y="255" font-family="Georgia, 'Times New Roman', serif" font-size="120" font-weight="900" fill="#F0E4C8" letter-spacing="3">YAZ</text>
-  <text x="90" y="375" font-family="Georgia, 'Times New Roman', serif" font-size="120" font-weight="900" fill="#E3B341" letter-spacing="10">LEAGUE</text>
-  <text x="90" y="450" font-family="Georgia, 'Times New Roman', serif" font-style="italic" font-size="30" fill="#A9B6CC">«Το απόλυτο πρωτάθλημα γεωγραφίας»</text>
-  <text x="90" y="515" font-family="monospace" font-size="20" font-weight="700" fill="#3FBFAE" letter-spacing="4">DE.VOYAGEUR · ΠΑΡΑΣΚΕΥΗ 19:00</text>
-  <path d="M 60 60 L 60 90 M 60 60 L 90 60" stroke="#E3B341" stroke-width="3" fill="none" opacity="0.7"/>
-  <path d="M 1140 60 L 1140 90 M 1140 60 L 1110 60" stroke="#E3B341" stroke-width="3" fill="none" opacity="0.7"/>
-  <path d="M 60 570 L 60 540 M 60 570 L 90 570" stroke="#E3B341" stroke-width="3" fill="none" opacity="0.7"/>
-  <path d="M 1140 570 L 1140 540 M 1140 570 L 1110 570" stroke="#E3B341" stroke-width="3" fill="none" opacity="0.7"/>
+
+  <!-- text block -->
+  <g font-family="Georgia, 'Times New Roman', serif">
+    <text x="80" y="230" font-size="34" fill="#A9B6CC" letter-spacing="14" font-weight="600">ΣΕΖΟΝ 2026</text>
+    <text x="80" y="380" font-size="132" fill="#F0E4C8" letter-spacing="8" font-weight="900">YAZ</text>
+    <text x="80" y="500" font-size="132" fill="#E3B341" letter-spacing="8" font-weight="900">LEAGUE</text>
+    <text x="82" y="562" font-size="26" fill="#A9B6CC" font-style="italic">«Το απόλυτο πρωτάθλημα γεωγραφίας»</text>
+    <text x="82" y="600" font-size="18" fill="#7C8BA3" letter-spacing="6">ΔΙΟΡΓΑΝΩΣΗ DE.VOYAGEUR</text>
+  </g>
 </svg>

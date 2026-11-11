@@ -2,10 +2,21 @@
 --  YAZ LEAGUE — Seed data
 --  40 παίκτες, 8 αγωνιστικές (Χάρτης + Quiz), πλήρη αποτελέσματα.
 --  Τρέξε το ΜΕΤΑ το schema.sql, στο ίδιο SQL Editor.
---  Καθαρισμός: truncate public.results, public.matches, public.players cascade;
+--
+--  ⚠️  DEVELOPMENT ONLY. The TRUNCATE below is intentionally commented
+--      out so this file can't wipe a live database by accident. On a
+--      fresh / dev project, uncomment it to reset state first.
+--
+--  Reset (opt-in):
+--  truncate public.results, public.matches, public.players cascade;
+--
+--  The seed uses random() for skill jitter. setseed() makes the run
+--  reproducible-ish within a single session; results still won't be
+--  byte-identical to the front-end demo seed, but match-by-match they
+--  will be consistent across reruns on the same Postgres instance.
 -- ============================================================
 
-truncate public.results, public.matches, public.players cascade;
+select setseed(0.20260918);
 
 insert into public.players (nickname, geoguessr_url, discord) values
   ('MR. LAG',              'https://www.geoguessr.com/user/1000000', 'mr.lag'),

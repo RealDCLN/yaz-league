@@ -1,6 +1,12 @@
 /* ============================================================
    YAZ LEAGUE — Data layer
-   Διαβάζει από Supabase αν έχουν μπει τα keys, αλλιώς από seed.
+   Reads from Supabase when configured, otherwise from the local
+   seed (demo mode).
+
+   IMPORTANT: when Supabase IS configured but a request fails, we
+   deliberately do NOT fall back to the demo dataset. Showing 40
+   fake players to real users on a transient network error is a
+   worse outcome than showing an honest "couldn't load" state.
    ============================================================ */
 
 window.YAZ = window.YAZ || {};
@@ -45,13 +51,12 @@ window.YAZ = window.YAZ || {};
 
   async function load() {
     if (configured()) {
-      try {
-        const data = await fromSupabase();
-        mode = 'supabase';
-        return data;
-      } catch (err) {
-        console.warn('[YAZ] Supabase δεν απάντησε, χρησιμοποιώ demo δεδομένα.', err);
-      }
+      // Do NOT swallow Supabase errors here. If keys are set, the caller
+      // expects live data — let errors bubble so app.js can show the
+      // error state instead of silently rendering 40 fake players.
+      const data = await fromSupabase();
+      mode = 'supabase';
+      return data;
     }
     mode = 'demo';
     return YAZ.seed.build();
@@ -60,6 +65,7 @@ window.YAZ = window.YAZ || {};
   async function submitRegistration(payload) {
     const sb = getClient();
     if (!sb) {
+      // No Supabase configured → pretend success (demo mode).
       await new Promise(res => setTimeout(res, 600));
       return { ok: true, demo: true };
     }
