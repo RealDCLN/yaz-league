@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Σελίδα δεν βρέθηκε · YAZ LEAGUE</title>
+<meta name="robots" content="noindex, follow">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Cinzel+Decorative:wght@700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+<style>
+  .err-page{min-height:100vh;display:grid;place-items:center;text-align:center;padding:2rem 1rem}
+  .err-code{
+    font-family:var(--mono);font-size:clamp(4.5rem,18vw,9rem);line-height:.9;
+    color:var(--gold);margin:0;letter-spacing:.05em;
+    text-shadow:0 0 60px rgba(227,179,65,.4);
+  }
+  .err-title{font-size:clamp(1.4rem,4vw,2rem);margin:.6rem 0 .9rem;color:var(--parchment)}
+  .err-text{color:var(--text-2);max-width:44ch;margin:0 auto 1.8rem}
+  .err-compass{width:104px;height:104px;color:var(--gold);opacity:.4;margin:0 auto 1.4rem}
+</style>
+</head>
+<body>
+<main class="err-page">
+  <div class="wrap">
+    <svg class="err-compass" viewBox="0 0 100 100" aria-hidden="true">
+      <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" stroke-width="1"/>
+      <circle cx="50" cy="50" r="33" fill="none" stroke="currentColor" stroke-width=".6" stroke-dasharray="1.5 4"/>
+      <path d="M50 8 L56 46 L92 50 L56 54 L50 92 L44 54 L8 50 L44 46 Z" fill="currentColor"/>
+      <circle cx="50" cy="50" r="3.4" fill="#E2572B"/>
+    </svg>
+    <p class="err-code">404</p>
+    <h1 class="err-title">Χαθήκαμε στον χάρτη</h1>
+    <p class="err-text">
+      Η σελίδα που ψάχνεις δεν υπάρχει — ή μετακινήθηκε σε άλλη γωνιά του πλανήτη.
+      Γύρνα στην αρχική και συνέχισε από εκεί.
+    </p>
+    <a class="btn btn-primary" href="/">Επιστροφή στην αρχική</a>
+  </div>
+</main>
+</body>
+</html>
