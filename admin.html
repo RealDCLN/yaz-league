@@ -91,8 +91,23 @@
           </div>
         </div>
 
+        <div class="admin-row" id="locationRow">
+          <div class="field">
+            <label for="mLocation">Τοποθεσία</label>
+            <input id="mLocation" type="text" placeholder="π.χ. Κιότο, Ιαπωνία">
+          </div>
+          <div class="field">
+            <label for="mLat">Latitude</label>
+            <input id="mLat" type="number" step="any" placeholder="35.0116">
+          </div>
+          <div class="field">
+            <label for="mLng">Longitude</label>
+            <input id="mLng" type="number" step="any" placeholder="135.7681">
+          </div>
+        </div>
+
         <h3 class="admin-h3">Σειρά κατάταξης</h3>
-        <p class="admin-hint">Ο πρώτος παίκτης παίρνει 12 πόντους, ο δεύτερος 9 κ.ο.κ. (ανά league). Οι πόντοι υπολογίζονται αυτόματα.</p>
+        <p class="admin-hint">Ο πρώτος παίκτης παίρνει 12 πόντους, ο δεύτερος 9 κ.ο.κ. (ανά league). Οι πόντοι υπολογίζονται αυτόματα. Ο πρώτος κάθε league κερδίζει 1 wildcard — υπολογίζεται αυτόματα από την κατάταξη.</p>
 
         <div class="entry-list" id="entryList"></div>
         <div class="admin-actions">
@@ -126,7 +141,7 @@
     <div class="admin-panel" id="tab-regs">
       <div class="admin-card">
         <h2 class="admin-h2">Αιτήσεις εγγραφής</h2>
-        <p class="admin-lead">Έγκρινε ή απέρριψε τις εκκρεμείς αιτήσεις. Η έγκριση δημιουργεί αυτόματα παίκτη.</p>
+        <p class="admin-lead">Έγκρινε ή απέρριψε τις εκκρεμείς αιτήσεις. Η έγκριση δημιουργεί αυτόματα παίκτη. Το πραγματικό όνομα αποθηκεύεται ιδιωτικά και δεν εμφανίζεται ποτέ δημόσια.</p>
         <div id="regsList" class="reg-list"><p class="loading-row">Φόρτωση…</p></div>
       </div>
     </div>
@@ -137,16 +152,12 @@
         <form id="playerForm" class="admin-form">
           <div class="admin-row">
             <div class="field">
-              <label for="pNick">Ψευδώνυμο</label>
+              <label for="pNick">Ψευδώνυμο (δημόσιο)</label>
               <input id="pNick" type="text" required maxlength="40">
             </div>
             <div class="field">
-              <label for="pGeo">GeoGuessr URL</label>
-              <input id="pGeo" type="url" placeholder="https://www.geoguessr.com/user/…">
-            </div>
-            <div class="field">
-              <label for="pDiscord">Discord</label>
-              <input id="pDiscord" type="text" maxlength="40">
+              <label for="pFirst">Πραγματικό όνομα (ιδιωτικό)</label>
+              <input id="pFirst" type="text" required maxlength="40">
             </div>
           </div>
           <div class="admin-actions">
@@ -160,7 +171,7 @@
         <h2 class="admin-h2">Ενεργοί παίκτες <span class="tab-count" id="playersCount">0</span></h2>
         <div class="table-scroll">
           <table class="board-table">
-            <thead><tr><th>Ψευδώνυμο</th><th>Discord</th><th>GeoGuessr</th></tr></thead>
+            <thead><tr><th>Ψευδώνυμο</th><th>Πραγματικό όνομα</th></tr></thead>
             <tbody id="playersBody"></tbody>
           </table>
         </div>
