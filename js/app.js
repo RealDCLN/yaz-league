@@ -37,8 +37,6 @@
     fillHud();
     renderBoard();
     startCountdown();
-    if (Y.globeView) Y.globeView.init(state.matches);
-
   }
 
   /* ---------------- hero HUD ---------------- */
@@ -483,6 +481,4 @@
   }
 
   function escapeAttr(str) {
-    return escapeHtml(str).replace(/`/g, '&#96;');
-  }
-})();
+    return escapeHtml(str).replace(/`/g, '&#96;
