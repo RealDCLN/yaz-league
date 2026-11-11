@@ -359,9 +359,9 @@
 
     const stats = [
       ['Σύνολο πόντων', row.points],
+      ['Wildcards', row.wildcards],
       ['Αγώνες', row.games],
       ['Νίκες', row.wins],
-      ['Wildcards', row.wildcards],
       ['Βάθρα', row.podiums],
       ['Μ.Ο. ανά αγώνα', row.avg.toFixed(2)],
       ['Καλύτερο σκορ', Math.round(row.best).toLocaleString('el-GR')]
@@ -471,4 +471,53 @@
 
       if (honey) {
         msg.className = 'form-msg ok';
-        msg.textContent = 'Ευχαριστούμε! Η αίτησή σου
+        msg.textContent = 'Ευχαριστούμε! Η αίτησή σου καταχωρήθηκε.';
+        form.reset();
+        return;
+      }
+
+      const problems = [];
+      if (nickname.length < 2) { problems.push('Το ψευδώνυμο είναι υποχρεωτικό.'); form.nickname.classList.add('invalid'); }
+      if (firstName.length < 2) { problems.push('Το πραγματικό όνομα είναι υποχρεωτικό.'); form.first_name.classList.add('invalid'); }
+
+      if (problems.length) {
+        msg.className = 'form-msg err';
+        msg.textContent = problems.join(' ');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Αποστολή…';
+
+      const res = await Y.data.submitRegistration({
+        nickname: nickname,
+        first_name: firstName
+      });
+
+      btn.disabled = false;
+      btn.textContent = 'Στείλε αίτηση';
+
+      if (res.ok) {
+        msg.className = 'form-msg ok';
+        msg.textContent = 'Ευχαριστούμε, ' + nickname + '! Η αίτησή σου καταχωρήθηκε και θα ελεγχθεί πριν την επόμενη αγωνιστική.';
+        form.reset();
+      } else {
+        msg.className = 'form-msg err';
+        msg.textContent = 'Κάτι πήγε στραβά. Δοκίμασε ξανά σε λίγο ή στείλε μήνυμα στο Discord.';
+        console.error('[YAZ] registration error:', res.error);
+      }
+    });
+  }
+
+  /* ---------------- utils ---------------- */
+
+  function escapeHtml(str) {
+    return String(str == null ? '' : str).replace(/[&<>"']/g, ch => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[ch]));
+  }
+
+  function escapeAttr(str) {
+    return escapeHtml(str).replace(/`/g, '&#96;');
+  }
+})();
