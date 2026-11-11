@@ -1,20 +1,53 @@
 /* ============================================================
    YAZ LEAGUE — Ambient background globe
-   Fixed wireframe sphere canvas sitting behind all content.
+   Fixed spinning SVG globe behind all content. No JS required.
    ============================================================ */
 
-#bgGlobe{
+.bg-globe{
   position: fixed;
   inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
   z-index: 0;
-  opacity: 0.9;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: clamp(20px, 4vw, 80px);
+  overflow: hidden;
+  opacity: 0.72;
 }
 
-/* On very short/wide screens we shrink the opacity a bit so it doesn't
-   fight with the leaderboard tables. */
-@media (max-height: 560px){
-  #bgGlobe{ opacity: 0.6; }
+.bg-globe svg{
+  width: min(52vw, 52vh);
+  height: min(52vw, 52vh);
+  max-width: 640px;
+  max-height: 640px;
+  flex: none;
+  display: block;
+}
+
+@media (max-width: 760px){
+  .bg-globe{
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 18vh;
+    padding-right: 0;
+    opacity: 0.5;
+  }
+  .bg-globe svg{
+    width: 92vw;
+    height: 92vw;
+    max-width: none;
+    max-height: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce){
+  .bg-globe{ display: none; }
+}
+
+/* Defensive: keep the footer above the background layer even if
+   some other rule ever shifts stacking contexts. */
+body > .site-footer{
+  position: relative;
+  z-index: 1;
 }

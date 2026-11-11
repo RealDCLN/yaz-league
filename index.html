@@ -27,7 +27,50 @@
 <link rel="stylesheet" href="css/background.css">
 </head>
 <body>
-<canvas id="bgGlobe" aria-hidden="true"></canvas>
+<!-- Ambient spinning wireframe globe (SVG + SMIL, no JS) -->
+<div class="bg-globe" aria-hidden="true">
+  <svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <radialGradient id="globeHalo" cx="50%" cy="50%" r="60%">
+        <stop offset="60%" stop-color="#3FBFAE" stop-opacity="0"/>
+        <stop offset="100%" stop-color="#3FBFAE" stop-opacity="0.09"/>
+      </radialGradient>
+    </defs>
+    <circle cx="200" cy="200" r="230" fill="url(#globeHalo)"/>
+    <circle cx="200" cy="200" r="180" fill="none" stroke="#E3B341" stroke-width="0.9" stroke-opacity="0.35"/>
+    <g fill="none" stroke="#3FBFAE" stroke-linecap="round">
+      <ellipse cx="200" cy="200" rx="180" ry="150" stroke-width="0.6" stroke-opacity="0.16"/>
+      <ellipse cx="200" cy="200" rx="180" ry="120" stroke-width="0.6" stroke-opacity="0.22"/>
+      <ellipse cx="200" cy="200" rx="180" ry="90"  stroke-width="0.7" stroke-opacity="0.28"/>
+      <ellipse cx="200" cy="200" rx="180" ry="60"  stroke-width="0.7" stroke-opacity="0.32"/>
+      <ellipse cx="200" cy="200" rx="180" ry="30"  stroke-width="0.8" stroke-opacity="0.35"/>
+    </g>
+    <g fill="none" stroke="#E3B341" stroke-linecap="round">
+      <ellipse cx="200" cy="200" ry="180" rx="180" stroke-width="0.7" stroke-opacity="0.30">
+        <animate attributeName="rx" values="180;24;180" dur="10s" repeatCount="indefinite"/>
+      </ellipse>
+      <ellipse cx="200" cy="200" ry="180" rx="24" stroke-width="0.7" stroke-opacity="0.30">
+        <animate attributeName="rx" values="24;180;24" dur="10s" repeatCount="indefinite"/>
+      </ellipse>
+      <ellipse cx="200" cy="200" ry="180" rx="100" stroke-width="0.65" stroke-opacity="0.22">
+        <animate attributeName="rx" values="100;180;100" dur="10s" repeatCount="indefinite"/>
+      </ellipse>
+      <ellipse cx="200" cy="200" ry="180" rx="180" stroke-width="0.65" stroke-opacity="0.22">
+        <animate attributeName="rx" values="180;100;180" dur="10s" repeatCount="indefinite"/>
+      </ellipse>
+    </g>
+    <circle cx="248" cy="172" r="3.4" fill="#E2572B">
+      <animate attributeName="opacity" values="1;0.35;1" dur="2.6s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="168" cy="228" r="3.4" fill="#3FBFAE">
+      <animate attributeName="opacity" values="1;0.35;1" dur="3.2s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="212" cy="256" r="3.4" fill="#FFD166">
+      <animate attributeName="opacity" values="1;0.35;1" dur="2.9s" repeatCount="indefinite"/>
+    </circle>
+  </svg>
+</div>
+
 <a class="skip-link" href="#katataxi">Μετάβαση στην κατάταξη</a>
 <!-- ================= HEADER ================= -->
 <header class="site-header" id="top">
@@ -211,4 +254,119 @@
             <li><span class="score-pos">11η και κάτω</span><span class="score-pts">0</span></li>
           </ul>
           <p class="rule-foot">
-            Οι πόντοι των δύο leagues προ
+            Οι πόντοι των δύο leagues προστίθενται στο σύνολο της σεζόν. Σε ισοπαλία πόντων
+            μετράνε πρώτα οι νίκες, μετά τα βάθρα και τέλος η αλφαβητική σειρά.
+          </p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= REGISTRATION ================= -->
+  <section class="section section-signup" id="egrafi">
+    <div class="wrap signup-grid">
+      <div class="signup-copy reveal">
+        <p class="eyebrow">Μπες στη league</p>
+        <h2 class="section-title">Εγγραφή</h2>
+        <p class="section-sub">
+          Συμπλήρωσε τη φόρμα και θα σε βρούμε στο Discord πριν την επόμενη αγωνιστική.
+          Οι θέσεις είναι περιορισμένες και οι εγγραφές εγκρίνονται χειροκίνητα.
+        </p>
+        <ul class="signup-list">
+          <li>Ένα προφίλ GeoGuessr είναι υποχρεωτικό.</li>
+          <li>Χρειάζεσαι λογαριασμό Discord για τη φωνή και το scoreboard.</li>
+          <li>Δεν υπάρχει κόστος συμμετοχής.</li>
+        </ul>
+      </div>
+      <form class="signup-form panel-light reveal" id="signupForm" novalidate>
+        <div class="field">
+          <label for="regNickname">Όνομα / Ψευδώνυμο <span aria-hidden="true">*</span></label>
+          <input id="regNickname" name="nickname" type="text" required maxlength="40" autocomplete="nickname" placeholder="π.χ. MAPMAKER_GR">
+        </div>
+        <div class="field">
+          <label for="regGeo">Προφίλ GeoGuessr (URL) <span aria-hidden="true">*</span></label>
+          <input id="regGeo" name="geoguessr_url" type="url" required placeholder="https://www.geoguessr.com/user/…" inputmode="url">
+        </div>
+        <div class="field">
+          <label for="regDiscord">Discord username <span aria-hidden="true">*</span></label>
+          <input id="regDiscord" name="discord" type="text" required maxlength="40" placeholder="π.χ. mapmaker_gr">
+        </div>
+        <div class="field">
+          <label for="regEmail">Email <span class="optional">(προαιρετικό)</span></label>
+          <input id="regEmail" name="email" type="email" autocomplete="email" placeholder="you@example.com">
+        </div>
+        <div class="hp-field" aria-hidden="true">
+          <label for="regWebsite">Website</label>
+          <input id="regWebsite" name="website" type="text" tabindex="-1" autocomplete="off">
+        </div>
+        <label class="checkbox">
+          <input type="checkbox" id="regTerms" name="terms" required>
+          <span>Αποδέχομαι τους κανόνες της YAZ LEAGUE</span>
+        </label>
+        <button class="btn btn-primary btn-block" type="submit" id="signupBtn">Στείλε αίτηση</button>
+        <p class="form-msg" id="signupMsg" role="status" aria-live="polite"></p>
+      </form>
+    </div>
+  </section>
+</main>
+
+<!-- ================= FOOTER ================= -->
+<footer class="site-footer">
+  <div class="wrap footer-grid">
+    <div class="footer-brand">
+      <p class="footer-title">YAZ LEAGUE</p>
+      <p class="footer-slogan">«Το απόλυτο πρωτάθλημα γεωγραφίας»</p>
+      <p class="footer-org">Διοργάνωση <strong>DE.VOYAGEUR</strong></p>
+    </div>
+    <nav class="footer-links" aria-label="Κοινωνικά δίκτυα">
+      <a data-link="discord" href="#" target="_blank" rel="noopener">Discord</a>
+      <a data-link="tiktok" href="#" target="_blank" rel="noopener">TikTok</a>
+      <a data-link="youtube" href="#" target="_blank" rel="noopener">YouTube</a>
+      <a href="https://www.instagram.com/de.voyageur/" target="_blank" rel="noopener noreferrer">Instagram</a>
+    </nav>
+  </div>
+  <div class="wrap footer-bottom">
+    <p>© <span id="year">2026</span> YAZ LEAGUE · Με επιφύλαξη παντός δικαιώματος.</p>
+    <p class="made-for">Made for the YAZ LEAGUE community</p>
+  </div>
+</footer>
+
+<!-- ================= PLAYER MODAL ================= -->
+<div class="modal" id="playerModal" role="dialog" aria-modal="true" aria-labelledby="pmName" hidden>
+  <div class="modal-card frame">
+    <button class="modal-close" id="pmClose" aria-label="Κλείσιμο">×</button>
+    <div class="pm-tier-banner tier-gold" id="pmTierBanner">
+      <span class="pm-tier-name" id="pmTierName">Χρυσός</span>
+      <span class="pm-tier-rank" id="pmRank">Θέση —</span>
+    </div>
+    <div class="pm-head">
+      <div class="pm-avatar" id="pmAvatar" aria-hidden="true">ML</div>
+      <div>
+        <h3 class="pm-name" id="pmName">Παίκτης</h3>
+        <div class="pm-links" id="pmLinks"></div>
+      </div>
+    </div>
+    <div class="pm-xp">
+      <div class="pm-xp-head">
+        <span>Πρόοδος σεζόν</span>
+        <span id="pmXpVal">0 / 0</span>
+      </div>
+      <div class="xp-bar"><div class="xp-fill" id="pmXpFill"></div></div>
+    </div>
+    <div class="pm-stats" id="pmStats"></div>
+    <div class="pm-chart-wrap">
+      <h4>Πορεία στη κατάταξη</h4>
+      <canvas id="pmChart" height="200" aria-label="Γράφημα πορείας θέσης ανά αγωνιστική" role="img"></canvas>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
+<script src="js/config.js"></script>
+<script src="js/seed.js"></script>
+<script src="js/stats.js"></script>
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
