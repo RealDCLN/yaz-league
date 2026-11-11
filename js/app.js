@@ -37,7 +37,8 @@
     fillHud();
     renderBoard();
     startCountdown();
-    Y.mapView.init(state.matches);
+    if (Y.globeView) Y.globeView.init(state.matches);
+
   }
 
   /* ---------------- hero HUD ---------------- */

@@ -133,32 +133,29 @@
           <div class="cd-cell"><span class="cd-num" data-cd="minutes">00</span><span class="cd-lab">Λεπτά</span></div>
           <div class="cd-cell"><span class="cd-num" data-cd="seconds">00</span><span class="cd-lab">Δευτ.</span></div>
         </div>
-        <p class="next-note">Το concept της εβδομάδας ανακοινώνεται στην ώρα έναρξης.</p>
+        <p class="next-note">Το concept μένει μυστικό — η δουλειά σου είναι να το ανακαλύψεις μέσα από τις τοποθεσίες.</p>
       </aside>
     </div>
   </section>
 
-  <!-- ================= MAP ================= -->
-  <section class="section section-map" id="xartis">
-    <div class="wrap">
-      <header class="section-head reveal">
-        <p class="eyebrow">Οι σταθμοί μας</p>
-        <h2 class="section-title">Χάρτης αγωνιστικών</h2>
-        <p class="section-sub">Κάθε καρφίτσα και μια διαδρομή. Πάτησε πάνω της για να δεις πού ταξιδέψαμε.</p>
-      </header>
+<!-- ================= GLOBE ================= -->
+<section class="section section-globe" id="diadromi">
+  <div class="wrap">
+    <header class="section-head reveal">
+      <p class="eyebrow">Η πορεία μας</p>
+      <h2 class="section-title">Η διαδρομή της σεζόν</h2>
+      <p class="section-sub">Κάθε σταθμός και μια ιστορία. Περιστρέψε τη σφαίρα — ή πάτα «Περιήγηση» για να ταξιδέψεις σε κάθε τοποθεσία.</p>
+    </header>
 
-      <div class="map-shell reveal">
-        <div class="map-canvas" id="mapCanvas">
-          <svg id="worldSvg" viewBox="0 0 960 500" role="img" aria-label="Χάρτης με τις τοποθεσίες των αγωνιστικών"></svg>
-          <div class="map-tooltip" id="mapTooltip" role="status" aria-live="polite"></div>
-        </div>
-        <div class="map-controls">
-          <div class="week-chips" id="weekChips" aria-label="Επιλογή αγωνιστικής"></div>
-          <button class="btn btn-outline btn-sm" id="randomPin" type="button">Τυχαία τοποθεσία</button>
-        </div>
-      </div>
+    <div class="globe-shell reveal">
+      <div id="globeViz" aria-label="Τρισδιάστατη σφαίρα με τους σταθμούς της σεζόν" role="img"></div>
+      <div class="globe-empty" id="globeEmpty" hidden></div>
     </div>
-  </section>
+    <div class="globe-controls">
+      <button class="btn btn-outline btn-sm" id="globeTour" type="button">Περιήγηση στους σταθμούς</button>
+    </div>
+  </div>
+</section>
 
   <!-- ================= LEADERBOARD ================= -->
   <section class="section section-board" id="katataxi">
@@ -374,16 +371,15 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/globe.gl@2/dist/globe.gl.min.js" defer></script>
 
 <script src="js/config.js"></script>
 <script src="js/seed.js"></script>
 <script src="js/stats.js"></script>
 <script src="js/data.js"></script>
-<script src="js/map.js"></script>
+<script src="js/globe.js"></script>
 <script src="js/app.js"></script>
-<script src="js/patch.js"></script>              <!-- ← after app.js, before </body> -->
+<script src="js/patch.js"></script>
 </body>
 </html>
