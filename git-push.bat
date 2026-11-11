@@ -7,53 +7,86 @@ cd /d "%~dp0"
 
 echo === Git Auto Push ===
 echo Folder: %cd%
-echo.
+echo:
 
-rem --- Sanity check: are we in a repo? ---
+:: 1. Sanity check: inside git repository?
 git rev-parse --is-inside-work-tree >nul 2>&1
-if errorlevel 1 (
-    echo [X] This folder is not a git repository.
-    goto :fail
-)
+if !errorlevel! neq 0 goto not_repo
 
-rem --- Stage everything (new, modified, deleted) ---
+:: 2. Check for upstream branch
+git rev-parse --abbrev-ref --symbolic-full-name @{u} >nul 2>&1
+if !errorlevel! neq 0 goto no_upstream
+
+echo [.] Pulling latest changes from remote...
+git pull
+if !errorlevel! neq 0 goto pull_failed
+goto stage
+
+:no_upstream
+echo [i] No upstream branch set yet; skipping initial pull.
+
+:stage
+:: 3. Stage all changes
 git add -A
 
-rem --- Anything actually staged? ---
+:: 4. Check if there are staged changes
 git diff --cached --quiet
-if not errorlevel 1 (
-    echo [i] No local changes to commit.
-    goto :push
-)
+if !errorlevel! equ 0 goto no_changes
 
-rem --- Commit message: use arg 1 if given, otherwise timestamp ---
+:: 5. Commit staged changes
 set "MSG=%~1"
 if "%MSG%"=="" set "MSG=auto-commit %DATE% %TIME%"
 
-echo [.] Committing: %MSG%
-git commit -m "%MSG%"
-if errorlevel 1 goto :fail
+echo [.] Committing: !MSG!
+git commit -m "!MSG!"
+if !errorlevel! neq 0 goto commit_failed
+goto push
+
+:no_changes
+echo [i] No local changes to commit.
 
 :push
-rem --- Push. If no upstream is set, create it ---
+:: 6. Push changes
 git rev-parse --abbrev-ref --symbolic-full-name @{u} >nul 2>&1
-if errorlevel 1 (
-    echo [.] No upstream branch, pushing to origin HEAD...
-    git push -u origin HEAD
-) else (
-    echo [.] Pushing...
-    git push
-)
-if errorlevel 1 goto :fail
+if !errorlevel! neq 0 goto push_no_upstream
 
-echo.
-echo [OK] All changes pushed.
-goto :end
+echo [.] Pushing...
+git push
+if !errorlevel! neq 0 goto push_failed
+goto success
+
+:push_no_upstream
+echo [.] No upstream branch set, pushing to origin HEAD...
+git push -u origin HEAD
+if !errorlevel! neq 0 goto push_failed
+goto success
+
+:success
+echo:
+echo [OK] All changes pulled and pushed successfully.
+goto end
+
+:not_repo
+echo [X] This folder is not a git repository.
+goto fail
+
+:pull_failed
+echo [X] Git pull failed (possible merge conflict).
+goto fail
+
+:commit_failed
+echo [X] Git commit failed.
+goto fail
+
+:push_failed
+echo [X] Git push failed.
+goto fail
 
 :fail
-echo.
-echo [X] Something went wrong. Read the git output above.
+echo:
+echo [X] Operation failed. Please check the errors above.
+goto end
 
 :end
-echo.
+echo:
 endlocal
