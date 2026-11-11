@@ -48,7 +48,6 @@
     </button>
     <nav class="main-nav" id="mainNav" aria-label="Κύρια πλοήγηση">
       <a href="#arxiki">Αρχική</a>
-      <a href="#xartis">Χάρτης</a>
       <a href="#katataxi">Κατάταξη</a>
       <a href="#kanones">Κανόνες</a>
       <a href="#egrafi">Εγγραφή</a>
@@ -122,27 +121,6 @@
     </div>
   </section>
 
-  <!-- ================= WORLD MAP ================= -->
-  <section class="section section-map" id="xartis">
-    <div class="wrap">
-      <header class="section-head reveal">
-        <p class="eyebrow">Παγκόσμιος χάρτης</p>
-        <h2 class="section-title">Οι διαδρομές μας</h2>
-        <p class="section-sub">Κάθε pin είναι μια αγωνιστική. Κάθε γραμμή, ένα ταξίδι. Πάτησε σε ένα pin για την τοποθεσία.</p>
-      </header>
-      <div class="map-shell reveal">
-        <div class="map-canvas">
-          <svg id="worldSvg" viewBox="0 0 1000 500" aria-label="Χάρτης αγωνιστικών" role="img"></svg>
-        </div>
-        <div class="map-tooltip" id="mapTooltip" aria-hidden="true"></div>
-      </div>
-      <div class="map-controls">
-        <div class="week-chips" id="weekChips"></div>
-        <button class="btn btn-outline btn-sm" id="randomPinBtn" type="button">Τυχαία τοποθεσία</button>
-      </div>
-    </div>
-  </section>
-
   <!-- ================= LEADERBOARD ================= -->
   <section class="section section-board" id="katataxi">
     <div class="wrap">
@@ -181,7 +159,7 @@
       <header class="section-head reveal">
         <p class="eyebrow">Πώς παίζεται</p>
         <h2 class="section-title">Κανόνες</h2>
-        <p class="section-sub">Δύο leagues κάθε Παρασκευή. Δώδεκα πόντοι στην κορυφή, τρεις bonus για το concept.</p>
+        <p class="section-sub">Δύο leagues κάθε Παρασκευή. Έως 12 πόντοι από κάθε league, συν 3 bonus για το concept στον χάρτη — έως 27 πόντοι ανά εβδομάδα.</p>
       </header>
       <div class="rules-grid">
         <article class="rule-card reveal">
@@ -194,22 +172,23 @@
           </p>
           <p class="rule-bonus">
             <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 1.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L10 14.9l-5.2 2.7 1-5.8L1.5 7.7l5.9-.9z" fill="currentColor"/></svg>
-            Όποιος βρει το concept κερδίζει <strong>+3 πόντους</strong>.
+            Όποιος βρει το concept κερδίζει <strong>+3 πόντους</strong> επιπλέον.
           </p>
         </article>
         <article class="rule-card reveal">
           <span class="rule-badge">02</span>
           <h3>Quiz</h3>
           <p>
-            Ερωτήσεις γεωγραφίας με χρονόμετρο. Ίδια κλίμακα πόντων με τον χάρτη, χωρίς bonus
-            concept. Όσο πιο γρήγορα και σωστά απαντήσεις, τόσο πιο ψηλά τερματίζεις.
+            Ερωτήσεις γεωγραφίας με χρονόμετρο. Ίδια κλίμακα πόντων με τον χάρτη —έως 12 πόντοι—
+            αλλά χωρίς bonus concept. Όσο πιο γρήγορα και σωστά απαντήσεις, τόσο πιο ψηλά τερματίζεις.
           </p>
           <p class="rule-bonus rule-bonus--muted">
             Η σειρά κατάταξης κάθε league μετράει ξεχωριστά για τους πόντους της εβδομάδας.
           </p>
         </article>
         <article class="rule-card rule-card--wide reveal">
-          <h3>Βαθμολογία θέσης</h3>
+          <h3>Βαθμολογία θέσης (ανά league)</h3>
+          <p>Η κλίμακα ισχύει <strong>ξεχωριστά για κάθε league</strong>. Κάθε Παρασκευή παίζονται δύο — μία στον χάρτη, μία στο quiz — και οι πόντοι των δύο προστίθενται.</p>
           <ul class="score-list">
             <li><span class="score-pos">1η</span><span class="score-pts">12</span></li>
             <li><span class="score-pos">2η</span><span class="score-pts">9</span></li>
@@ -224,8 +203,8 @@
             <li><span class="score-pos">11η και κάτω</span><span class="score-pts">0</span></li>
           </ul>
           <p class="rule-foot">
-            Οι πόντοι των δύο leagues προστίθενται στο σύνολο της σεζόν. Σε ισοπαλία πόντων
-            μετράνε πρώτα οι νίκες, μετά τα βάθρα και τέλος η αλφαβητική σειρά.
+            Μέγιστο ανά εβδομάδα: <strong>12</strong> από τον χάρτη + <strong>12</strong> από το quiz + <strong>3</strong> bonus concept = <strong>27 πόντοι</strong>.
+            Σε ισοπαλία πόντων μετράνε κατά σειρά: νίκες, βάθρα, αλφαβητική σειρά.
           </p>
         </article>
       </div>
@@ -334,13 +313,10 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/d3@7" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/topojson-client@3" defer></script>
 <script src="js/config.js"></script>
 <script src="js/seed.js"></script>
 <script src="js/stats.js"></script>
 <script src="js/data.js"></script>
-<script src="js/map.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>
