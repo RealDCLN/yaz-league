@@ -66,7 +66,7 @@ returns boolean
 language sql
 stable
 as $$
-  select coalesce(auth.jwt() ->> 'email', '') = 'devoyageur@yazleague.gr'
+  select coalesce(auth.jwt() ->> 'email', '') = 'filipposliv99@gmail.com'
 $$;
 
 -- Δημόσια ανάγνωση δεδομένων πρωταθλήματος

@@ -11,8 +11,9 @@ window.YAZ.config = {
      Άφησέ τα κενά για να τρέξει το site με τα δείγματα (demo mode).
      Τα βρίσκεις στο Supabase > Project Settings > API.
      ------------------------------------------------------------- */
-  supabaseUrl: '',        // π.χ. 'https://abcdefghijk.supabase.co'
-  supabaseAnonKey: '',    // το "anon public" key
+   supabaseUrl: 'https://bgjprkmpyraflesqovos.supabase.co',
+   supabaseAnonKey: 'sb_publishable_Rbk2eZBgaYOUm7jxceGA5Q_gSVq1qKT',   // the "anon public" key
+   adminEmail: 'filipposliv99@gmail.com',
 
   /* --- Admin ----------------------------------------------------
      Πρέπει να είναι ΑΚΡΙΒΩΣ το ίδιο email με το schema.sql.
