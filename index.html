@@ -1,349 +1,191 @@
 <!DOCTYPE html>
 <html lang="el">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>YAZ LEAGUE — Το απόλυτο πρωτάθλημα γεωγραφίας</title>
-<meta name="description" content="Η YAZ LEAGUE είναι το εβδομαδιαίο πρωτάθλημα γεωγραφίας του DE.VOYAGEUR. Κάθε Παρασκευή στις 19:00: ένα concept map στο GeoGuessr κι ένα quiz. Δες την κατάταξη και έλα στο Discord.">
-<meta name="theme-color" content="#0F1626">
-<meta name="author" content="DE.VOYAGEUR">
-<meta property="og:type" content="website">
-<meta property="og:locale" content="el_GR">
-<meta property="og:site_name" content="YAZ LEAGUE">
-<meta property="og:title" content="YAZ LEAGUE — Το απόλυτο πρωτάθλημα γεωγραφίας">
-<meta property="og:description" content="Κάθε Παρασκευή στις 19:00, δύο leagues, ένας χάρτης κι ένα quiz. Μάζεψε πόντους και σκαρφάλωσε στην κατάταξη.">
-<meta property="og:image" content="assets/og-image.svg">
-<meta property="og:url" content="https://yazleague.netlify.app/">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="YAZ LEAGUE — Το απόλυτο πρωτάθλημα γεωγραφίας">
-<meta name="twitter:description" content="Το εβδομαδιαίο πρωτάθλημα γεωγραφίας του DE.VOYAGEUR.">
-<meta name="twitter:image" content="assets/og-image.svg">
-<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="assets/favicon.svg">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800;900&family=Cinzel+Decorative:wght@700;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/styles.css">
-<link rel="stylesheet" href="css/tweaks.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>YAZ LEAGUE — Official Website</title>
+  
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+  <link rel="stylesheet" href="css/styles.css" />
+  
+  <!-- FontAwesome & Google Fonts -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Three.js for 3D Globe Animation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <!-- Supabase JS Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-<a class="skip-link" href="#katataxi">Μετάβαση στην κατάταξη</a>
-<!-- ================= HEADER ================= -->
-<header class="site-header" id="top">
-  <div class="wrap header-inner">
-    <a class="brand" href="#top" aria-label="YAZ LEAGUE — Αρχική">
-      <svg class="brand-mark" viewBox="0 0 64 64" aria-hidden="true">
-        <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.6"/>
-        <circle cx="32" cy="32" r="21" fill="none" stroke="currentColor" stroke-width=".8" stroke-dasharray="2 4"/>
-        <path d="M32 9 L36.5 30 L32 55 L27.5 30 Z" fill="#E2572B"/>
-        <path d="M9 32 L30 27.5 L55 32 L30 36.5 Z" fill="currentColor" opacity=".85"/>
-        <circle cx="32" cy="32" r="2.8" fill="#F0E4C8"/>
-      </svg>
-      <span class="brand-text">
-        <span class="brand-title">YAZ LEAGUE</span>
-        <span class="brand-sub">Γεωγραφία · DE.VOYAGEUR</span>
-      </span>
-    </a>
-    <button class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="mainNav" aria-label="Άνοιγμα μενού">
-      <span></span><span></span><span></span>
-    </button>
-    <nav class="main-nav" id="mainNav" aria-label="Κύρια πλοήγηση">
-      <a href="#arxiki">Αρχική</a>
-      <a href="#katataxi">Κατάταξη</a>
-      <a href="#kanones">Κανόνες</a>
-      <a href="#egrafi">Εγγραφή</a>
-      <a class="btn btn-primary btn-sm" data-link="discord" href="#" target="_blank" rel="noopener">Μπες στο Discord</a>
-    </nav>
-  </div>
-</header>
-<main>
-  <!-- ================= HERO ================= -->
-  <section class="hero" id="arxiki">
-    <svg class="hero-route" viewBox="0 0 1200 600" aria-hidden="true" preserveAspectRatio="none">
-      <path d="M-20 480 C 220 430, 330 300, 520 340 S 880 470, 1220 250"
-            fill="none" stroke="#E3B341" stroke-opacity=".22" stroke-width="1.6" stroke-dasharray="6 10"/>
-      <path d="M-20 520 C 260 470, 400 360, 640 400 S 940 520, 1220 320"
-            fill="none" stroke="#3FBFAE" stroke-opacity=".12" stroke-width="1.2" stroke-dasharray="3 12"/>
-      <circle cx="520" cy="340" r="6" fill="none" stroke="#E2572B" stroke-opacity=".6" stroke-width="1.6"/>
-      <circle cx="520" cy="340" r="2.5" fill="#E3B341"/>
-    </svg>
-    <div class="wrap hero-grid">
-      <div class="hero-copy reveal">
-        <p class="eyebrow">Σεζόν 2026 · Διοργάνωση DE.VOYAGEUR</p>
-        <h1 class="hero-title">YAZ <span>LEAGUE</span></h1>
-        <p class="hero-slogan">«Το απόλυτο πρωτάθλημα γεωγραφίας»</p>
-        <p class="hero-intro">
-          Κάθε Παρασκευή στις 19:00: δύο leagues, ένας χάρτης κι ένα quiz.
-          Βρες πρώτος το concept, μάζεψε πόντους και σκαρφάλωσε στην κατάταξη.
-        </p>
-        <div class="hud" aria-label="Στατιστικά σεζόν">
-          <div class="hud-item"><span class="hud-num" id="statPlayers">—</span><span class="hud-lab">Παίκτες</span></div>
-          <div class="hud-item"><span class="hud-num" id="statMatches">—</span><span class="hud-lab">Αγώνες</span></div>
-          <div class="hud-item"><span class="hud-num" id="statWeeks">—</span><span class="hud-lab">Αγωνιστικές</span></div>
-        </div>
-        <div class="hero-actions">
-          <a class="btn btn-primary" href="#katataxi">Δες την κατάταξη</a>
-          <a class="btn btn-outline" href="#egrafi">Εγγραφή</a>
-        </div>
-        <div class="stamp" aria-hidden="true"><span>EST.<br>2026</span></div>
-      </div>
-      <aside class="next-card reveal frame" aria-labelledby="nextTitle">
-        <svg class="compass" viewBox="0 0 100 100" aria-hidden="true">
-          <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" stroke-width="1"/>
-          <circle cx="50" cy="50" r="34" fill="none" stroke="currentColor" stroke-width=".6" stroke-dasharray="1.5 4"/>
-          <path d="M50 8 L56 46 L92 50 L56 54 L50 92 L44 54 L8 50 L44 46 Z" fill="currentColor" opacity=".9"/>
-          <circle cx="50" cy="50" r="3" fill="#E2572B"/>
-          <text x="50" y="24" text-anchor="middle" font-size="9" fill="currentColor" font-family="Inter, sans-serif">Β</text>
-        </svg>
-        <div class="next-card-head">
-          <p class="eyebrow" id="nextTitle">Επόμενη αγωνιστική</p>
-          <span class="live-badge" id="liveBadge"><i></i>LIVE</span>
-        </div>
-        <p class="next-week">Αγωνιστική <span id="nextWeek">9</span></p>
-        <p class="next-when">Παρασκευή · 19:00</p>
-        <div class="league-tags">
-          <span class="league-tag">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z" fill="currentColor"/></svg>
-            Χάρτης
-          </span>
-          <span class="league-tag">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zm.9 13.8v1.4h-1.8v-1.35c-1.5-.28-2.5-1.15-2.6-2.55h1.75c.1.6.65 1.05 1.65 1.05 1 0 1.5-.4 1.5-1 0-.55-.4-.85-1.75-1.15-1.9-.4-2.95-1.05-2.95-2.55 0-1.3 1-2.2 2.4-2.45V6.4h1.8v1.35c1.4.25 2.3 1.1 2.4 2.4h-1.7c-.1-.55-.6-.95-1.45-.95-.9 0-1.35.4-1.35.95 0 .55.45.8 1.7 1.1 1.95.4 3 1.05 3 2.6 0 1.35-1 2.25-2.5 2.5z" fill="currentColor"/></svg>
-            Quiz
-          </span>
-        </div>
-        <div class="countdown" id="countdown" role="timer" aria-live="off">
-          <div class="cd-cell"><span class="cd-num" data-cd="days">00</span><span class="cd-lab">Ημέρες</span></div>
-          <div class="cd-cell"><span class="cd-num" data-cd="hours">00</span><span class="cd-lab">Ώρες</span></div>
-          <div class="cd-cell"><span class="cd-num" data-cd="minutes">00</span><span class="cd-lab">Λεπτά</span></div>
-          <div class="cd-cell"><span class="cd-num" data-cd="seconds">00</span><span class="cd-lab">Δευτ.</span></div>
-        </div>
-        <p class="next-note">Το concept μένει μυστικό — η δουλειά σου είναι να το ανακαλύψεις μέσα από τις τοποθεσίες.</p>
-      </aside>
-    </div>
-  </section>
 
-  <!-- ================= GLOBE ================= -->
-  <section class="section section-globe" id="diadromi">
-    <div class="wrap">
-      <header class="section-head reveal">
-        <p class="eyebrow">Η πορεία μας</p>
-        <h2 class="section-title">Η διαδρομή της σεζόν</h2>
-        <p class="section-sub">Κάθε σταθμός και μια ιστορία. Περιστρέψε τη σφαίρα — ή πάτα «Περιήγηση» για να ταξιδέψεις σε κάθε τοποθεσία.</p>
-      </header>
-      <div class="globe-shell reveal">
-        <div id="globeViz" aria-label="Τρισδιάστατη σφαίρα με τους σταθμούς της σεζόν" role="img"></div>
-        <div class="globe-empty" id="globeEmpty" hidden></div>
+  <!-- Ambient Spinning Globe Background Canvas -->
+  <canvas id="globe-bg"></canvas>
+
+  <!-- Navigation Bar -->
+  <header class="navbar">
+    <div class="container nav-container">
+      <a href="#" class="brand-logo">
+        <span class="brand-yaz">YAZ</span>
+        <span class="brand-league">LEAGUE</span>
+      </a>
+
+      <nav class="nav-links">
+        <a href="#standings" class="nav-link active"><i class="fa-solid fa-trophy"></i> Βαθμολογία</a>
+        <a href="#schedule" class="nav-link"><i class="fa-solid fa-calendar-days"></i> Πρόγραμμα</a>
+        <a href="#teams" class="nav-link"><i class="fa-solid fa-people-group"></i> Ομάδες</a>
+        <a href="#stats" class="nav-link"><i class="fa-solid fa-chart-column"></i> Στατιστικά</a>
+      </nav>
+
+      <div class="nav-actions">
+        <a href="/admin" class="btn btn-outline btn-sm">
+          <i class="fa-solid fa-lock"></i> Admin Area
+        </a>
       </div>
-      <div class="globe-controls">
-        <button class="btn btn-outline btn-sm" id="globeTour" type="button">Περιήγηση στους σταθμούς</button>
+    </div>
+  </header>
+
+  <!-- Hero Banner -->
+  <section class="hero-section">
+    <div class="container hero-content">
+      <div class="hero-badge">
+        <span class="live-indicator"></span> SEASON 2026 LIVE
+      </div>
+      <h1 class="hero-title">WHERE SUMMER BASKETBALL LIVES</h1>
+      <p class="hero-subtitle">
+        Η επίσημη πλατφόρμα του YAZ LEAGUE. Παρακολουθήστε ζωντανά τη βαθμολογία, τα αποτελέσματα και τα στατιστικά των παικτών.
+      </p>
+      <div class="hero-actions">
+        <a href="#schedule" class="btn btn-primary btn-lg">
+          <i class="fa-solid fa-calendar-check"></i> Επόμενοι Αγώνες
+        </a>
+        <a href="#standings" class="btn btn-glass btn-lg">
+          <i class="fa-solid fa-list-ol"></i> Βαθμολογία
+        </a>
       </div>
     </div>
   </section>
 
-  <!-- ================= LEADERBOARD ================= -->
-  <section class="section section-board" id="katataxi">
-    <div class="wrap">
-      <header class="section-head reveal">
-        <p class="eyebrow">Κανονική περίοδος</p>
-        <h2 class="section-title">Κατάταξη</h2>
-        <p class="section-sub">Ενημερώνεται μετά από κάθε αγωνιστική. Πάτησε σε έναν παίκτη για το πλήρες προφίλ του.</p>
-      </header>
-      <div class="board-shell reveal">
-        <div class="table-scroll">
-          <table class="board-table" id="boardTable">
-            <caption class="sr-only">Βαθμολογία παικτών της YAZ LEAGUE</caption>
+  <!-- Main Content Container -->
+  <main class="main-content container">
+
+    <!-- Standings Section -->
+    <section id="standings" class="content-section active">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title"><i class="fa-solid fa-trophy"></i> Βαθμολογία Πρωταθλήματος</h2>
+          <p class="section-desc">Η τρέχουσα κατάταξη των ομάδων</p>
+        </div>
+      </div>
+
+      <div class="card table-card">
+        <div class="table-responsive">
+          <table class="data-table" id="standings-table">
             <thead>
               <tr>
-                <th scope="col" class="th-rank" data-sort="rank" aria-sort="ascending">Θέση</th>
-                <th scope="col" class="th-player" data-sort="nickname">Παίκτης</th>
-                <th scope="col" class="num" data-sort="points">Πόντοι</th>
-                <th scope="col" class="num" data-sort="games">Αγώνες</th>
-                <th scope="col" class="num" data-sort="wins">Νίκες</th>
-                <th scope="col" class="num" data-sort="podiums">Βάθρα</th>
+                <th class="text-center">#</th>
+                <th>Ομάδα</th>
+                <th class="text-center">ΑΓ</th>
+                <th class="text-center">Ν</th>
+                <th class="text-center">Η</th>
+                <th class="text-center">ΠΟΝΤΟΙ</th>
+                <th class="text-center">ΔΙΑΦ.</th>
+                <th class="text-center">ΒΑΘΜΟΙ</th>
               </tr>
             </thead>
-            <tbody id="boardBody">
-              <tr><td colspan="6" class="loading-row">Φόρτωση βαθμολογίας…</td></tr>
+            <tbody id="standings-tbody">
+              <tr>
+                <td colspan="8" class="loading-state">
+                  <i class="fa-solid fa-spinner fa-spin"></i> Φόρτωση βαθμολογίας...
+                </td>
+              </tr>
             </tbody>
           </table>
         </div>
-        <div class="board-legend">
-          <span class="tier-chip tier-diamond">Διαμάντι · 1–3</span>
-          <span class="tier-chip tier-platinum">Πλατίνα · 4–8</span>
-          <span class="tier-chip tier-gold">Χρυσός · 9–15</span>
-          <span class="tier-chip tier-silver">Ασήμι · 16–25</span>
-          <span class="tier-chip tier-bronze">Χάλκινος · 26+</span>
-        </div>
-        <p class="board-note">Σε ισοπαλία πόντων μετράνε κατά σειρά: νίκες, βάθρα, αλφαβητική σειρά.</p>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- ================= RULES ================= -->
-  <section class="section section-rules band-paper" id="kanones">
-    <div class="wrap">
-      <header class="section-head reveal">
-        <p class="eyebrow">Πώς παίζεται</p>
-        <h2 class="section-title">Κανόνες</h2>
-        <p class="section-sub">Δύο leagues κάθε Παρασκευή. Δώδεκα πόντοι στην κορυφή, τρεις bonus για το concept.</p>
-      </header>
-      <div class="rules-grid">
-        <article class="rule-card reveal">
-          <span class="rule-badge">01</span>
-          <h3>Χάρτης · Concept Map</h3>
-          <p>
-            Παίζουμε έναν χάρτη στο GeoGuessr όπου όλες οι τοποθεσίες κρύβουν ένα κοινό
-            <strong>concept</strong>. Δεν αρκεί να βρεις τη χώρα — πρέπει να καταλάβεις τι ενώνει
-            τα σημεία.
-          </p>
-          <p class="rule-bonus">
-            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 1.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L10 14.9l-5.2 2.7 1-5.8L1.5 7.7l5.9-.9z" fill="currentColor"/></svg>
-            Όποιος βρει το concept κερδίζει <strong>+3 πόντους</strong>.
-          </p>
-        </article>
-        <article class="rule-card reveal">
-          <span class="rule-badge">02</span>
-          <h3>Quiz</h3>
-          <p>
-            Ερωτήσεις γεωγραφίας με χρονόμετρο. Ίδια κλίμακα πόντων με τον χάρτη, χωρίς bonus
-            concept. Όσο πιο γρήγορα και σωστά απαντήσεις, τόσο πιο ψηλά τερματίζεις.
-          </p>
-          <p class="rule-bonus rule-bonus--muted">
-            Η σειρά κατάταξης κάθε league μετράει ξεχωριστά για τους πόντους της εβδομάδας.
-          </p>
-        </article>
-        <article class="rule-card rule-card--wide reveal">
-          <h3>Βαθμολογία θέσης</h3>
-          <ul class="score-list">
-            <li><span class="score-pos">1η</span><span class="score-pts">12</span></li>
-            <li><span class="score-pos">2η</span><span class="score-pts">9</span></li>
-            <li><span class="score-pos">3η</span><span class="score-pts">8</span></li>
-            <li><span class="score-pos">4η</span><span class="score-pts">7</span></li>
-            <li><span class="score-pos">5η</span><span class="score-pts">6</span></li>
-            <li><span class="score-pos">6η</span><span class="score-pts">5</span></li>
-            <li><span class="score-pos">7η</span><span class="score-pts">4</span></li>
-            <li><span class="score-pos">8η</span><span class="score-pts">3</span></li>
-            <li><span class="score-pos">9η</span><span class="score-pts">2</span></li>
-            <li><span class="score-pos">10η</span><span class="score-pts">1</span></li>
-            <li><span class="score-pos">11η και κάτω</span><span class="score-pts">0</span></li>
+    <!-- Schedule & Results Section -->
+    <section id="schedule" class="content-section">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title"><i class="fa-solid fa-calendar-days"></i> Πρόγραμμα & Αποτελέσματα</h2>
+          <p class="section-desc">Όλοι οι αγώνες της αγωνιστικής περιόδου</p>
+        </div>
+      </div>
+
+      <div class="schedule-grid" id="schedule-container">
+        <div class="loading-state">
+          <i class="fa-solid fa-spinner fa-spin"></i> Φόρτωση αγώνων...
+        </div>
+      </div>
+    </section>
+
+    <!-- Teams Section -->
+    <section id="teams" class="content-section">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title"><i class="fa-solid fa-people-group"></i> Ομάδες</h2>
+          <p class="section-desc">Τα ρόστερ και οι πληροφορίες των ομάδων</p>
+        </div>
+      </div>
+
+      <div class="teams-grid" id="teams-container">
+        <div class="loading-state">
+          <i class="fa-solid fa-spinner fa-spin"></i> Φόρτωση ομάδων...
+        </div>
+      </div>
+    </section>
+
+    <!-- Leaders & Stats Section -->
+    <section id="stats" class="content-section">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title"><i class="fa-solid fa-chart-column"></i> Στατιστικά Ηγέτες</h2>
+          <p class="section-desc">Οι κορυφαίοι παίκτες της σεζόν σε κάθε κατηγορία</p>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="card stats-card">
+          <h3 class="stats-card-title"><i class="fa-solid fa-basketball"></i> Πόντοι (PTS/G)</h3>
+          <ul class="stats-list" id="stats-pts">
+            <li class="loading-state">Φόρτωση...</li>
           </ul>
-          <p class="rule-foot">
-            Οι πόντοι των δύο leagues προστίθενται στο σύνολο της σεζόν. Σε ισοπαλία πόντων
-            μετράνε πρώτα οι νίκες, μετά τα βάθρα και τέλος η αλφαβητική σειρά.
-          </p>
-        </article>
-      </div>
-    </div>
-  </section>
+        </div>
 
-  <!-- ================= REGISTRATION ================= -->
-  <section class="section section-signup" id="egrafi">
-    <div class="wrap signup-grid">
-      <div class="signup-copy reveal">
-        <p class="eyebrow">Μπες στη league</p>
-        <h2 class="section-title">Εγγραφή</h2>
-        <p class="section-sub">
-          Συμπλήρωσε τη φόρμα και θα σε βρούμε στο Discord πριν την επόμενη αγωνιστική.
-          Οι θέσεις είναι περιορισμένες και οι εγγραφές εγκρίνονται χειροκίνητα.
-        </p>
-        <ul class="signup-list">
-          <li>Ένα προφίλ GeoGuessr είναι υποχρεωτικό.</li>
-          <li>Χρειάζεσαι λογαριασμό Discord για τη φωνή και το scoreboard.</li>
-          <li>Δεν υπάρχει κόστος συμμετοχής.</li>
-        </ul>
-      </div>
-      <form class="signup-form panel-light reveal" id="signupForm" novalidate>
-        <div class="field">
-          <label for="regNickname">Όνομα / Ψευδώνυμο <span aria-hidden="true">*</span></label>
-          <input id="regNickname" name="nickname" type="text" required maxlength="40" autocomplete="nickname" placeholder="π.χ. MAPMAKER_GR">
+        <div class="card stats-card">
+          <h3 class="stats-card-title"><i class="fa-solid fa-hand-holding-dots"></i> Ριμπάουντ (REB/G)</h3>
+          <ul class="stats-list" id="stats-reb">
+            <li class="loading-state">Φόρτωση...</li>
+          </ul>
         </div>
-        <div class="field">
-          <label for="regGeo">Προφίλ GeoGuessr (URL) <span aria-hidden="true">*</span></label>
-          <input id="regGeo" name="geoguessr_url" type="url" required placeholder="https://www.geoguessr.com/user/…" inputmode="url">
-        </div>
-        <div class="field">
-          <label for="regDiscord">Discord username <span aria-hidden="true">*</span></label>
-          <input id="regDiscord" name="discord" type="text" required maxlength="40" placeholder="π.χ. mapmaker_gr">
-        </div>
-        <div class="field">
-          <label for="regEmail">Email <span class="optional">(προαιρετικό)</span></label>
-          <input id="regEmail" name="email" type="email" autocomplete="email" placeholder="you@example.com">
-        </div>
-        <div class="hp-field" aria-hidden="true">
-          <label for="regWebsite">Website</label>
-          <input id="regWebsite" name="website" type="text" tabindex="-1" autocomplete="off">
-        </div>
-        <label class="checkbox">
-          <input type="checkbox" id="regTerms" name="terms" required>
-          <span>Αποδέχομαι τους κανόνες της YAZ LEAGUE</span>
-        </label>
-        <button class="btn btn-primary btn-block" type="submit" id="signupBtn">Στείλε αίτηση</button>
-        <p class="form-msg" id="signupMsg" role="status" aria-live="polite"></p>
-      </form>
-    </div>
-  </section>
-</main>
 
-<!-- ================= FOOTER ================= -->
-<footer class="site-footer">
-  <div class="wrap footer-grid">
-    <div class="footer-brand">
-      <p class="footer-title">YAZ LEAGUE</p>
-      <p class="footer-slogan">«Το απόλυτο πρωτάθλημα γεωγραφίας»</p>
-      <p class="footer-org">Διοργάνωση <strong>DE.VOYAGEUR</strong></p>
-    </div>
-    <nav class="footer-links" aria-label="Κοινωνικά δίκτυα">
-      <a data-link="discord" href="#" target="_blank" rel="noopener">Discord</a>
-      <a data-link="tiktok" href="#" target="_blank" rel="noopener">TikTok</a>
-      <a data-link="youtube" href="#" target="_blank" rel="noopener">YouTube</a>
-      <a href="https://www.instagram.com/de.voyageur/" target="_blank" rel="noopener noreferrer">Instagram</a>
-    </nav>
-  </div>
-  <div class="wrap footer-bottom">
-    <p>© <span id="year">2026</span> YAZ LEAGUE · Με επιφύλαξη παντός δικαιώματος.</p>
-    <p class="made-for">Made for the YAZ LEAGUE community</p>
-  </div>
-</footer>
-
-<!-- ================= PLAYER MODAL ================= -->
-<div class="modal" id="playerModal" role="dialog" aria-modal="true" aria-labelledby="pmName" hidden>
-  <div class="modal-card frame">
-    <button class="modal-close" id="pmClose" aria-label="Κλείσιμο">×</button>
-    <div class="pm-tier-banner tier-gold" id="pmTierBanner">
-      <span class="pm-tier-name" id="pmTierName">Χρυσός</span>
-      <span class="pm-tier-rank" id="pmRank">Θέση —</span>
-    </div>
-    <div class="pm-head">
-      <div class="pm-avatar" id="pmAvatar" aria-hidden="true">ML</div>
-      <div>
-        <h3 class="pm-name" id="pmName">Παίκτης</h3>
-        <div class="pm-links" id="pmLinks"></div>
+        <div class="card stats-card">
+          <h3 class="stats-card-title"><i class="fa-solid fa-hands-helping"></i> Ασίστ (AST/G)</h3>
+          <ul class="stats-list" id="stats-ast">
+            <li class="loading-state">Φόρτωση...</li>
+          </ul>
+        </div>
       </div>
-    </div>
-    <div class="pm-xp">
-      <div class="pm-xp-head">
-        <span>Πρόοδος σεζόν</span>
-        <span id="pmXpVal">0 / 0</span>
-      </div>
-      <div class="xp-bar"><div class="xp-fill" id="pmXpFill"></div></div>
-    </div>
-    <div class="pm-stats" id="pmStats"></div>
-    <div class="pm-chart-wrap">
-      <h4>Πορεία στη κατάταξη</h4>
-      <canvas id="pmChart" height="200" aria-label="Γράφημα πορείας θέσης ανά αγωνιστική" role="img"></canvas>
-    </div>
-  </div>
-</div>
+    </section>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/globe.gl@2/dist/globe.gl.min.js" defer></script>
-<script src="js/config.js"></script>
-<script src="js/seed.js"></script>
-<script src="js/stats.js"></script>
-<script src="js/data.js"></script>
-<script src="js/globe.js"></script>
-<script src="js/app.js"></script>
-<script src="js/patch.js"></script>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container footer-content">
+      <p>&copy; 2026 <strong>YAZ LEAGUE</strong>. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <!-- App Scripts -->
+  <script src="js/config.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/globe.js"></script>
+  <script src="js/stats.js"></script>
+  <script src="js/app.js"></script>
 </body>
 </html>
