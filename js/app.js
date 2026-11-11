@@ -23,20 +23,43 @@
     wireReveal();
     wireModal();
     wireForm();
-    document.getElementById('year').textContent = new Date().getFullYear();
+
+    const yearEl = document.getElementById('year');
+    if (yearEl) yearEl.textContent = new Date().getFullYear();
+
+    // Countdown has zero data dependencies — start it immediately so a slow
+    // or failed Supabase call can never leave it stuck at 00:00:00:00.
+    startCountdown();
+
     boot();
   });
 
   async function boot() {
-    const data = await Y.data.load();
-    state.players = data.players;
-    state.matches = data.matches;
-    state.results = data.results;
-    state.standings = Y.stats.standings(state.players, state.matches, state.results);
+    try {
+      // Hard timeout so a hung Supabase request can't block the page forever.
+      const data = await Promise.race([
+        Y.data.load(),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Δεν υπάρχει απάντηση από τη βάση (timeout).')), 8000)
+        )
+      ]);
 
-    fillHud();
-    renderBoard();
-    startCountdown();
+      state.players = data.players;
+      state.matches = data.matches;
+      state.results = data.results;
+      state.standings = Y.stats.standings(state.players, state.matches, state.results);
+
+      fillHud();
+      renderBoard();
+      // Now that we know the real match list, fix up the week number.
+      updateWeekLabel();
+    } catch (err) {
+      console.error('[YAZ] data load failed:', err);
+      const tbody = document.getElementById('boardBody');
+      if (tbody) {
+        tbody.innerHTML = '<tr><td colspan="6" class="loading-row">Δεν ήταν δυνατή η φόρτωση της βαθμολογίας. Δοκίμασε ξανά σε λίγο.</td></tr>';
+      }
+    }
   }
 
   /* ---------------- hero HUD ---------------- */
@@ -101,12 +124,20 @@
   /* ---------------- countdown ---------------- */
 
   function resolveNextMatch() {
-    let target;
+    let target = null;
+
+    // Only honor isoDate if it's valid AND in the future. A stale explicit
+    // date would otherwise freeze the timer at 00:00:00:00 forever.
     if (cfg.nextMatch && cfg.nextMatch.isoDate) {
-      target = new Date(cfg.nextMatch.isoDate);
-    } else {
+      const candidate = new Date(cfg.nextMatch.isoDate);
+      if (!isNaN(candidate.getTime()) && candidate.getTime() > Date.now()) {
+        target = candidate;
+      }
+    }
+    if (!target) {
       target = Y.stats.nextFriday19();
     }
+
     let week = cfg.nextMatch && cfg.nextMatch.weekNumber;
     if (!week) {
       const weeks = Y.stats.weeksOf(state.matches);
@@ -115,10 +146,14 @@
     return { target, week };
   }
 
+  let countdownStarted = false;
+
   function startCountdown() {
-    const { target, week } = resolveNextMatch();
-    const weekEl = document.getElementById('nextWeek');
-    if (weekEl) weekEl.textContent = String(week);
+    if (countdownStarted) return;
+    countdownStarted = true;
+
+    const { target } = resolveNextMatch();
+    updateWeekLabel();
 
     const live = document.getElementById('liveBadge');
     const nums = {
@@ -146,6 +181,12 @@
 
     tick();
     setInterval(tick, 1000);
+  }
+
+  function updateWeekLabel() {
+    const { week } = resolveNextMatch();
+    const el = document.getElementById('nextWeek');
+    if (el) el.textContent = String(week);
   }
 
   /* ---------------- leaderboard ---------------- */
@@ -260,7 +301,7 @@
   function wireModal() {
     const modal = document.getElementById('playerModal');
     const closeBtn = document.getElementById('pmClose');
-    if (!modal) return;
+    if (!modal || !closeBtn) return;
 
     closeBtn.addEventListener('click', closeModal);
     modal.addEventListener('click', (ev) => {
@@ -308,7 +349,6 @@
     }
     document.getElementById('pmLinks').innerHTML = links.join('');
 
-    /* XP bar προς τον πρωτοπόρο */
     const leaderPoints = state.standings[0] ? state.standings[0].points : 0;
     const pct = leaderPoints > 0 ? Math.max(2, Math.min(100, (row.points / leaderPoints) * 100)) : 0;
     document.getElementById('pmXpVal').textContent = row.points + ' / ' + leaderPoints + ' πόντοι';
@@ -403,7 +443,7 @@
       }
     });
 
-    canvas.parentElement.style.height = '220px';
+    if (canvas.parentElement) canvas.parentElement.style.height = '220px';
     canvas.style.height = '220px';
   }
 
@@ -481,4 +521,6 @@
   }
 
   function escapeAttr(str) {
-    return escapeHtml(str).replace(/`/g, '&#96;
+    return escapeHtml(str).replace(/`/g, '&#96;');
+  }
+})();
