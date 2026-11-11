@@ -24,53 +24,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800;900&family=Cinzel+Decorative:wght@700;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/styles.css">
-<link rel="stylesheet" href="css/background.css">
 </head>
 <body>
-<!-- Ambient spinning wireframe globe (SVG + SMIL, no JS) -->
-<div class="bg-globe" aria-hidden="true">
-  <svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <radialGradient id="globeHalo" cx="50%" cy="50%" r="60%">
-        <stop offset="60%" stop-color="#3FBFAE" stop-opacity="0"/>
-        <stop offset="100%" stop-color="#3FBFAE" stop-opacity="0.09"/>
-      </radialGradient>
-    </defs>
-    <circle cx="200" cy="200" r="230" fill="url(#globeHalo)"/>
-    <circle cx="200" cy="200" r="180" fill="none" stroke="#E3B341" stroke-width="0.9" stroke-opacity="0.35"/>
-    <g fill="none" stroke="#3FBFAE" stroke-linecap="round">
-      <ellipse cx="200" cy="200" rx="180" ry="150" stroke-width="0.6" stroke-opacity="0.16"/>
-      <ellipse cx="200" cy="200" rx="180" ry="120" stroke-width="0.6" stroke-opacity="0.22"/>
-      <ellipse cx="200" cy="200" rx="180" ry="90"  stroke-width="0.7" stroke-opacity="0.28"/>
-      <ellipse cx="200" cy="200" rx="180" ry="60"  stroke-width="0.7" stroke-opacity="0.32"/>
-      <ellipse cx="200" cy="200" rx="180" ry="30"  stroke-width="0.8" stroke-opacity="0.35"/>
-    </g>
-    <g fill="none" stroke="#E3B341" stroke-linecap="round">
-      <ellipse cx="200" cy="200" ry="180" rx="180" stroke-width="0.7" stroke-opacity="0.30">
-        <animate attributeName="rx" values="180;24;180" dur="10s" repeatCount="indefinite"/>
-      </ellipse>
-      <ellipse cx="200" cy="200" ry="180" rx="24" stroke-width="0.7" stroke-opacity="0.30">
-        <animate attributeName="rx" values="24;180;24" dur="10s" repeatCount="indefinite"/>
-      </ellipse>
-      <ellipse cx="200" cy="200" ry="180" rx="100" stroke-width="0.65" stroke-opacity="0.22">
-        <animate attributeName="rx" values="100;180;100" dur="10s" repeatCount="indefinite"/>
-      </ellipse>
-      <ellipse cx="200" cy="200" ry="180" rx="180" stroke-width="0.65" stroke-opacity="0.22">
-        <animate attributeName="rx" values="180;100;180" dur="10s" repeatCount="indefinite"/>
-      </ellipse>
-    </g>
-    <circle cx="248" cy="172" r="3.4" fill="#E2572B">
-      <animate attributeName="opacity" values="1;0.35;1" dur="2.6s" repeatCount="indefinite"/>
-    </circle>
-    <circle cx="168" cy="228" r="3.4" fill="#3FBFAE">
-      <animate attributeName="opacity" values="1;0.35;1" dur="3.2s" repeatCount="indefinite"/>
-    </circle>
-    <circle cx="212" cy="256" r="3.4" fill="#FFD166">
-      <animate attributeName="opacity" values="1;0.35;1" dur="2.9s" repeatCount="indefinite"/>
-    </circle>
-  </svg>
-</div>
-
 <a class="skip-link" href="#katataxi">Μετάβαση στην κατάταξη</a>
 <!-- ================= HEADER ================= -->
 <header class="site-header" id="top">
