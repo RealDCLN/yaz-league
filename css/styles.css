@@ -299,6 +299,9 @@ a{color:inherit}
 
 /* ============================ MAP ============================ */
 .section-map{padding-top:clamp(1.6rem,4vw,2.6rem)}
+
+.map-shell{position:relative}
+
 .map-canvas{
   position:relative;
   border:1px solid var(--line-mid);
@@ -341,6 +344,9 @@ a{color:inherit}
   border:6px solid transparent;border-top-color:var(--gold);border-bottom:0;
 }
 .map-tooltip.is-visible{opacity:1}
+/* When the pin is near the top edge, flip the tooltip below the pin. */
+.map-tooltip.below{transform:translate(-50%,20%)}
+.map-tooltip.below::after{bottom:auto;top:-6px;border-top:0;border-bottom:6px solid var(--gold)}
 .map-tooltip strong{color:var(--gold-bright);font-family:var(--serif);font-weight:700;letter-spacing:.03em}
 .map-tooltip .tt-week{
   display:block;font-family:var(--mono);font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;color:var(--text-3);margin-bottom:.1rem;
@@ -387,7 +393,15 @@ a{color:inherit}
   transition:background .14s ease;
 }
 .board-table tbody tr:last-child{border-bottom:0}
-.board-table tbody tr:hover{background:rgba(227,179,65,.06)}
+
+/* Group visual banding — groups of `groupSize` rows alternate a subtle
+   tint, and each group boundary gets a stronger top rule. No labels. */
+.board-table tbody tr.group-even{background:rgba(227,179,65,.028)}
+.board-table tbody tr.group-start{border-top:2px solid rgba(227,179,65,.28)}
+
+.board-table tbody tr:hover{background:rgba(227,179,65,.08)}
+.board-table tbody tr.group-even:hover{background:rgba(227,179,65,.09)}
+
 .board-table td{padding:.55rem 1rem;vertical-align:middle;color:var(--text)}
 .board-table td.num{text-align:right;font-family:var(--mono);font-weight:700;color:var(--gold-bright);font-variant-numeric:tabular-nums;font-size:.9rem}
 
@@ -433,23 +447,6 @@ a{color:inherit}
   transition:border-color .16s ease, box-shadow .16s ease;
 }
 
-/* tiers */
-.tier-diamond{--tier:#6FE3DA}
-.tier-platinum{--tier:#C9D6E8}
-.tier-gold{--tier:#E3B341}
-.tier-silver{--tier:#AEB9C7}
-.tier-bronze{--tier:#C98A5A}
-
-.tier-chip{
-  display:inline-flex;align-items:center;gap:.32rem;
-  font-size:.54rem;letter-spacing:.16em;text-transform:uppercase;font-weight:700;
-  color:var(--tier);line-height:1;
-}
-.tier-chip::before{
-  content:"";width:5px;height:5px;background:var(--tier);transform:rotate(45deg);flex:none;
-}
-
-.board-legend{display:flex;flex-wrap:wrap;gap:.9rem;padding:.85rem .2rem .2rem}
 .board-note{font-size:.74rem;color:var(--text-3);margin:.6rem 0 0;padding-left:.2rem}
 
 .loading-row{text-align:center;color:var(--text-3);padding:2.4rem 1rem;font-style:italic;font-family:var(--sans)}
@@ -627,12 +624,12 @@ a{color:inherit}
 .pm-tier-banner{
   display:flex;align-items:center;justify-content:space-between;gap:1rem;
   padding:.72rem 1.5rem;
-  background:linear-gradient(90deg, color-mix(in srgb, var(--tier) 26%, transparent), rgba(10,16,28,.2));
-  border-bottom:1px solid color-mix(in srgb, var(--tier) 55%, transparent);
+  background:linear-gradient(90deg, rgba(227,179,65,.18), rgba(10,16,28,.2));
+  border-bottom:1px solid rgba(227,179,65,.4);
 }
 .pm-tier-name{
   font-family:var(--mono);font-size:.68rem;font-weight:700;letter-spacing:.22em;text-transform:uppercase;
-  color:var(--tier);text-shadow:0 0 14px color-mix(in srgb, var(--tier) 60%, transparent);
+  color:var(--gold);text-shadow:0 0 14px rgba(227,179,65,.5);
 }
 .pm-tier-rank{font-family:var(--mono);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--text-2)}
 
@@ -641,9 +638,9 @@ a{color:inherit}
   width:64px;height:64px;flex:none;
   display:grid;place-items:center;
   font-family:var(--mono);font-size:1.1rem;font-weight:700;letter-spacing:.06em;
-  background:rgba(10,16,28,.8);border:2px solid var(--tier, var(--gold));color:var(--gold-bright);
+  background:rgba(10,16,28,.8);border:2px solid var(--gold);color:var(--gold-bright);
   clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px);
-  box-shadow:0 0 26px -8px var(--tier, var(--gold));
+  box-shadow:0 0 26px -8px var(--gold);
 }
 .pm-name{font-size:1.42rem;margin:0 0 .35rem;word-break:break-word;color:var(--parchment)}
 .pm-links{display:flex;flex-wrap:wrap;gap:.7rem}
@@ -737,37 +734,4 @@ a{color:inherit}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important;scroll-behavior:auto !important}
   .reveal{opacity:1;transform:none}
-}
-
-
-/* ============================ GLOBE ============================ */
-.section-globe{padding-top:clamp(1.6rem,4vw,2.6rem)}
-
-.globe-shell{
-  position:relative;
-  width:min(680px, 100%);
-  aspect-ratio:1/1;
-  margin-inline:auto;
-  background:
-    radial-gradient(circle at 50% 50%, rgba(63,191,174,.08), transparent 55%),
-    radial-gradient(circle at 50% 50%, rgba(227,179,65,.05), transparent 72%);
-  border:1px solid var(--line-mid);
-  box-shadow:var(--shadow-md), inset 0 0 90px rgba(0,0,0,.5);
-  overflow:hidden;
-  clip-path:polygon(var(--cut) 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%, 0 var(--cut));
-}
-
-#globeViz{width:100%;height:100%;cursor:grab}
-#globeViz:active{cursor:grabbing}
-
-.globe-empty{
-  position:absolute;inset:0;display:grid;place-items:center;
-  text-align:center;padding:2rem;color:var(--text-3);
-  font-style:italic;font-size:.9rem;
-}
-
-.globe-controls{display:flex;justify-content:center;margin-top:1.2rem}
-
-@media (max-width:540px){
-  .globe-shell{width:100%}
 }
