@@ -56,5 +56,4 @@ echo [X] Something went wrong. Read the git output above.
 
 :end
 echo.
-pause
 endlocal
