@@ -91,7 +91,7 @@ a{color:inherit}
 .skip-link:focus{left:0}
 
 /* ============================ CHAMFER ============================ */
-.btn,.next-card,.table-scroll,.map-canvas,.panel-light,.modal-card,.hud-item,.cd-cell,.live-badge,.rule-card{
+.btn,.next-card,.table-scroll,.panel-light,.modal-card,.hud-item,.cd-cell,.live-badge{
   clip-path:polygon(var(--cut) 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%, 0 var(--cut));
 }
 
