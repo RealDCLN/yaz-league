@@ -76,7 +76,7 @@
         <div class="admin-row">
           <div class="field">
             <label for="mWeek">Αγωνιστική (νούμερο)</label>
-            <input id="mWeek" type="number" min="1" step="1" value="9">
+            <input id="mWeek" type="number" min="1" step="1" value="1">
           </div>
           <div class="field">
             <label for="mDate">Ημερομηνία &amp; ώρα</label>
@@ -178,7 +178,10 @@
   </section>
 </main>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<!-- Pinned version + SRI. Do not remove integrity. -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0/dist/umd/supabase.js"
+        integrity="sha384-uteMfOloLDGt042uDz+xHGF3ym63/WQ6rFq7murQRG8Ih7QrXGEGNtWd8688sb4O"
+        crossorigin="anonymous"></script>
 <script src="/js/config.js"></script>
 <script src="/js/admin.js"></script>
 </body>

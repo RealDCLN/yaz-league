@@ -45,12 +45,14 @@ yaz-league/
 ├── index.html
 ├── admin.html
 ├── 404.html
+├── robots.txt
 ├── netlify.toml
 ├── .env.example
 ├── README.md
 ├── assets/
 │   ├── favicon.svg
-│   └── og-image.svg
+│   ├── og-image.svg
+│   └── og-image.png   ← χρησιμοποιείται στα social previews
 ├── css/
 │   ├── styles.css
 │   └── admin.css
@@ -62,8 +64,11 @@ yaz-league/
 │   ├── app.js         ← αρχική σελίδα
 │   └── admin.js       ← διαχείριση
 └── supabase/
-├── schema.sql
-└── seed.sql
+    ├── schema.sql
+    ├── seed.sql
+    └── migrations/
+        ├── 002_first_name_only.sql
+        └── 003_security_hardening.sql
 
 ```
 
@@ -90,12 +95,12 @@ yaz-league/
 ### Βήμα 2 — Εκτέλεση του schema
 1. **SQL Editor** → **New query**.
 2. Άνοιξε το `supabase/schema.sql`.
-3. Πριν το τρέξεις, άλλαξε τη γραμμή:
+3. Πριν το τρέξεις, άλλαξε μέσα στη συνάρτηση `public.is_admin()` τη γραμμή:
    ```sql
-   select coalesce(auth.jwt() ->> 'email', '') = 'admin@example.com'
-```
+   admin_email constant text := 'admin@example.com';
+   ```
 
-βάζοντας **το δικό σου email** (ίδιο με το `adminEmail` στο `js/config.js`).
+βάζοντας **το δικό σου email** (το ίδιο με τον λογαριασμό admin στο Supabase Auth).
 
 4. Επικόλλησε και πάτησε **Run**. Πρέπει να δεις `Success`.
 
@@ -116,16 +121,16 @@ yaz-league/
 **Project Settings** → **API**:
 
 - **Project URL** → `https://abcdefghijk.supabase.co`
-- **anon public** key → `eyJ...`
+- **Publishable key** → `sb_publishable_...` (ή το παλιό **anon public** `eyJ...`)
 
-> ⚠️ **Ποτέ** `service_role` key στο front-end. Το `anon` είναι ασφαλές χάρη στα RLS.
+> ⚠️ **Ποτέ** `service_role` / secret key στο front-end. Το publishable/anon
+> key είναι ασφαλές **μόνο** όταν τα RLS + grants είναι σωστά (όπως στο `schema.sql`).
 
 ### Βήμα 6 — Επεξεργασία του `js/config.js`
 
 ```
 supabaseUrl: 'https://abcdefghijk.supabase.co',
 supabaseAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
-adminEmail: 'to-email-sou@example.com',
 ```
 
 Και οι σύνδεσμοι:
@@ -213,15 +218,117 @@ groupSize: 4
 
 ## Ασφάλεια
 
-| Πίνακας ↕▾ | anon ↕▾ | admin ↕▾ |
-|---|---|---|
-| −`players` | SELECT | ALL |
-| −`matches` | SELECT | ALL |
-| −`results` | SELECT | ALL |
-| −`registrations` | INSERT (`pending` only) | SELECT/UPDATE/DELETE |
-| ⚙ |  |  |
+Ο πραγματικός έλεγχος γίνεται **στη βάση (RLS + grants)**, όχι στον browser.
+Το front-end δεν είναι μυστικό: ο anon/publishable key είναι δημόσιος by design.
 
-Όλοι βλέπουν τη βαθμολογία. Μόνο ο λογαριασμός με το email του διαχειριστή γράφει.
+| Πίνακας | `anon` (δημόσιος επισκέπτης) | `authenticated` (admin) |
+|---|---|---|
+| `players` | SELECT μόνο `id, nickname, joined_at, is_active` | ALL (RLS: μόνο admin) |
+| `matches` | SELECT | ALL (RLS: μόνο admin) |
+| `results` | SELECT | ALL (RLS: μόνο admin) |
+| `registrations` | INSERT μόνο `nickname, first_name` (`pending`) | SELECT / UPDATE(status) / DELETE (RLS: μόνο admin) |
+
+**Σημαντικό για το `first_name`:** η κατάταξη δείχνει μόνο το ψευδώνυμο, αλλά
+παλιότερα το `players.first_name` ήταν αναγνώσιμο από τον δημόσιο REST API
+(`/rest/v1/players?select=first_name`). Το migration 003 το κλείνει σε επίπεδο
+column privileges. Αν δεν το τρέξεις, οποιοσδήποτε έχει τον δημόσιο key μπορεί
+να διαβάσει τα πραγματικά ονόματα των παικτών — ακόμα κι αν δεν φαίνονται στο site.
+
+Επιπλέον:
+- Server-side constraints για μήκος/control chars σε nickname και first_name.
+- Case-insensitive uniqueness στα nicknames (`DCLN` = `dcln`).
+- Μία μόνο εκκρεμής αίτηση ανά nickname.
+- Rate limit στη φόρμα εγγραφής: max 5 αιτήσεις / 15 λεπτά ανά IP (η IP
+  αποθηκεύεται μόνο ως md5 hash).
+- Το `status` της εγγραφής αναγκάζεται σε `pending` από trigger — ο client δεν
+  μπορεί να αυτοεγκριθεί.
+- CSP, HSTS, `X-Frame-Options: DENY`, `Permissions-Policy`, `noindex` στο admin.
+- Τα CDN scripts είναι pinned + έχουν SRI hashes (αν αλλάξει το αρχείο στο CDN,
+  ο browser δεν το εκτελεί).
+
+### Αν έχεις ήδη βάση — τρέξε το migration
+
+Στο **Supabase → SQL Editor**, τρέξε ολόκληρο το:
+
+```
+supabase/migrations/003_security_hardening.sql
+```
+
+Είναι idempotent. Πριν το τρέξεις, έλεγξε για διπλά ονόματα:
+
+```sql
+select lower(btrim(nickname)), count(*) from public.players
+group by 1 having count(*) > 1;
+
+select lower(btrim(nickname)), count(*) from public.registrations
+where status = 'pending' group by 1 having count(*) > 1;
+```
+
+Αν βρεις διπλά, διόρθωσε/διάγραψε τα πρώτα, αλλιώς το unique index θα αποτύχει.
+
+### Ρυθμίσεις στο dashboard του Supabase (χειροκίνητα)
+
+Αυτές δεν γίνονται από κώδικα — κάν' τες μία φορά:
+
+1. **Authentication → Sign In / Providers → Email**: κλείσε το **Enable sign ups**.
+   Δεν χρειάζονται δημόσιοι λογαριασμοί· μόνο ο admin συνδέεται. Έτσι κανείς
+   δεν μπορεί να δημιουργήσει `authenticated` χρήστη.
+2. **Authentication → URL Configuration**: βάλε ως Site URL
+   `https://yaz-league.netlify.app` και καθάρισε τα υπόλοιπα redirect URLs.
+3. **Authentication → Rate Limits / CAPTCHA**: άφησε τα default rate limits
+   (ή σφίξε τα) και, αν θέλεις, ενεργοποίησε CAPTCHA στο login.
+4. **Project Settings → API**: χρησιμοποίησε μόνο το publishable/anon key στο
+   front-end. Το `service_role`/secret key **ποτέ** σε HTML/JS/repo.
+5. **Project Settings → API → Data API**: αν δεν χρησιμοποιείς GraphQL, κλείσε
+   το `pg_graphql` για μικρότερη επιφάνεια επίθεσης.
+6. **Database → Backups**: ενεργοποίησε backups/PITR αν είναι διαθέσιμο.
+
+### Γιατί δεν φοβόμαστε SQL injection / XSS / CSRF
+
+- **SQL injection**: το site δεν γράφει raw SQL. Το `supabase-js` στέλνει
+  parameterized filters στο PostgREST. Δεν υπάρχει `eval` ή dynamic SQL.
+- **XSS**: όλα τα DB πεδία περνούν από `escapeHtml`/`textContent` πριν μπουν στο
+  DOM, και το CSP μπλοκάρει inline scripts.
+- **CSRF**: η αυθεντικοποίηση γίνεται με bearer token (localStorage), όχι cookies,
+  οπότε δεν υπάρχει cross-site request με αυτόματο cookie. Το ρίσκο είναι XSS
+  (κλοπή session) — γι' αυτό υπάρχει CSP + SRI.
+- **Clickjacking**: `frame-ancestors 'none'` + `X-Frame-Options: DENY`.
+- **Δημόσια δεδομένα**: η βαθμολογία είναι δημόσια by design. Οποιοσδήποτε μπορεί
+  να τη scrape-άρει· αυτό δεν είναι breach. Τα προσωπικά πεδία είναι το ζήτημα.
+
+### Έλεγχος μετά το migration
+
+Τρέξε στο SQL Editor:
+
+```sql
+-- Πρέπει να βλέπεις μόνο τα policies που περιγράφονται παραπάνω
+select tablename, policyname, roles, cmd, qual, with_check
+from pg_policies where schemaname = 'public' order by tablename, policyname;
+
+-- Πρέπει το anon να έχει μόνο SELECT στα public tables και στενό INSERT
+-- στα registrations — όχι UPDATE/DELETE.
+select table_name, grantee, privilege_type
+from information_schema.role_table_grants
+where table_schema = 'public' and grantee in ('anon','authenticated')
+order by table_name, grantee, privilege_type;
+
+-- Πρέπει να μη βλέπεις first_name για το anon.
+select table_name, column_name, grantee, privilege_type
+from information_schema.column_privileges
+where table_schema = 'public' and grantee = 'anon'
+order by table_name, column_name;
+```
+
+Και από τη console του browser (ή curl) με τον δημόσιο key:
+
+```js
+// Πρέπει να επιστρέψει permission denied — ΟΧΙ τα ονόματα.
+fetch('https://bgjprkmpyraflesqovos.supabase.co/rest/v1/players?select=first_name', {
+  headers: { apikey: 'sb_publishable_...' }
+}).then(r => r.status).then(console.log);
+```
+
+Αν επιστρέφει `200` με ονόματα, το migration δεν έχει εφαρμοστεί.
 
 ---
 
@@ -247,11 +354,17 @@ groupSize: 4
 
 **Κενή κατάταξη / σφάλμα φόρτωσης** → Αν τα keys είναι σωστά αλλά το Supabase δεν απαντήσει, το site δείχνει error state αντί να πέσει σε demo. Έλεγξε το console (F12).
 
-**«Ο λογαριασμός δεν έχει δικαιώματα διαχειριστή»** → Το email στο `is_admin()` δεν ταιριάζει με το `adminEmail`. Ξανατρέξε το schema.
+**«Ο λογαριασμός δεν έχει δικαιώματα διαχειριστή»** → Το email στη συνάρτηση `is_admin()` (μέσα στο `schema.sql`) δεν ταιριάζει με το email του λογαριασμού admin στο Supabase Auth. Διόρθωσε το `admin_email` και ξανατρέξε το schema ή το migration.
 
 **«Υπάρχει ήδη καταχώριση»** → Διάγραψε την παλιά από **«Αγωνιστικές»**.
 
 **Σφάλμα εγγραφής: `PGRST204 — Could not find the 'first_name' column of 'registrations'` (ή το πραγματικό όνομα χάνεται)** → Ο πίνακας `registrations` στη βάση δημιουργήθηκε με παλαιότερο schema (χωρίς τη στήλη `first_name`). Το deployment της σελίδας είναι καινούργιο, αλλά η βάση όχι. Τρέξε το `supabase/migrations/002_first_name_only.sql` στο **SQL Editor** (ή ξανατρέξε όλο το `schema.sql`, που τώρα περιέχει τα αντίστοιχα `alter table ... add/drop column if exists`). Μετά περίμενε λίγα δευτερόλεπτα ή κάνε refresh — το `notify pgrst, 'reload schema';` ανανεώνει το cache αμέσως. Σημείωση: η φόρμα και η βάση κρατούν πλέον ΜΟΝΟ `nickname` + `first_name` — οι παλιές στήλες `email`, `geoguessr_url`, `discord` διαγράφονται από τη μετακίνηση.
+
+**Ο δημόσιος API επιστρέφει τα πραγματικά ονόματα (`players.first_name`)** → Δεν έχει τρέξει το `supabase/migrations/003_security_hardening.sql`. Δες την ενότητα **Ασφάλεια** παραπάνω.
+
+**Η φόρμα εγγραφής λέει «Πολλές αιτήσεις»** → Το anti-spam trigger επιτρέπει 5 αιτήσεις / 15 λεπτά ανά IP. Περίμενε λίγα λεπτά ή δοκίμασε από άλλο δίκτυο. Για μαζικό seed, τρέξε SQL από το SQL Editor (εκεί το rate limit παραλείπεται).
+
+**Το admin panel λέει «permission denied for table ...»** → Τρέξε το `003_security_hardening.sql`. Βεβαιώσου επίσης ότι συνδέεσαι με το ίδιο email που είναι δηλωμένο στο `is_admin()` μέσα στο `schema.sql`.
 
 ---
 

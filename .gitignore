@@ -1,0 +1,17 @@
+# Secrets — never commit these
+.env
+.env.*
+!.env.example
+*.local
+*.secret
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+
+# Logs / temp
+*.log
+*.tmp

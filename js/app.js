@@ -513,22 +513,35 @@
       btn.disabled = true;
       btn.textContent = 'Αποστολή…';
 
-      const res = await Y.data.submitRegistration({
-        nickname: nickname,
-        first_name: firstName
-      });
+      try {
+        const res = await Y.data.submitRegistration({
+          nickname: nickname,
+          first_name: firstName
+        });
 
-      btn.disabled = false;
-      btn.textContent = 'Στείλε αίτηση';
-
-      if (res.ok) {
-        msg.className = 'form-msg ok';
-        msg.textContent = 'Ευχαριστούμε, ' + nickname + '! Η αίτησή σου καταχωρήθηκε και θα ελεγχθεί πριν την επόμενη αγωνιστική.';
-        form.reset();
-      } else {
+        if (res.ok) {
+          msg.className = 'form-msg ok';
+          msg.textContent = 'Ευχαριστούμε, ' + nickname + '! Η αίτησή σου καταχωρήθηκε και θα ελεγχθεί πριν την επόμενη αγωνιστική.';
+          form.reset();
+        } else {
+          msg.className = 'form-msg err';
+          const text = String(res.error || '');
+          const isRateLimited = /Πολλές αιτήσεις|rate limit|too many/i.test(text);
+          const isDuplicate = /duplicate key|registrations_pending_nickname_uniq/i.test(text);
+          msg.textContent = isRateLimited
+            ? 'Έγιναν πολλές αιτήσεις σε λίγο χρόνο. Δοκίμασε ξανά σε λίγα λεπτά.'
+            : isDuplicate
+              ? 'Υπάρχει ήδη εκκρεμής αίτηση με αυτό το ψευδώνυμο.'
+              : 'Κάτι πήγε στραβά. Δοκίμασε ξανά σε λίγο ή στείλε μήνυμα στο Discord.';
+          console.error('[YAZ] registration error:', res.error);
+        }
+      } catch (err) {
         msg.className = 'form-msg err';
         msg.textContent = 'Κάτι πήγε στραβά. Δοκίμασε ξανά σε λίγο ή στείλε μήνυμα στο Discord.';
-        console.error('[YAZ] registration error:', res.error);
+        console.error('[YAZ] registration error:', err);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Στείλε αίτηση';
       }
     });
   }

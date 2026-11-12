@@ -11,13 +11,96 @@
   to = "/admin.html"
   status = 200
 
+# ------------------------------------------------------------
+# Μην σερβίρεις ποτέ αρχεία του repo/βάσης ως στατικά assets.
+# (Το publish = "." δημοσιεύει όλο τον φάκελο.)
+# ------------------------------------------------------------
+[[redirects]]
+  from = "/supabase/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/*.sql"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/*.md"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/*.bat"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/*.toml"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/*.example"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/.env*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/.git/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/.gitignore"
+  to = "/404.html"
+  status = 404
+  force = true
+
+# ------------------------------------------------------------
+# Security headers
+# ------------------------------------------------------------
 [[headers]]
   for = "/*"
   [headers.values]
+    # Only the scripts this site actually loads are allowed. The two CDN
+    # files also have SRI hashes in the HTML, so a compromised CDN cannot
+    # run different code. connect-src is limited to this Supabase project.
+    Content-Security-Policy = "default-src 'self'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://bgjprkmpyraflesqovos.supabase.co wss://bgjprkmpyraflesqovos.supabase.co; manifest-src 'self'; media-src 'self'; worker-src 'self'; upgrade-insecure-requests"
     X-Content-Type-Options = "nosniff"
-    X-Frame-Options = "SAMEORIGIN"
+    X-Frame-Options = "DENY"
     Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()"
+    Cross-Origin-Opener-Policy = "same-origin"
+    Strict-Transport-Security = "max-age=63072000; includeSubDomains; preload"
+    X-XSS-Protection = "0"
 
+# Το admin δεν πρέπει να εμφανίζεται σε μηχανές αναζήτησης.
+[[headers]]
+  for = "/admin"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+    Cache-Control = "no-store"
+
+[[headers]]
+  for = "/admin.html"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+    Cache-Control = "no-store"
+
+# Τα keys/ρυθμίσεις αλλάζουν χωρίς rebuild — μην τα κάνεις cache.
 [[headers]]
   for = "/js/config.js"
   [headers.values]

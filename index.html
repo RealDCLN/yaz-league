@@ -12,12 +12,15 @@
 <meta property="og:site_name" content="YAZ LEAGUE">
 <meta property="og:title" content="YAZ LEAGUE — Το απόλυτο πρωτάθλημα γεωγραφίας">
 <meta property="og:description" content="Κάθε Παρασκευή στις 19:00, δύο leagues, ένας χάρτης κι ένα quiz. Μάζεψε πόντους και σκαρφάλωσε στην κατάταξη.">
-<meta property="og:image" content="https://yaz-league.netlify.app/assets/og-image.svg">
+<meta property="og:image" content="https://yaz-league.netlify.app/assets/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:type" content="image/png">
 <meta property="og:url" content="https://yaz-league.netlify.app/">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="YAZ LEAGUE — Το απόλυτο πρωτάθλημα γεωγραφίας">
 <meta name="twitter:description" content="Το εβδομαδιαίο πρωτάθλημα γεωγραφίας του DE.VOYAGEUR.">
-<meta name="twitter:image" content="https://yaz-league.netlify.app/assets/og-image.svg">
+<meta name="twitter:image" content="https://yaz-league.netlify.app/assets/og-image.png">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="assets/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -135,7 +138,7 @@
             <caption class="sr-only">Βαθμολογία παικτών της YAZ LEAGUE</caption>
             <thead>
               <tr>
-                <th scope="col" class="th-rank" data-sort="rank" aria-sort="ascending">Θέση</th>
+                <th scope="col" class="th-rank" data-sort="rank">Θέση</th>
                 <th scope="col" class="th-player" data-sort="nickname">Παίκτης</th>
                 <th scope="col" class="num" data-sort="points">Πόντοι</th>
                 <th scope="col" class="num" data-sort="wildcards">Wildcards</th>
@@ -220,13 +223,15 @@
         <p class="eyebrow">Μπες στη league</p>
         <h2 class="section-title">Εγγραφή</h2>
         <p class="section-sub">
-          Συμπλήρωσε τη φόρμα και θα επικοινωνήσουμε μαζί σου πριν την επόμενη αγωνιστική.
-          Οι θέσεις είναι περιορισμένες και οι εγγραφές εγκρίνονται χειροκίνητα.
+          Συμπλήρωσε τη φόρμα. Οι θέσεις είναι περιορισμένες και οι εγγραφές εγκρίνονται
+          χειροκίνητα πριν την επόμενη αγωνιστική — μόλις εγκριθείς, το ψευδώνυμό σου
+          εμφανίζεται στην κατάταξη.
         </p>
         <ul class="signup-list">
           <li>Το ψευδώνυμο εμφανίζεται δημόσια στην κατάταξη.</li>
           <li>Το πραγματικό σου όνομα μένει ιδιωτικό — το βλέπει μόνο ο διοργανωτής.</li>
           <li>Δεν υπάρχει κόστος συμμετοχής.</li>
+          <li>Τα στοιχεία σου χρησιμοποιούνται μόνο για τη διαχείριση της league. Για διαγραφή, στείλε μήνυμα στο Discord.</li>
         </ul>
       </div>
       <form class="signup-form panel-light reveal" id="signupForm" novalidate>
@@ -300,8 +305,14 @@
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<!-- Pinned versions + SRI: if the CDN or package is tampered with, the
+     browser refuses to execute the script. Do not remove integrity. -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0/dist/umd/supabase.js"
+        integrity="sha384-uteMfOloLDGt042uDz+xHGF3ym63/WQ6rFq7murQRG8Ih7QrXGEGNtWd8688sb4O"
+        crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"
+        integrity="sha384-9nhczxUqK87bcKHh20fSQcTGD4qq5GhayNYSYWqwBkINBhOfQLg/P5HG5lF1urn4"
+        crossorigin="anonymous"></script>
 <script src="js/config.js"></script>
 <script src="js/seed.js"></script>
 <script src="js/stats.js"></script>

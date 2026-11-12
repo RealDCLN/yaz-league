@@ -78,7 +78,9 @@ insert into public.matches (week_number, match_date, league) values
   (8, '2026-11-06T19:00:00+02:00', 'map'),
   (8, '2026-11-06T19:00:00+02:00', 'quiz');
 
-create temp table if not exists _skill (nickname text primary key, skill numeric);
+-- Drop first so the seed can be re-run in the same SQL Editor session.
+drop table if exists _skill;
+create temp table _skill (nickname text primary key, skill numeric);
 
 insert into _skill (nickname, skill) values
   ('MR. LAG', 100), ('VISIT KASTORIA', 99.15), ('KARIPIDIS', 98.3), ('DCLN', 97.45),

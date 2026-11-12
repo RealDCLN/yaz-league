@@ -28,9 +28,10 @@
     return (place >= 1 && place <= PTS.length) ? PTS[place - 1] : 0;
   }
 
-  // Escape SQL LIKE wildcards so "_" and "%" in nicknames are matched literally.
+  // Escape SQL LIKE wildcards so "_", "%" and PostgREST's "*" in nicknames
+  // are matched literally.
   function escapeLike(s) {
-    return String(s).replace(/[\\%_]/g, '\\$&');
+    return String(s).replace(/[\\%_*]/g, '\\$&');
   }
 
   function toLocalInput(d) {
@@ -144,9 +145,15 @@
     if (!sb || !currentUser) return false;
     try {
       const { data, error } = await sb.rpc('is_admin');
-      if (!error) return data === true;
-    } catch (_) {}
-    return currentUser.email === cfg.adminEmail;
+      if (error) {
+        console.error('[admin] is_admin RPC failed:', error);
+        return false;
+      }
+      return data === true;
+    } catch (err) {
+      console.error('[admin] is_admin RPC failed:', err);
+      return false;
+    }
   }
 
   async function onSignedIn() {
@@ -237,7 +244,7 @@
     const err = p.error || m.error || r.error;
     if (err) {
       console.error('[admin] load failed:', err);
-      throw new Error('Σφάλμα φόρτωσης δεδομένων: ' + err.message + ' — έχεις τρέξει το schema.sql;');
+      throw new Error('Σφάλμα φόρτωσης δεδομένων: ' + err.message + ' — έχεις τρέξει το supabase/schema.sql (ή το migrations/003_security_hardening.sql);');
     }
     cache.players = p.data || [];
     cache.matches = m.data || [];
@@ -632,7 +639,7 @@
 
     try {
       const { data, error } = await sb.from('registrations')
-        .select('*')
+        .select('id,nickname,first_name,created_at,status')
         .eq('status', 'pending')
         .order('created_at', { ascending: true });
       if (error) throw error;
@@ -672,11 +679,16 @@
   async function approveReg(id) {
     const reg = cache.regs.find(r => String(r.id) === String(id));
     if (!reg) return;
+
+    const nickname = String(reg.nickname || '').trim();
+    const firstName = String(reg.first_name || '').trim() || null;
+
+    let createdPlayerId = null;
     try {
-      const lower = reg.nickname.trim().toLowerCase();
+      const lower = nickname.toLowerCase();
       const existing = cache.players.find(p => p.nickname.toLowerCase() === lower);
       if (existing) {
-        if (!confirm('Ο παίκτης "' + reg.nickname + '" υπάρχει ήδη στους ενεργούς παίκτες. Έγκριση της αίτησης χωρίς διπλοεγγραφή;')) {
+        if (!confirm('Ο παίκτης "' + nickname + '" υπάρχει ήδη στους ενεργούς παίκτες. Έγκριση της αίτησης χωρίς διπλοεγγραφή;')) {
           return;
         }
         const { error: uErr } = await sb.from('registrations').update({ status: 'approved' }).eq('id', id);
@@ -685,18 +697,26 @@
         return;
       }
 
-      const { error: pErr } = await sb.from('players').insert({
-        nickname: reg.nickname,
-        first_name: reg.first_name
-      });
+      const { data: playerRow, error: pErr } = await sb.from('players').insert({
+        nickname: nickname,
+        first_name: firstName
+      }).select('id').single();
       if (pErr) throw pErr;
+      createdPlayerId = playerRow.id;
+
       const { error: uErr } = await sb.from('registrations').update({ status: 'approved' }).eq('id', id);
       if (uErr) throw uErr;
+
       await loadAll();
       renderPlayersTable();
       populateDatalist();
       await loadRegs();
     } catch (err) {
+      // If the player was created but marking the registration failed,
+      // remove the player so the admin can safely retry.
+      if (createdPlayerId) {
+        try { await sb.from('players').delete().eq('id', createdPlayerId); } catch (_) {}
+      }
       alert('Αποτυχία έγκρισης: ' + (err.message || ''));
     }
   }
