@@ -52,12 +52,6 @@
       fillHud();
       renderBoard();
 
-      // World map of past matches — safe if YAZ.map is absent (older deploy).
-      if (Y.map && typeof Y.map.init === 'function') {
-        try { Y.map.init({ matches: state.matches }); }
-        catch (err) { console.warn('[YAZ] map init failed', err); }
-      }
-
       // Now that we know the real match list, fix up the week number.
       updateWeekLabel();
     } catch (err) {
@@ -66,7 +60,6 @@
       if (tbody) {
         tbody.innerHTML = '<tr><td colspan="7" class="loading-row">Δεν ήταν δυνατή η φόρτωση της βαθμολογίας. Δοκίμασε ξανά σε λίγο.</td></tr>';
       }
-      // The map section still shows its shell, just with no pins.
     }
   }
 

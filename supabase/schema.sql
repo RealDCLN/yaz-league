@@ -19,9 +19,6 @@ create table if not exists public.matches (
   week_number   int  not null check (week_number > 0),
   match_date    timestamptz not null,
   league        text not null check (league in ('map', 'quiz')),
-  location_name text,
-  lat           double precision,
-  lng           double precision,
   created_at    timestamptz not null default now(),
   unique (week_number, league)
 );
@@ -60,6 +57,11 @@ alter table public.registrations drop column if exists geoguessr_url;
 alter table public.registrations drop column if exists discord;
 alter table public.players       drop column if exists geoguessr_url;
 alter table public.players       drop column if exists discord;
+
+-- Οι στήλες τοποθεσίας/συντεταγμένων ανήκαν στον scrapped χάρτη «Οι διαδρομές μας».
+alter table public.matches drop column if exists location_name;
+alter table public.matches drop column if exists lat;
+alter table public.matches drop column if exists lng;
 
 create index if not exists idx_results_match  on public.results (match_id);
 create index if not exists idx_results_player on public.results (player_id);

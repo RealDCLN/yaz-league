@@ -48,7 +48,6 @@
     </button>
     <nav class="main-nav" id="mainNav" aria-label="Κύρια πλοήγηση">
       <a href="#arxiki">Αρχική</a>
-      <a href="#xartis">Χάρτης</a>
       <a href="#katataxi">Κατάταξη</a>
       <a href="#kanones">Κανόνες</a>
       <a href="#egrafi">Εγγραφή</a>
@@ -119,27 +118,6 @@
         </div>
         <p class="next-note">Το concept μένει μυστικό — η δουλειά σου είναι να το ανακαλύψεις μέσα από τις τοποθεσίες.</p>
       </aside>
-    </div>
-  </section>
-
-  <!-- ================= WORLD MAP ================= -->
-  <section class="section section-map" id="xartis">
-    <div class="wrap">
-      <header class="section-head reveal">
-        <p class="eyebrow">Παγκόσμιος χάρτης</p>
-        <h2 class="section-title">Οι διαδρομές μας</h2>
-        <p class="section-sub">Κάθε pin είναι μια αγωνιστική. Κάθε γραμμή, ένα ταξίδι. Πάτησε σε ένα pin για την τοποθεσία.</p>
-      </header>
-      <div class="map-shell reveal">
-        <div class="map-canvas">
-          <svg id="worldSvg" viewBox="0 0 1000 500" aria-label="Χάρτης αγωνιστικών" role="img"></svg>
-        </div>
-        <div class="map-tooltip" id="mapTooltip" aria-hidden="true"></div>
-      </div>
-      <div class="map-controls">
-        <div class="week-chips" id="weekChips"></div>
-        <button class="btn btn-outline btn-sm" id="randomPinBtn" type="button">Τυχαία τοποθεσία</button>
-      </div>
     </div>
   </section>
 
@@ -324,13 +302,10 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
 <script src="js/config.js"></script>
 <script src="js/seed.js"></script>
 <script src="js/stats.js"></script>
 <script src="js/data.js"></script>
-<script src="js/map.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

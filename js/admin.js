@@ -174,8 +174,6 @@
     if ($('mLeague')) {
       $('mLeague').value = info.defaultLeague;
       league = info.defaultLeague;
-      const row = $('locationRow');
-      if (row) row.style.display = league === 'map' ? '' : 'none';
     }
 
     if (!entries.length) entries = [{ nickname: '', concept: false }];
@@ -214,11 +212,9 @@
 
   function wireLeagueChange() {
     const sel = $('mLeague');
-    const row = $('locationRow');
-    if (!sel || !row) return;
+    if (!sel) return;
     const update = () => {
       league = sel.value;
-      row.style.display = league === 'map' ? '' : 'none';
       // The concept bonus only applies to the map league (rules state quiz
       // has no concept bonus). Clear stale flags so a checked box can't
       // leak into a quiz result and silently award +3.
@@ -479,18 +475,10 @@
     let matchId = null;
     const createdPlayerIds = [];
     try {
-      const loc = leagueSel === 'map' ? ($('mLocation').value.trim() || null) : null;
-      const latVal = $('mLat').value.trim();
-      const lngVal = $('mLng').value.trim();
-      const lat = (leagueSel === 'map' && latVal !== '' && isFinite(Number(latVal))) ? Number(latVal) : null;
-      const lng = (leagueSel === 'map' && lngVal !== '' && isFinite(Number(lngVal))) ? Number(lngVal) : null;
-
       const { data: matchRow, error: mErr } = await sb.from('matches').insert({
         week_number: week,
         match_date: matchDate.toISOString(),
-        league: leagueSel,
-        location_name: loc,
-        lat, lng
+        league: leagueSel
       }).select().single();
       if (mErr) throw mErr;
       matchId = matchRow.id;
@@ -520,9 +508,6 @@
       if (rErr) throw rErr;
 
       entries = [{ nickname: '', concept: false }];
-      $('mLocation').value = '';
-      $('mLat').value = '';
-      $('mLng').value = '';
 
       await loadAll();
 
@@ -530,8 +515,6 @@
       $('mWeek').value = nextInfo.week;
       $('mLeague').value = nextInfo.defaultLeague;
       league = nextInfo.defaultLeague;
-      const locRow = $('locationRow');
-      if (locRow) locRow.style.display = league === 'map' ? '' : 'none';
 
       renderEntries();
       renderPreview();
@@ -735,7 +718,7 @@
     if (!tbody) return;
 
     if (!cache.matches.length) {
-      tbody.innerHTML = '<tr><td colspan="5" class="loading-row">Καμία αγωνιστική ακόμη.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="4" class="loading-row">Καμία αγωνιστική ακόμη.</td></tr>';
       return;
     }
 
@@ -754,7 +737,6 @@
         '<td><strong>' + m.week_number + '</strong></td>' +
         '<td>' + esc(m.league) + '</td>' +
         '<td>' + esc(dateStr) + '</td>' +
-        '<td>' + esc(m.location_name || '—') + '</td>' +
         '<td><button class="icon-btn danger" data-del="' + esc(m.id) + '" title="Διαγραφή">×</button></td>' +
       '</tr>';
     }).join('');
@@ -778,8 +760,6 @@
       $('mWeek').value = nextInfo.week;
       $('mLeague').value = nextInfo.defaultLeague;
       league = nextInfo.defaultLeague;
-      const locRow = $('locationRow');
-      if (locRow) locRow.style.display = league === 'map' ? '' : 'none';
     } catch (err) {
       alert('Αποτυχία διαγραφής: ' + (err.message || ''));
     }

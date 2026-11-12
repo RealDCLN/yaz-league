@@ -21,14 +21,14 @@ window.YAZ = window.YAZ || {};
   ];
 
   const WEEKS = [
-    { week: 1, date: '2026-09-18T19:00:00+03:00', country: 'Ισλανδία',      city: 'Ρέικιαβικ',      lat: 64.1466, lng: -21.9426 },
-    { week: 2, date: '2026-09-25T19:00:00+03:00', country: 'Ιαπωνία',       city: 'Κιότο',          lat: 35.0116, lng: 135.7681 },
-    { week: 3, date: '2026-10-02T19:00:00+03:00', country: 'Χιλή',          city: 'Βαλπαραΐσο',     lat: -33.0472, lng: -71.6127 },
-    { week: 4, date: '2026-10-09T19:00:00+03:00', country: 'Ναμίμπια',      city: 'Σουακοπμούντ',   lat: -22.5594, lng: 17.0832 },
-    { week: 5, date: '2026-10-16T19:00:00+03:00', country: 'Νορβηγία',      city: 'Λόφοτεν',        lat: 68.2094, lng: 13.6106 },
-    { week: 6, date: '2026-10-23T19:00:00+03:00', country: 'Νέα Ζηλανδία',  city: 'Κουίνσταουν',    lat: -45.0312, lng: 168.6626 },
-    { week: 7, date: '2026-10-30T19:00:00+02:00', country: 'Μαρόκο',        city: 'Σεφσαουέν',      lat: 35.1688, lng: -5.2636 },
-    { week: 8, date: '2026-11-06T19:00:00+02:00', country: 'Καναδάς',       city: 'Νιουφαουντλάντ', lat: 47.5615, lng: -52.7126 }
+    { week: 1, date: '2026-09-18T19:00:00+03:00' },
+    { week: 2, date: '2026-09-25T19:00:00+03:00' },
+    { week: 3, date: '2026-10-02T19:00:00+03:00' },
+    { week: 4, date: '2026-10-09T19:00:00+03:00' },
+    { week: 5, date: '2026-10-16T19:00:00+03:00' },
+    { week: 6, date: '2026-10-23T19:00:00+03:00' },
+    { week: 7, date: '2026-10-30T19:00:00+02:00' },
+    { week: 8, date: '2026-11-06T19:00:00+02:00' }
   ];
 
   function mulberry32(seed) {
@@ -62,10 +62,7 @@ window.YAZ = window.YAZ || {};
           id: 'm' + w.week + '-' + league,
           week_number: w.week,
           match_date: w.date,
-          league: league,
-          location_name: league === 'map' ? (w.city + ', ' + w.country) : null,
-          lat: league === 'map' ? w.lat : null,
-          lng: league === 'map' ? w.lng : null
+          league: league
         });
       });
     });

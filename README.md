@@ -8,12 +8,12 @@ Static site (HTML/CSS/JS, χωρίς build step) με προαιρετικό bac
 
 ## Σχεδιαστική κατεύθυνση
 
-Χάρτης θησαυρού σε σκοτεινό δωμάτιο πλοιάρχου: βαθύ navy υπόβαθρο, χρυσές γραμμές διαδρομής,
+Χάρτης θησαυρού σε σκοτεινό δωμάτιο πλοιάρχου: βαθύ navy υπόβαθρο,
 περγαμηνή για το εγχειρίδιο κανόνων, χαραγμένες γωνίες (chamfer), μονοπλάγια ψηφία τύπου HUD.
 
 - Γραμματοσειρές: **Cinzel** / **Cinzel Decorative** (τίτλοι), **Inter** (κείμενο), **JetBrains Mono** (νούμερα, HUD)
 - Χρώματα: `#0F1626` night · `#F0E4C8` parchment · `#E3B341` gold · `#E2572B` terracotta · `#3FBFAE` teal
-- Κίνηση: μόνο διακριτικά reveals, pulse στα pins, live badge κάτω από 1 ώρα
+- Κίνηση: μόνο διακριτικά reveals, live badge κάτω από 1 ώρα
 
 ---
 
@@ -21,7 +21,7 @@ Static site (HTML/CSS/JS, χωρίς build step) με προαιρετικό bac
 
 | Σελίδα | Περιεχόμενο |
 |---|---|
-| `index.html` | Hero + HUD + countdown, παγκόσμιος χάρτης με pins & route line, κατάταξη με οπτική ομαδοποίηση ανά 4, κανόνες, εγγραφή |
+| `index.html` | Hero + HUD + countdown, κατάταξη με οπτική ομαδοποίηση ανά 4, κανόνες, εγγραφή |
 | `admin.html` | Κρυφό portal διαχείρισης (`/admin`) |
 | `404.html` | Σελίδα σφάλματος |
 
@@ -29,8 +29,6 @@ Static site (HTML/CSS/JS, χωρίς build step) με προαιρετικό bac
 
 - HUD στατιστικά σεζόν (παίκτες / αγώνες / αγωνιστικές)
 - Countdown στην επόμενη Παρασκευή 19:00 με LIVE badge στο τελευταίο 60λεπτο
-- **Παγκόσμιος χάρτης αγωνιστικών**: κάθε τοποθεσία ως pin, διαδρομή εβδομάδων, tooltip,
-  φίλτρα ανά εβδομάδα, «Τυχαία τοποθεσία»
 - Κατάταξη με ταξινομήσιμες στήλες, μετακίνηση θέσης (▲▼), και **οπτική ομαδοποίηση ανά 4 θέσεις**
   (εναλλασσόμενη λωρίδα + διαχωριστικό κάθε 4), χρυσά/ασημένια/χάλκινα top-3
 - Modal προφίλ: Group badge, XP bar προς τον πρωτοπόρο, στατιστικά, γράφημα πορείας θέσης (Chart.js)
@@ -61,7 +59,6 @@ yaz-league/
 │   ├── seed.js        ← demo δεδομένα (40 παίκτες, 8 εβδομάδες)
 │   ├── stats.js       ← στατιστικά + ομαδοποίηση + μετακίνηση θέσης
 │   ├── data.js        ← Supabase ή demo
-│   ├── map.js         ← παγκόσμιος χάρτης + route line
 │   ├── app.js         ← αρχική σελίδα
 │   └── admin.js       ← διαχείριση
 └── supabase/
@@ -172,7 +169,6 @@ links: {
 - Νούμερο αγωνιστικής.
 - Ημερομηνία (αυτόματη: επόμενη Παρασκευή 19:00).
 - **Χάρτης** ή **Quiz**.
-- Για χάρτη: τοποθεσία + συντεταγμένες (Google Maps → δεξί κλικ → «What's here»).
 
 3. **«+ Πρόσθεσε παίκτη»** — με σειρά κατάταξης (πρώτος ο νικητής).
 
@@ -257,13 +253,11 @@ groupSize: 4
 
 **Σφάλμα εγγραφής: `PGRST204 — Could not find the 'first_name' column of 'registrations'` (ή το πραγματικό όνομα χάνεται)** → Ο πίνακας `registrations` στη βάση δημιουργήθηκε με παλαιότερο schema (χωρίς τη στήλη `first_name`). Το deployment της σελίδας είναι καινούργιο, αλλά η βάση όχι. Τρέξε το `supabase/migrations/002_first_name_only.sql` στο **SQL Editor** (ή ξανατρέξε όλο το `schema.sql`, που τώρα περιέχει τα αντίστοιχα `alter table ... add/drop column if exists`). Μετά περίμενε λίγα δευτερόλεπτα ή κάνε refresh — το `notify pgrst, 'reload schema';` ανανεώνει το cache αμέσως. Σημείωση: η φόρμα και η βάση κρατούν πλέον ΜΟΝΟ `nickname` + `first_name` — οι παλιές στήλες `email`, `geoguessr_url`, `discord` διαγράφονται από τη μετακίνηση.
 
-**Κενός χάρτης** → Χωρίς internet δεν φορτώνει το περίγραμμα ηπείρων (D3 + world-atlas CDN)· τα pins δουλεύουν κανονικά.
-
 ---
 
 ## Τεχνολογίες
 
-HTML5 · CSS3 · Vanilla JS · [Supabase](https://supabase.com/) · [D3.js](https://d3js.org/) · [TopoJSON](https://github.com/topojson/topojson-client) · [Chart.js](https://www.chartjs.org/) · Google Fonts
+HTML5 · CSS3 · Vanilla JS · [Supabase](https://supabase.com/) · [Chart.js](https://www.chartjs.org/) · Google Fonts
 
 ---
 
