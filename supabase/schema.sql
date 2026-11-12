@@ -9,8 +9,7 @@ create extension if not exists "pgcrypto";
 create table if not exists public.players (
   id            uuid primary key default gen_random_uuid(),
   nickname      text not null unique,
-  geoguessr_url text,
-  discord       text,
+  first_name    text,
   joined_at     timestamptz not null default now(),
   is_active     boolean not null default true
 );
@@ -41,22 +40,26 @@ create table if not exists public.results (
 create table if not exists public.registrations (
   id            uuid primary key default gen_random_uuid(),
   nickname      text not null,
-  geoguessr_url text,
-  discord       text,
-  email         text,
+  first_name    text,
   created_at    timestamptz not null default now(),
   status        text not null default 'pending'
                 check (status in ('pending', 'approved', 'rejected'))
 );
 
--- Αν ο πίνακας registrations υπήρχε ήδη από παλαιότερη έκδοση του
--- schema, το `create table if not exists` παραπάνω ΔΕΝ πειράζει τις
--- στήλες του. Προσθέτουμε λείπουσες στήλες εδώ, ώστε να μπορείς να
--- ξανατρέξεις όλο το αρχείο και να διορθωθεί η βάση αυτομάτως
--- (αλλιώς το POST /registrations δίνει PGRST204 για τη στήλη `email`).
-alter table public.registrations add column if not exists email         text;
-alter table public.registrations add column if not exists geoguessr_url text;
-alter table public.registrations add column if not exists discord       text;
+-- Αν οι πίνακες υπήρχαν ήδη από παλαιότερη έκδοση του schema, το
+-- `create table if not exists` παραπάνω ΔΕΝ πειράζει τις στήλες τους.
+-- Προσθέτουμε τη στήλη `first_name` εδώ, ώστε να μπορείς να ξανατρέξεις
+-- όλο το αρχείο και να διορθωθεί η βάση αυτομάτως (αλλιώς το POST
+-- /registrations δίνει PGRST204 για τη στήλη `first_name` και το όνομα
+-- χάνεται). Οι παλιές στήλες email/geoguessr_url/discord διαγράφονται.
+alter table public.registrations add column if not exists first_name text;
+alter table public.players       add column if not exists first_name text;
+
+alter table public.registrations drop column if exists email;
+alter table public.registrations drop column if exists geoguessr_url;
+alter table public.registrations drop column if exists discord;
+alter table public.players       drop column if exists geoguessr_url;
+alter table public.players       drop column if exists discord;
 
 create index if not exists idx_results_match  on public.results (match_id);
 create index if not exists idx_results_player on public.results (player_id);

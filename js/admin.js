@@ -538,8 +538,7 @@
       msg.textContent = '';
 
       const nickname = $('pNick').value.trim();
-      const geoguessr = $('pGeo').value.trim() || null;
-      const discord = $('pDiscord').value.trim() || null;
+      const firstName = $('pFirst').value.trim() || null;
 
       if (nickname.length < 2) {
         msg.className = 'form-msg err';
@@ -549,7 +548,7 @@
 
       try {
         const { error } = await sb.from('players').insert({
-          nickname, geoguessr_url: geoguessr, discord
+          nickname, first_name: firstName
         });
         if (error) throw error;
         msg.className = 'form-msg ok';
@@ -572,17 +571,14 @@
     if (count) count.textContent = cache.players.length;
 
     if (!cache.players.length) {
-      tbody.innerHTML = '<tr><td colspan="3" class="loading-row">Κανένας παίκτης ακόμη.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="2" class="loading-row">Κανένας παίκτης ακόμη.</td></tr>';
       return;
     }
 
     tbody.innerHTML = cache.players.map(p =>
       '<tr>' +
         '<td>' + esc(p.nickname) + '</td>' +
-        '<td>' + esc(p.discord || '—') + '</td>' +
-        '<td>' + (p.geoguessr_url
-          ? '<a href="' + esc(p.geoguessr_url) + '" target="_blank" rel="noopener">Προφίλ ↗</a>'
-          : '—') + '</td>' +
+        '<td>' + esc(p.first_name || '—') + '</td>' +
       '</tr>'
     ).join('');
   }
@@ -613,11 +609,7 @@
         '<div class="reg-item" data-id="' + esc(r.id) + '">' +
           '<div>' +
             '<p class="reg-name">' + esc(r.nickname) + '</p>' +
-            '<p class="reg-meta">' +
-              'Discord: ' + esc(r.discord || '—') +
-              (r.geoguessr_url ? ' · <a href="' + esc(r.geoguessr_url) + '" target="_blank" rel="noopener">GeoGuessr ↗</a>' : '') +
-              (r.email ? ' · ' + esc(r.email) : '') +
-            '</p>' +
+            '<p class="reg-meta">' + esc(r.first_name || '—') + '</p>' +
           '</div>' +
           '<div class="reg-actions">' +
             '<button class="btn btn-primary btn-sm" data-act="approve">Έγκριση</button>' +
@@ -642,8 +634,7 @@
     try {
       const { error: pErr } = await sb.from('players').insert({
         nickname: reg.nickname,
-        geoguessr_url: reg.geoguessr_url,
-        discord: reg.discord
+        first_name: reg.first_name
       });
       if (pErr) throw pErr;
       const { error: uErr } = await sb.from('registrations').update({ status: 'approved' }).eq('id', id);

@@ -41,9 +41,6 @@ window.YAZ = window.YAZ || {};
     };
   }
 
-  function slug(nick) {
-    return nick.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-  }
 
   function build() {
     const cfg = YAZ.config;
@@ -53,8 +50,6 @@ window.YAZ = window.YAZ || {};
     const players = NICKNAMES.map((nick, i) => ({
       id: 'p' + String(i + 1).padStart(2, '0'),
       nickname: nick,
-      geoguessr_url: 'https://www.geoguessr.com/user/' + (1000000 + i * 7717),
-      discord: slug(nick),
       joined_at: '2026-09-' + String(10 + (i % 8)).padStart(2, '0') + 'T12:00:00Z',
       is_active: true,
       _skill: 100 - i * 0.85
