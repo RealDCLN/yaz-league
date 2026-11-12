@@ -445,7 +445,9 @@ a{color:inherit}
 .rule-foot{font-size:.83rem;color:var(--ink-3) !important;margin:0}
 
 /* ============================ SIGNUP ============================ */
-.signup-grid{display:grid;grid-template-columns:minmax(0,620px);justify-content:center;gap:2.2rem}
+.signup-grid{display:grid;grid-template-columns:minmax(0,620px);justify-content:center;gap:1.4rem}
+.signup-title{text-align:center;margin:0}
+.signup-title::after{margin-inline:auto}
 
 .panel-light{
   background:var(--parchment-soft);
