@@ -1,5 +1,5 @@
 /* ============================================================
-   YAZ LEAGUE — Main front-end logic
+   YAZ LEAGUE - Main front-end logic
    ============================================================ */
 
 (function () {
@@ -27,7 +27,7 @@
     const yearEl = document.getElementById('year');
     if (yearEl) yearEl.textContent = new Date().getFullYear();
 
-    // Countdown has zero data dependencies — start it immediately so a slow
+    // Countdown has zero data dependencies, so start it immediately so a slow
     // or failed Supabase call can never leave it stuck at 00:00:00:00.
     startCountdown();
 
@@ -49,7 +49,6 @@
       state.results = data.results;
       state.standings = Y.stats.standings(state.players, state.matches, state.results);
 
-      fillHud();
       renderBoard();
 
       // Now that we know the real match list, fix up the week number.
@@ -61,15 +60,6 @@
         tbody.innerHTML = '<tr><td colspan="7" class="loading-row">Δεν ήταν δυνατή η φόρτωση της βαθμολογίας. Δοκίμασε ξανά σε λίγο.</td></tr>';
       }
     }
-  }
-
-  /* ---------------- hero HUD ---------------- */
-
-  function fillHud() {
-    const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
-    set('statPlayers', state.players.length);
-    set('statMatches', state.matches.length);
-    set('statWeeks', Y.stats.weeksOf(state.matches).length);
   }
 
   /* ---------------- links ---------------- */
@@ -210,9 +200,9 @@
   /* ---------------- leaderboard ---------------- */
 
   function initials(name) {
-    if (!name) return '—';
+    if (!name) return '-';
     const parts = String(name).replace(/[._-]+/g, ' ').trim().split(/\s+/);
-    if (!parts.length || !parts[0]) return '—';
+    if (!parts.length || !parts[0]) return '-';
     if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
     return (parts[0][0] + parts[1][0]).toUpperCase();
   }
@@ -236,7 +226,7 @@
   }
 
   function deltaHtml(delta) {
-    if (!delta) return '<span class="delta flat" title="Χωρίς μεταβολή">—</span>';
+    if (!delta) return '<span class="delta flat" title="Χωρίς μεταβολή">-</span>';
     if (delta > 0) return '<span class="delta up" title="Ανέβηκε ' + delta + ' θέσεις">▲' + delta + '</span>';
     return '<span class="delta down" title="Έπεσε ' + Math.abs(delta) + ' θέσεις">▼' + Math.abs(delta) + '</span>';
   }
@@ -283,7 +273,7 @@
             '</button>' +
           '</td>' +
           '<td class="num">' + row.points + '</td>' +
-          '<td class="num" title="Wildcards — νίκες σε league">' + row.wildcards + '</td>' +
+          '<td class="num" title="Wildcards: νίκες σε league">' + row.wildcards + '</td>' +
           '<td class="num">' + row.games + '</td>' +
           '<td class="num">' + row.wins + '</td>' +
           '<td class="num">' + row.podiums + '</td>' +

@@ -118,7 +118,7 @@
     X-Robots-Tag = "noindex, nofollow"
     Cache-Control = "no-store"
 
-# Τα keys/ρυθμίσεις αλλάζουν χωρίς rebuild — μην τα κάνεις cache.
+# Τα keys/ρυθμίσεις αλλάζουν χωρίς rebuild - μην τα κάνεις cache.
 [[headers]]
   for = "/js/config.js"
   [headers.values]

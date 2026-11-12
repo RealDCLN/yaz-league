@@ -1,5 +1,5 @@
 /* ============================================================
-   YAZ LEAGUE — "Treasure Map Esports"
+   YAZ LEAGUE - "Treasure Map Esports"
    Dark expedition HUD + parchment rulebook.
    ============================================================ */
 
@@ -91,7 +91,7 @@ a{color:inherit}
 .skip-link:focus{left:0}
 
 /* ============================ CHAMFER ============================ */
-.btn,.next-card,.table-scroll,.panel-light,.modal-card,.hud-item,.cd-cell,.live-badge{
+.btn,.next-card,.table-scroll,.panel-light,.modal-card,.cd-cell,.live-badge{
   clip-path:polygon(var(--cut) 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%, 0 var(--cut));
 }
 
@@ -201,16 +201,6 @@ a{color:inherit}
   color:var(--parchment-deep);margin:0 0 1.1rem;letter-spacing:.02em;
 }
 .hero-intro{max-width:46ch;color:var(--text-2);font-size:.98rem;margin-bottom:1.5rem}
-
-.hud{display:flex;flex-wrap:wrap;gap:.55rem;margin-bottom:1.8rem}
-.hud-item{
-  --cut:8px;
-  display:flex;flex-direction:column;gap:.1rem;
-  border:1px solid var(--line-mid);background:rgba(227,179,65,.05);
-  padding:.5rem .9rem .45rem;
-}
-.hud-num{font-family:var(--mono);font-size:1.08rem;font-weight:700;color:var(--gold-bright);line-height:1.1}
-.hud-lab{font-size:.56rem;letter-spacing:.2em;text-transform:uppercase;color:var(--text-3);font-weight:700}
 
 .hero-actions{display:flex;flex-wrap:wrap;gap:.8rem;margin-bottom:1.6rem}
 
@@ -327,7 +317,7 @@ a{color:inherit}
 }
 .board-table tbody tr:last-child{border-bottom:0}
 
-/* Group visual banding — groups of `groupSize` rows alternate a subtle
+/* Group visual banding: groups of `groupSize` rows alternate a subtle
    tint, and each group boundary gets a stronger top rule. No labels. */
 .board-table tbody tr.group-even{background:rgba(227,179,65,.028)}
 .board-table tbody tr.group-start{border-top:2px solid rgba(227,179,65,.28)}
@@ -455,13 +445,7 @@ a{color:inherit}
 .rule-foot{font-size:.83rem;color:var(--ink-3) !important;margin:0}
 
 /* ============================ SIGNUP ============================ */
-.signup-grid{display:grid;grid-template-columns:1fr;gap:2.2rem}
-.signup-list{list-style:none;padding:0;margin:0;display:grid;gap:.55rem}
-.signup-list li{position:relative;padding-left:1.5rem;font-size:.92rem;color:var(--text-2)}
-.signup-list li::before{
-  content:"";position:absolute;left:0;top:.6em;
-  width:7px;height:7px;background:var(--terracotta);transform:rotate(45deg);
-}
+.signup-grid{display:grid;grid-template-columns:minmax(0,620px);justify-content:center;gap:2.2rem}
 
 .panel-light{
   background:var(--parchment-soft);
@@ -623,7 +607,7 @@ a{color:inherit}
   .hero-grid{grid-template-columns:1.2fr .8fr;gap:3rem}
   .rules-grid{grid-template-columns:1fr 1fr}
   .rule-card--wide{grid-column:1 / -1}
-  .signup-grid{grid-template-columns:.9fr 1.1fr;gap:3rem;align-items:start}
+  .signup-grid{grid-template-columns:minmax(0,620px)}
   .footer-grid{grid-template-columns:1fr auto;align-items:end}
   .next-card{padding:1.8rem 1.6rem 1.5rem}
 }
@@ -660,8 +644,6 @@ a{color:inherit}
   .avatar{width:30px;height:30px;font-size:.56rem}
   .pm-stats{grid-template-columns:repeat(2,1fr)}
   .pm-head{padding-right:2.8rem}
-  .hud{gap:.45rem}
-  .hud-item{padding:.4rem .7rem .35rem}
 }
 
 @media (prefers-reduced-motion:reduce){

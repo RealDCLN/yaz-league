@@ -1,6 +1,6 @@
 # YAZ LEAGUE
 
-**«Το απόλυτο πρωτάθλημα γεωγραφίας»** — επίσημη ιστοσελίδα της YAZ LEAGUE, της εβδομαδιαίας διοργάνωσης γεωγραφίας του **DE.VOYAGEUR**.
+**«Το απόλυτο πρωτάθλημα γεωγραφίας»** - επίσημη ιστοσελίδα της YAZ LEAGUE, της εβδομαδιαίας διοργάνωσης γεωγραφίας του **DE.VOYAGEUR**.
 
 Static site (HTML/CSS/JS, χωρίς build step) με προαιρετικό backend στο **Supabase**.
 
@@ -21,13 +21,12 @@ Static site (HTML/CSS/JS, χωρίς build step) με προαιρετικό bac
 
 | Σελίδα | Περιεχόμενο |
 |---|---|
-| `index.html` | Hero + HUD + countdown, κατάταξη με οπτική ομαδοποίηση ανά 4, κανόνες, εγγραφή |
+| `index.html` | Hero + countdown, κατάταξη με οπτική ομαδοποίηση ανά 4, κανόνες, εγγραφή |
 | `admin.html` | Κρυφό portal διαχείρισης (`/admin`) |
 | `404.html` | Σελίδα σφάλματος |
 
 **Λειτουργίες**
 
-- HUD στατιστικά σεζόν (παίκτες / αγώνες / αγωνιστικές)
 - Countdown στην επόμενη Παρασκευή 19:00 με LIVE badge στο τελευταίο 60λεπτο
 - Κατάταξη με ταξινομήσιμες στήλες, μετακίνηση θέσης (▲▼), και **οπτική ομαδοποίηση ανά 4 θέσεις**
   (εναλλασσόμενη λωρίδα + διαχωριστικό κάθε 4), χρυσά/ασημένια/χάλκινα top-3
@@ -87,12 +86,12 @@ yaz-league/
 
 ## Ρύθμιση Supabase (βήμα-βήμα)
 
-### Βήμα 1 — Δημιουργία project
+### Βήμα 1 - Δημιουργία project
 1. [supabase.com](https://supabase.com) → **New project**
 2. Όνομα (π.χ. `yaz-league`), password βάσης, region Frankfurt.
 3. Περίμενε ~2 λεπτά.
 
-### Βήμα 2 — Εκτέλεση του schema
+### Βήμα 2 - Εκτέλεση του schema
 1. **SQL Editor** → **New query**.
 2. Άνοιξε το `supabase/schema.sql`.
 3. Πριν το τρέξεις, άλλαξε μέσα στη συνάρτηση `public.is_admin()` τη γραμμή:
@@ -104,19 +103,19 @@ yaz-league/
 
 4. Επικόλλησε και πάτησε **Run**. Πρέπει να δεις `Success`.
 
-### Βήμα 3 — (Προαιρετικά) Seed
+### Βήμα 3 - (Προαιρετικά) Seed
 
 1. **SQL Editor** → **New query**.
 2. Επικόλλησε το `supabase/seed.sql` → **Run**.
 
-### Βήμα 4 — Λογαριασμός διαχειριστή
+### Βήμα 4 - Λογαριασμός διαχειριστή
 
 1. **Authentication** → **Users** → **Add user** → **Create new user**.
 2. Email: αυτό που έβαλες στο schema.
 3. Password: δικό σου.
 4. Επιβεβαίωσε τον χρήστη (Auto Confirm).
 
-### Βήμα 5 — Αντιγραφή keys
+### Βήμα 5 - Αντιγραφή keys
 
 **Project Settings** → **API**:
 
@@ -126,7 +125,7 @@ yaz-league/
 > ⚠️ **Ποτέ** `service_role` / secret key στο front-end. Το publishable/anon
 > key είναι ασφαλές **μόνο** όταν τα RLS + grants είναι σωστά (όπως στο `schema.sql`).
 
-### Βήμα 6 — Επεξεργασία του `js/config.js`
+### Βήμα 6 - Επεξεργασία του `js/config.js`
 
 ```
 supabaseUrl: 'https://abcdefghijk.supabase.co',
@@ -149,13 +148,13 @@ links: {
 
 ## Deployment
 
-### Netlify (συνδεδεμένο GitHub repo — προτεινόμενο)
+### Netlify (συνδεδεμένο GitHub repo - προτεινόμενο)
 
 1. **Add new site** → **Import an existing project** → διάλεξε το repo.
 2. Άφησε τις default ρυθμίσεις· το `netlify.toml` ορίζει build + publish.
 3. Το build αντιγράφει **μόνο** τα αρχεία του site σε έναν φάκελο `dist/`.
    `README.md`, `supabase/`, `*.sql`, `*.bat`, `.env*` και `.git/` **δεν
-   δημοσιεύονται καθόλου** — άρα δεν υπάρχουν ούτε με άλλα κεφαλαία/πεζά.
+   δημοσιεύονται καθόλου** - άρα δεν υπάρχουν ούτε με άλλα κεφαλαία/πεζά.
 4. **Site settings** → **Change site name** → `yaz-league`.
 
 Το `/admin` δουλεύει αυτόματα χάρη στο `netlify.toml`.
@@ -181,14 +180,14 @@ links: {
 - Ημερομηνία (αυτόματη: επόμενη Παρασκευή 19:00).
 - **Χάρτης** ή **Quiz**.
 
-3. **«+ Πρόσθεσε παίκτη»** — με σειρά κατάταξης (πρώτος ο νικητής).
+3. **«+ Πρόσθεσε παίκτη»** - με σειρά κατάταξης (πρώτος ο νικητής).
 
 - Πόντοι αυτόματοι (12-9-8-…-1).
 - Στον χάρτη τσέκαρε **«+3»** σε όποιον βρήκε το concept.
 - Βελάκια ↑↓ αλλάζουν σειρά.
 
 4. Δες την **προεπισκόπηση**.
-5. **«Αποθήκευση αγωνιστικής»** — η κατάταξη ενημερώνεται αμέσως.
+5. **«Αποθήκευση αγωνιστικής»** - η κατάταξη ενημερώνεται αμέσως.
 
 Επαναλαμβάνεις δύο φορές: μία για Χάρτη, μία για Quiz.
 
@@ -238,7 +237,7 @@ groupSize: 4
 παλιότερα το `players.first_name` ήταν αναγνώσιμο από τον δημόσιο REST API
 (`/rest/v1/players?select=first_name`). Το migration 003 το κλείνει σε επίπεδο
 column privileges. Αν δεν το τρέξεις, οποιοσδήποτε έχει τον δημόσιο key μπορεί
-να διαβάσει τα πραγματικά ονόματα των παικτών — ακόμα κι αν δεν φαίνονται στο site.
+να διαβάσει τα πραγματικά ονόματα των παικτών - ακόμα κι αν δεν φαίνονται στο site.
 
 Επιπλέον:
 - Server-side constraints για μήκος/control chars σε nickname και first_name.
@@ -246,7 +245,7 @@ column privileges. Αν δεν το τρέξεις, οποιοσδήποτε έ�
 - Μία μόνο εκκρεμής αίτηση ανά nickname.
 - Rate limit στη φόρμα εγγραφής: max 5 αιτήσεις / 15 λεπτά ανά IP (η IP
   αποθηκεύεται μόνο ως md5 hash).
-- Το `status` της εγγραφής αναγκάζεται σε `pending` από trigger — ο client δεν
+- Το `status` της εγγραφής αναγκάζεται σε `pending` από trigger - ο client δεν
   μπορεί να αυτοεγκριθεί.
 - CSP, HSTS, `X-Frame-Options: DENY`, `Permissions-Policy`, `noindex` στο admin.
 - Τα CDN scripts είναι pinned + έχουν SRI hashes (αν αλλάξει το αρχείο στο CDN,
@@ -256,7 +255,7 @@ column privileges. Αν δεν το τρέξεις, οποιοσδήποτε έ�
   αποθετήριο στο GitHub είναι δημόσιο, αυτά φαίνονται στο GitHub· κάνε το repo
   **private** αν θέλεις να μη βλέπει κανείς τον κώδικα/το schema.
 
-### Αν έχεις ήδη βάση — τρέξε το migration
+### Αν έχεις ήδη βάση - τρέξε το migration
 
 Στο **Supabase → SQL Editor**, τρέξε ολόκληρο το:
 
@@ -278,7 +277,7 @@ where status = 'pending' group by 1 having count(*) > 1;
 
 ### Ρυθμίσεις στο dashboard του Supabase (χειροκίνητα)
 
-Αυτές δεν γίνονται από κώδικα — κάν' τες μία φορά:
+Αυτές δεν γίνονται από κώδικα - κάν' τες μία φορά:
 
 1. **Authentication → Sign In / Providers → Email**: κλείσε το **Enable sign ups**.
    Δεν χρειάζονται δημόσιοι λογαριασμοί· μόνο ο admin συνδέεται. Έτσι κανείς
@@ -301,7 +300,7 @@ where status = 'pending' group by 1 having count(*) > 1;
   DOM, και το CSP μπλοκάρει inline scripts.
 - **CSRF**: η αυθεντικοποίηση γίνεται με bearer token (localStorage), όχι cookies,
   οπότε δεν υπάρχει cross-site request με αυτόματο cookie. Το ρίσκο είναι XSS
-  (κλοπή session) — γι' αυτό υπάρχει CSP + SRI.
+  (κλοπή session) - γι' αυτό υπάρχει CSP + SRI.
 - **Clickjacking**: `frame-ancestors 'none'` + `X-Frame-Options: DENY`.
 - **Δημόσια δεδομένα**: η βαθμολογία είναι δημόσια by design. Οποιοσδήποτε μπορεί
   να τη scrape-άρει· αυτό δεν είναι breach. Τα προσωπικά πεδία είναι το ζήτημα.
@@ -316,7 +315,7 @@ select tablename, policyname, roles, cmd, qual, with_check
 from pg_policies where schemaname = 'public' order by tablename, policyname;
 
 -- Πρέπει το anon να έχει μόνο SELECT στα public tables και στενό INSERT
--- στα registrations — όχι UPDATE/DELETE.
+-- στα registrations - όχι UPDATE/DELETE.
 select table_name, grantee, privilege_type
 from information_schema.role_table_grants
 where table_schema = 'public' and grantee in ('anon','authenticated')
@@ -332,7 +331,7 @@ order by table_name, column_name;
 Και από τη console του browser (ή curl) με τον δημόσιο key:
 
 ```js
-// Πρέπει να επιστρέψει permission denied — ΟΧΙ τα ονόματα.
+// Πρέπει να επιστρέψει permission denied - ΟΧΙ τα ονόματα.
 fetch('https://bgjprkmpyraflesqovos.supabase.co/rest/v1/players?select=first_name', {
   headers: { apikey: 'sb_publishable_...' }
 }).then(r => r.status).then(console.log);
@@ -368,7 +367,7 @@ fetch('https://bgjprkmpyraflesqovos.supabase.co/rest/v1/players?select=first_nam
 
 **«Υπάρχει ήδη καταχώριση»** → Διάγραψε την παλιά από **«Αγωνιστικές»**.
 
-**Σφάλμα εγγραφής: `PGRST204 — Could not find the 'first_name' column of 'registrations'` (ή το πραγματικό όνομα χάνεται)** → Ο πίνακας `registrations` στη βάση δημιουργήθηκε με παλαιότερο schema (χωρίς τη στήλη `first_name`). Το deployment της σελίδας είναι καινούργιο, αλλά η βάση όχι. Τρέξε το `supabase/migrations/002_first_name_only.sql` στο **SQL Editor** (ή ξανατρέξε όλο το `schema.sql`, που τώρα περιέχει τα αντίστοιχα `alter table ... add/drop column if exists`). Μετά περίμενε λίγα δευτερόλεπτα ή κάνε refresh — το `notify pgrst, 'reload schema';` ανανεώνει το cache αμέσως. Σημείωση: η φόρμα και η βάση κρατούν πλέον ΜΟΝΟ `nickname` + `first_name` — οι παλιές στήλες `email`, `geoguessr_url`, `discord` διαγράφονται από τη μετακίνηση.
+**Σφάλμα εγγραφής: `PGRST204 - Could not find the 'first_name' column of 'registrations'` (ή το πραγματικό όνομα χάνεται)** → Ο πίνακας `registrations` στη βάση δημιουργήθηκε με παλαιότερο schema (χωρίς τη στήλη `first_name`). Το deployment της σελίδας είναι καινούργιο, αλλά η βάση όχι. Τρέξε το `supabase/migrations/002_first_name_only.sql` στο **SQL Editor** (ή ξανατρέξε όλο το `schema.sql`, που τώρα περιέχει τα αντίστοιχα `alter table ... add/drop column if exists`). Μετά περίμενε λίγα δευτερόλεπτα ή κάνε refresh - το `notify pgrst, 'reload schema';` ανανεώνει το cache αμέσως. Σημείωση: η φόρμα και η βάση κρατούν πλέον ΜΟΝΟ `nickname` + `first_name` - οι παλιές στήλες `email`, `geoguessr_url`, `discord` διαγράφονται από τη μετακίνηση.
 
 **Ο δημόσιος API επιστρέφει τα πραγματικά ονόματα (`players.first_name`)** → Δεν έχει τρέξει το `supabase/migrations/003_security_hardening.sql`. Δες την ενότητα **Ασφάλεια** παραπάνω.
 

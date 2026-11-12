@@ -1,5 +1,5 @@
 /* ============================================================
-   YAZ LEAGUE — Υπολογισμός στατιστικών (client-side)
+   YAZ LEAGUE - Υπολογισμός στατιστικών (client-side)
    Όλα τα νούμερα της κατάταξης βγαίνουν από τα results.
    Κατάταξη: πόντοι → wildcards. Τίποτα άλλο.
    ============================================================ */
@@ -20,7 +20,7 @@ window.YAZ = window.YAZ || {};
   }
 
   /* Ομάδα κατάταξης: κάθε N θέσεις = 1 ομάδα. Επιστρέφει μόνο αριθμό
-     (1, 2, 3, …) — χωρίς ονόματα. Το N έρχεται από config.groupSize. */
+     (1, 2, 3, …) χωρίς ονόματα. Το N έρχεται από config.groupSize. */
   function groupForRank(rank) {
     const size = (YAZ.config && Number(YAZ.config.groupSize)) || 4;
     return Math.floor((rank - 1) / size) + 1;

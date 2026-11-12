@@ -1,5 +1,5 @@
 -- ============================================================
---  YAZ LEAGUE — Supabase schema
+--  YAZ LEAGUE - Supabase schema
 --  Τρέξε ολόκληρο αυτό το αρχείο στο Supabase > SQL Editor > New query.
 --  ΠΡΙΝ ΤΟ ΤΡΕΞΕΙΣ: άλλαξε το ADMIN_EMAIL παρακάτω στο email του διοργανωτή.
 --

@@ -1,5 +1,5 @@
 -- ============================================================
---  YAZ LEAGUE — Migration 002: first_name only
+--  YAZ LEAGUE - Migration 002: first_name only
 --  Διορθώνει παλιές βάσεις που είχαν δημιουργηθεί με το παλιό
 --  schema (χωρίς first_name, με email/geoguessr_url/discord).
 --

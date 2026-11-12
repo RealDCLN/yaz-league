@@ -1,5 +1,5 @@
 /* ============================================================
-   YAZ LEAGUE — Data layer
+   YAZ LEAGUE - Data layer
    Reads from Supabase when configured, otherwise from the local
    seed (demo mode).
 
@@ -27,7 +27,7 @@ window.YAZ = window.YAZ || {};
   function configured() {
     const c = YAZ.config;
     // Only check the keys. If the CDN script failed to load we still
-    // want the caller to show an error — NOT silently render demo data.
+    // want the caller to show an error, NOT silently render demo data.
     return !!(c.supabaseUrl && c.supabaseAnonKey);
   }
 
@@ -75,7 +75,7 @@ window.YAZ = window.YAZ || {};
   async function load() {
     if (configured()) {
       // Do NOT swallow Supabase errors here. If keys are set, the caller
-      // expects live data — let errors bubble so app.js can show the
+      // expects live data, so let errors bubble so app.js can show the
       // error state instead of silently rendering 40 fake players.
       const data = await fromSupabase();
       mode = 'supabase';
@@ -110,7 +110,7 @@ window.YAZ = window.YAZ || {};
     }
 
     // The registration form collects ONLY nickname + first_name.
-    // Never send email/discord/geoguessr_url/status here — the database
+    // Never send email/discord/geoguessr_url/status here: the database
     // only grants INSERT on these two columns, and `status` is forced to
     // 'pending' by a trigger.
     try {

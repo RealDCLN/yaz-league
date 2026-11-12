@@ -1,5 +1,5 @@
 -- ============================================================
---  YAZ LEAGUE — Migration 003: security hardening
+--  YAZ LEAGUE - Migration 003: security hardening
 --  Τρέξε ΟΛΟ αυτό το αρχείο στο Supabase > SQL Editor > New query.
 --  Είναι idempotent (μπορείς να το ξανατρέξεις με ασφάλεια).
 --

@@ -1,5 +1,5 @@
 /* ============================================================
-   YAZ LEAGUE — Admin panel logic
+   YAZ LEAGUE - Admin panel logic
    Handles: login, match entry, registrations, players, history.
    Requires: js/config.js (Supabase URL/key), admin.html DOM.
    ============================================================ */
@@ -244,7 +244,7 @@
     const err = p.error || m.error || r.error;
     if (err) {
       console.error('[admin] load failed:', err);
-      throw new Error('Σφάλμα φόρτωσης δεδομένων: ' + err.message + ' — έχεις τρέξει το supabase/schema.sql (ή το migrations/003_security_hardening.sql);');
+      throw new Error('Σφάλμα φόρτωσης δεδομένων: ' + err.message + '. Έχεις τρέξει το supabase/schema.sql (ή το migrations/003_security_hardening.sql);');
     }
     cache.players = p.data || [];
     cache.matches = m.data || [];
@@ -626,7 +626,7 @@
     tbody.innerHTML = cache.players.map(p =>
       '<tr>' +
         '<td>' + esc(p.nickname) + '</td>' +
-        '<td>' + esc(p.first_name || '—') + '</td>' +
+        '<td>' + esc(p.first_name || '-') + '</td>' +
       '</tr>'
     ).join('');
   }
@@ -657,7 +657,7 @@
         '<div class="reg-item" data-id="' + esc(r.id) + '">' +
           '<div>' +
             '<p class="reg-name">' + esc(r.nickname) + '</p>' +
-            '<p class="reg-meta">' + esc(r.first_name || '—') + '</p>' +
+            '<p class="reg-meta">' + esc(r.first_name || '-') + '</p>' +
           '</div>' +
           '<div class="reg-actions">' +
             '<button class="btn btn-primary btn-sm" data-act="approve">Έγκριση</button>' +
@@ -752,7 +752,7 @@
       const dateStr = date
         ? date.toLocaleDateString('el-GR', { day: '2-digit', month: 'short', year: 'numeric' }) +
           ' · ' + date.toLocaleTimeString('el-GR', { hour: '2-digit', minute: '2-digit' })
-        : '—';
+        : '-';
       return '<tr>' +
         '<td><strong>' + m.week_number + '</strong></td>' +
         '<td>' + esc(m.league) + '</td>' +
