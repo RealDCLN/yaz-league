@@ -49,6 +49,15 @@ create table if not exists public.registrations (
                 check (status in ('pending', 'approved', 'rejected'))
 );
 
+-- Αν ο πίνακας registrations υπήρχε ήδη από παλαιότερη έκδοση του
+-- schema, το `create table if not exists` παραπάνω ΔΕΝ πειράζει τις
+-- στήλες του. Προσθέτουμε λείπουσες στήλες εδώ, ώστε να μπορείς να
+-- ξανατρέξεις όλο το αρχείο και να διορθωθεί η βάση αυτομάτως
+-- (αλλιώς το POST /registrations δίνει PGRST204 για τη στήλη `email`).
+alter table public.registrations add column if not exists email         text;
+alter table public.registrations add column if not exists geoguessr_url text;
+alter table public.registrations add column if not exists discord       text;
+
 create index if not exists idx_results_match  on public.results (match_id);
 create index if not exists idx_results_player on public.results (player_id);
 create index if not exists idx_matches_week   on public.matches (week_number);
