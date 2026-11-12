@@ -22,6 +22,7 @@
   const esc = str => String(str == null ? '' : str).replace(/[&<>"']/g, ch => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
   }[ch]));
+  const upperName = str => String(str == null ? '' : str).toUpperCase();
   const pad = n => String(n).padStart(2, '0');
 
   function pointsFor(place) {
@@ -320,6 +321,14 @@
         renderPreview();
       });
 
+      // Τα ονόματα εμφανίζονται πάντα ΚΕΦΑΛΑΙΑ. Η μετατροπή γίνεται στο
+      // blur για να μην πηδάει ο κέρσορας όσο πληκτρολογεί ο admin.
+      nickEl.addEventListener('change', () => {
+        nickEl.value = upperName(nickEl.value);
+        entries[i].nickname = nickEl.value;
+        renderPreview();
+      });
+
       nickEl.addEventListener('keydown', (ev) => {
         if (ev.key === 'Enter') {
           ev.preventDefault();
@@ -381,7 +390,7 @@
     const playersByName = new Map(cache.players.map(p => [p.nickname.toLowerCase(), p]));
 
     const validEntries = entries
-      .map(e => ({ nickname: (e.nickname || '').trim(), concept: !!e.concept }))
+      .map(e => ({ nickname: upperName((e.nickname || '').trim()), concept: !!e.concept }))
       .filter(e => e.nickname);
 
     const rows = validEntries.map((e, i) => {
@@ -444,7 +453,7 @@
 
     const clean = entries
       .map(e => ({
-        nickname: (e.nickname || '').trim(),
+        nickname: upperName((e.nickname || '').trim()),
         concept: !!e.concept
       }))
       .filter(e => e.nickname)
@@ -554,7 +563,8 @@
     }
   }
 
-  async function resolveOrCreatePlayer(nickname) {
+  async function resolveOrCreatePlayer(rawNickname) {
+    const nickname = upperName(String(rawNickname || '').trim());
     const lower = nickname.toLowerCase();
     const existing = cache.players.find(p => p.nickname.toLowerCase() === lower);
     if (existing) return { player: existing, created: false };
@@ -579,24 +589,47 @@
   function wirePlayerForm() {
     const form = $('playerForm');
     if (!form) return;
+    const yearInput = $('pYear');
+    if (yearInput) yearInput.max = String(new Date().getFullYear());
     form.addEventListener('submit', async (ev) => {
       ev.preventDefault();
       const msg = $('playerMsg');
       msg.className = 'form-msg';
       msg.textContent = '';
 
-      const nickname = $('pNick').value.trim();
-      const firstName = $('pFirst').value.trim() || null;
+      const nickname = upperName($('pNick').value.trim());
+      const firstName = upperName($('pFirst').value.trim()) || null;
+      const birthYear = Number($('pYear').value);
+      const city = $('pCity').value.trim() || null;
+      const currentYear = new Date().getFullYear();
 
       if (nickname.length < 2) {
         msg.className = 'form-msg err';
-        msg.textContent = 'Το ψευδώνυμο είναι υποχρεωτικό.';
+        msg.textContent = 'Το username (GeoGuessr) είναι υποχρεωτικό.';
+        return;
+      }
+      if (!firstName) {
+        msg.className = 'form-msg err';
+        msg.textContent = 'Το πραγματικό όνομα είναι υποχρεωτικό.';
+        return;
+      }
+      if (!Number.isInteger(birthYear) || birthYear < 1900 || birthYear > currentYear) {
+        msg.className = 'form-msg err';
+        msg.textContent = 'Συμπλήρωσε ένα έγκυρο έτος γέννησης.';
+        return;
+      }
+      if (!city) {
+        msg.className = 'form-msg err';
+        msg.textContent = 'Η πόλη ή περιφερειακή ενότητα είναι υποχρεωτική.';
         return;
       }
 
       try {
         const { error } = await sb.from('players').insert({
-          nickname, first_name: firstName
+          nickname,
+          first_name: firstName,
+          birth_year: birthYear,
+          city
         });
         if (error) throw error;
         msg.className = 'form-msg ok';
@@ -619,14 +652,16 @@
     if (count) count.textContent = cache.players.length;
 
     if (!cache.players.length) {
-      tbody.innerHTML = '<tr><td colspan="2" class="loading-row">Κανένας παίκτης ακόμη.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="4" class="loading-row">Κανένας παίκτης ακόμη.</td></tr>';
       return;
     }
 
     tbody.innerHTML = cache.players.map(p =>
       '<tr>' +
-        '<td>' + esc(p.nickname) + '</td>' +
-        '<td>' + esc(p.first_name || '-') + '</td>' +
+        '<td>' + esc(upperName(p.nickname)) + '</td>' +
+        '<td>' + esc(p.first_name ? upperName(p.first_name) : '-') + '</td>' +
+        '<td>' + esc(p.birth_year || '-') + '</td>' +
+        '<td>' + esc(p.city || '-') + '</td>' +
       '</tr>'
     ).join('');
   }
@@ -639,7 +674,7 @@
 
     try {
       const { data, error } = await sb.from('registrations')
-        .select('id,nickname,first_name,created_at,status')
+        .select('id,nickname,first_name,birth_year,city,created_at,status')
         .eq('status', 'pending')
         .order('created_at', { ascending: true });
       if (error) throw error;
@@ -653,18 +688,23 @@
         return;
       }
 
-      box.innerHTML = cache.regs.map(r =>
+      box.innerHTML = cache.regs.map(r => {
+        const meta = [upperName(r.first_name), r.birth_year, r.city]
+          .filter(v => v !== null && v !== undefined && v !== '')
+          .map(esc)
+          .join(' · ') || '-';
+        return '' +
         '<div class="reg-item" data-id="' + esc(r.id) + '">' +
           '<div>' +
-            '<p class="reg-name">' + esc(r.nickname) + '</p>' +
-            '<p class="reg-meta">' + esc(r.first_name || '-') + '</p>' +
+            '<p class="reg-name">' + esc(upperName(r.nickname)) + '</p>' +
+            '<p class="reg-meta">' + meta + '</p>' +
           '</div>' +
           '<div class="reg-actions">' +
             '<button class="btn btn-primary btn-sm" data-act="approve">Έγκριση</button>' +
             '<button class="btn btn-outline btn-sm" data-act="reject">Απόρριψη</button>' +
           '</div>' +
-        '</div>'
-      ).join('');
+        '</div>';
+      }).join('');
 
       box.querySelectorAll('.reg-item').forEach(item => {
         const id = item.getAttribute('data-id');
@@ -680,8 +720,10 @@
     const reg = cache.regs.find(r => String(r.id) === String(id));
     if (!reg) return;
 
-    const nickname = String(reg.nickname || '').trim();
-    const firstName = String(reg.first_name || '').trim() || null;
+    const nickname = upperName(String(reg.nickname || '').trim());
+    const firstName = upperName(String(reg.first_name || '').trim()) || null;
+    const birthYear = reg.birth_year != null && reg.birth_year !== '' ? Number(reg.birth_year) : null;
+    const city = String(reg.city || '').trim() || null;
 
     let createdPlayerId = null;
     try {
@@ -691,6 +733,20 @@
         if (!confirm('Ο παίκτης "' + nickname + '" υπάρχει ήδη στους ενεργούς παίκτες. Έγκριση της αίτησης χωρίς διπλοεγγραφή;')) {
           return;
         }
+
+        // Συμπλήρωσε τυχόν κενά στοιχεία του υπάρχοντος παίκτη από την αίτηση.
+        const patch = {};
+        if (!existing.first_name && firstName) patch.first_name = firstName;
+        if (!existing.birth_year && birthYear) patch.birth_year = birthYear;
+        if (!existing.city && city) patch.city = city;
+        if (Object.keys(patch).length) {
+          const { error: patchErr } = await sb.from('players').update(patch).eq('id', existing.id);
+          if (patchErr) throw patchErr;
+          await loadAll();
+          renderPlayersTable();
+          populateDatalist();
+        }
+
         const { error: uErr } = await sb.from('registrations').update({ status: 'approved' }).eq('id', id);
         if (uErr) throw uErr;
         await loadRegs();
@@ -699,7 +755,9 @@
 
       const { data: playerRow, error: pErr } = await sb.from('players').insert({
         nickname: nickname,
-        first_name: firstName
+        first_name: firstName,
+        birth_year: birthYear,
+        city: city
       }).select('id').single();
       if (pErr) throw pErr;
       createdPlayerId = playerRow.id;

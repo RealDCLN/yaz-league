@@ -127,7 +127,7 @@
     <div class="admin-panel" id="tab-regs">
       <div class="admin-card">
         <h2 class="admin-h2">Αιτήσεις εγγραφής</h2>
-        <p class="admin-lead">Έγκρινε ή απέρριψε τις εκκρεμείς αιτήσεις. Η έγκριση δημιουργεί αυτόματα παίκτη. Το πραγματικό όνομα αποθηκεύεται ιδιωτικά και δεν εμφανίζεται ποτέ δημόσια.</p>
+        <p class="admin-lead">Έγκρινε ή απέρριψε τις εκκρεμείς αιτήσεις. Η έγκριση δημιουργεί αυτόματα παίκτη. Το πραγματικό όνομα, το έτος γέννησης και η πόλη αποθηκεύονται ιδιωτικά και δεν εμφανίζονται ποτέ δημόσια.</p>
         <div id="regsList" class="reg-list"><p class="loading-row">Φόρτωση…</p></div>
       </div>
     </div>
@@ -138,12 +138,22 @@
         <form id="playerForm" class="admin-form">
           <div class="admin-row">
             <div class="field">
-              <label for="pNick">Ψευδώνυμο (δημόσιο)</label>
+              <label for="pNick">Username (GeoGuessr)</label>
               <input id="pNick" type="text" required maxlength="40">
             </div>
             <div class="field">
               <label for="pFirst">Πραγματικό όνομα (ιδιωτικό)</label>
               <input id="pFirst" type="text" required maxlength="40">
+            </div>
+          </div>
+          <div class="admin-row">
+            <div class="field">
+              <label for="pYear">Έτος γέννησης</label>
+              <input id="pYear" type="number" required min="1900" step="1" inputmode="numeric">
+            </div>
+            <div class="field">
+              <label for="pCity">Πόλη ή Περιφερειακή Ενότητα</label>
+              <input id="pCity" type="text" required maxlength="60">
             </div>
           </div>
           <div class="admin-actions">
@@ -157,7 +167,7 @@
         <h2 class="admin-h2">Ενεργοί παίκτες <span class="tab-count" id="playersCount">0</span></h2>
         <div class="table-scroll">
           <table class="board-table">
-            <thead><tr><th>Ψευδώνυμο</th><th>Πραγματικό όνομα</th></tr></thead>
+            <thead><tr><th>Username</th><th>Πραγματικό όνομα</th><th>Έτος γέννησης</th><th>Πόλη / Περιφ. ενότητα</th></tr></thead>
             <tbody id="playersBody"></tbody>
           </table>
         </div>

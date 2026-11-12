@@ -9,9 +9,9 @@
    worse outcome than showing an honest "couldn't load" state.
 
    SECURITY: the public leaderboard may only read the non-sensitive
-   columns of `players`. `first_name` is private and is blocked at
-   the database privilege level (see supabase/schema.sql). Never
-   change PUBLIC_PLAYER_COLUMNS to `*`.
+   columns of `players`. `first_name`, `birth_year` and `city` are
+   private and are blocked at the database privilege level (see
+   supabase/schema.sql). Never change PUBLIC_PLAYER_COLUMNS to `*`.
    ============================================================ */
 
 window.YAZ = window.YAZ || {};
@@ -86,14 +86,25 @@ window.YAZ = window.YAZ || {};
   }
 
   async function submitRegistration(payload) {
-    const nickname = String(payload.nickname || '').trim().replace(/\s+/g, ' ');
-    const firstName = String(payload.first_name || '').trim().replace(/\s+/g, ' ');
+    // Names/usernames are stored in ALL CAPS everywhere. Do it here so the
+    // public form and the admin panel produce identical values.
+    const nickname = String(payload.nickname || '').trim().replace(/\s+/g, ' ').toUpperCase();
+    const firstName = String(payload.first_name || '').trim().replace(/\s+/g, ' ').toUpperCase();
+    const city = String(payload.city || '').trim().replace(/\s+/g, ' ');
+    const birthYear = Number(payload.birth_year);
+    const currentYear = new Date().getFullYear();
 
     if (nickname.length < 2 || nickname.length > 40) {
-      return { ok: false, error: 'Το ψευδώνυμο πρέπει να έχει 2-40 χαρακτήρες.' };
+      return { ok: false, error: 'Το username (GeoGuessr) πρέπει να έχει 2-40 χαρακτήρες.' };
     }
     if (firstName.length < 2 || firstName.length > 40) {
       return { ok: false, error: 'Το πραγματικό όνομα πρέπει να έχει 2-40 χαρακτήρες.' };
+    }
+    if (!Number.isInteger(birthYear) || birthYear < 1900 || birthYear > currentYear) {
+      return { ok: false, error: 'Συμπλήρωσε ένα έγκυρο έτος γέννησης.' };
+    }
+    if (city.length < 1 || city.length > 60) {
+      return { ok: false, error: 'Η πόλη ή περιφερειακή ενότητα είναι υποχρεωτική (έως 60 χαρακτήρες).' };
     }
 
     if (!configured()) {
@@ -109,14 +120,16 @@ window.YAZ = window.YAZ || {};
       return { ok: false, error: err.message };
     }
 
-    // The registration form collects ONLY nickname + first_name.
-    // Never send email/discord/geoguessr_url/status here: the database
-    // only grants INSERT on these two columns, and `status` is forced to
-    // 'pending' by a trigger.
+    // The registration form collects ONLY nickname + first_name +
+    // birth_year + city. Never send email/discord/geoguessr_url/status
+    // here: the database only grants INSERT on these four columns, and
+    // `status` is forced to 'pending' by a trigger.
     try {
       const { error } = await sb.from('registrations').insert({
         nickname: nickname,
-        first_name: firstName
+        first_name: firstName,
+        birth_year: birthYear,
+        city: city
       });
       if (error) return { ok: false, error: error.message };
       return { ok: true, demo: false };

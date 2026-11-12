@@ -43,7 +43,7 @@ Static site (HTML/CSS/JS, χωρίς build step) με προαιρετικό bac
 - Κατάταξη με ταξινομήσιμες στήλες, μετακίνηση θέσης (▲▼), και **οπτική ομαδοποίηση ανά 4 θέσεις**
   (εναλλασσόμενη λωρίδα + διαχωριστικό κάθε 4), χρυσά/ασημένια/χάλκινα top-3
 - Modal προφίλ: Group badge, XP bar προς τον πρωτοπόρο, στατιστικά, γράφημα πορείας θέσης (Chart.js)
-- Φόρμα εγγραφής με honeypot
+- Φόρμα εγγραφής (username GeoGuessr, όνομα, έτος γέννησης, πόλη/περιφερειακή ενότητα) με honeypot
 - Admin: αυτόματοι πόντοι, concept bonus, live preview, εγκρίσεις, ιστορικό
 
 ---
@@ -81,7 +81,8 @@ yaz-league/
     ├── seed.sql
     └── migrations/
         ├── 002_first_name_only.sql
-        └── 003_security_hardening.sql
+        ├── 003_security_hardening.sql
+        └── 004_username_birth_year_city.sql
 
 ```
 
@@ -153,8 +154,7 @@ links: {
   discord:   'https://discord.gg/ΤΟ-ΠΡΑΓΜΑΤΙΚΟ-INVITE',
   tiktok:    'https://www.tiktok.com/@de.voyageur',
   youtube:   'https://www.youtube.com/@de.voyageur',
-  instagram: 'https://www.instagram.com/de.voyageur/',
-  linktree:  'https://linktr.ee/De.voyageur'
+  instagram: 'https://www.instagram.com/de.voyageur/'
 }
 ```
 
@@ -245,16 +245,18 @@ groupSize: 4
 | `players` | SELECT μόνο `id, nickname, joined_at, is_active` | ALL (RLS: μόνο admin) |
 | `matches` | SELECT | ALL (RLS: μόνο admin) |
 | `results` | SELECT | ALL (RLS: μόνο admin) |
-| `registrations` | INSERT μόνο `nickname, first_name` (`pending`) | SELECT / UPDATE(status) / DELETE (RLS: μόνο admin) |
+| `registrations` | INSERT μόνο `nickname, first_name, birth_year, city` (`pending`) | SELECT / UPDATE(status) / DELETE (RLS: μόνο admin) |
 
-**Σημαντικό για το `first_name`:** η κατάταξη δείχνει μόνο το ψευδώνυμο, αλλά
+**Σημαντικό για τα προσωπικά πεδία:** η κατάταξη δείχνει μόνο το username, αλλά
 παλιότερα το `players.first_name` ήταν αναγνώσιμο από τον δημόσιο REST API
 (`/rest/v1/players?select=first_name`). Το migration 003 το κλείνει σε επίπεδο
-column privileges. Αν δεν το τρέξεις, οποιοσδήποτε έχει τον δημόσιο key μπορεί
-να διαβάσει τα πραγματικά ονόματα των παικτών - ακόμα κι αν δεν φαίνονται στο site.
+column privileges. Το ίδιο ισχύει για τα `birth_year` και `city` του migration
+004: δεν δίνονται ποτέ στον `anon`. Αν δεν τα τρέξεις, οποιοσδήποτε έχει τον
+δημόσιο key μπορεί να διαβάσει τα προσωπικά στοιχεία των παικτών - ακόμα κι αν
+δεν φαίνονται στο site.
 
 Επιπλέον:
-- Server-side constraints για μήκος/control chars σε nickname και first_name.
+- Server-side constraints για μήκος/control chars σε nickname, first_name και city, καθώς και εύρος για birth_year.
 - Case-insensitive uniqueness στα nicknames (`DCLN` = `dcln`).
 - Μία μόνο εκκρεμής αίτηση ανά nickname.
 - Rate limit στη φόρμα εγγραφής: max 5 αιτήσεις / 15 λεπτά ανά IP (η IP
@@ -269,15 +271,18 @@ column privileges. Αν δεν το τρέξεις, οποιοσδήποτε έ�
   αποθετήριο στο GitHub είναι δημόσιο, αυτά φαίνονται στο GitHub· κάνε το repo
   **private** αν θέλεις να μη βλέπει κανείς τον κώδικα/το schema.
 
-### Αν έχεις ήδη βάση - τρέξε το migration
+### Αν έχεις ήδη βάση - τρέξε τα migration
 
-Στο **Supabase → SQL Editor**, τρέξε ολόκληρο το:
+Στο **Supabase → SQL Editor**, τρέξε ολόκληρα τα:
 
 ```
 supabase/migrations/003_security_hardening.sql
+supabase/migrations/004_username_birth_year_city.sql
 ```
 
-Είναι idempotent. Πριν το τρέξεις, έλεγξε για διπλά ονόματα:
+Είναι idempotent. Το 004 προσθέτει `birth_year` + `city`, κάνει όλα τα
+ονόματα/usernames ΚΕΦΑΛΑΙΑ (και στα υπάρχοντα δεδομένα) και δίνει στη φόρμα
+δικαίωμα εγγραφής στα νέα πεδία. Πριν το τρέξεις, έλεγξε για διπλά ονόματα:
 
 ```sql
 select lower(btrim(nickname)), count(*) from public.players
@@ -382,9 +387,9 @@ fetch('https://bgjprkmpyraflesqovos.supabase.co/rest/v1/players?select=first_nam
 
 **«Υπάρχει ήδη καταχώριση»** → Διάγραψε την παλιά από **«Αγωνιστικές»**.
 
-**Σφάλμα εγγραφής: `PGRST204 - Could not find the 'first_name' column of 'registrations'` (ή το πραγματικό όνομα χάνεται)** → Ο πίνακας `registrations` στη βάση δημιουργήθηκε με παλαιότερο schema (χωρίς τη στήλη `first_name`). Το deployment της σελίδας είναι καινούργιο, αλλά η βάση όχι. Τρέξε το `supabase/migrations/002_first_name_only.sql` στο **SQL Editor** (ή ξανατρέξε όλο το `schema.sql`, που τώρα περιέχει τα αντίστοιχα `alter table ... add/drop column if exists`). Μετά περίμενε λίγα δευτερόλεπτα ή κάνε refresh - το `notify pgrst, 'reload schema';` ανανεώνει το cache αμέσως. Σημείωση: η φόρμα και η βάση κρατούν πλέον ΜΟΝΟ `nickname` + `first_name` - οι παλιές στήλες `email`, `geoguessr_url`, `discord` διαγράφονται από τη μετακίνηση.
+**Σφάλμα εγγραφής: `PGRST204 - Could not find the 'first_name' / 'birth_year' / 'city' column of 'registrations'`** → Ο πίνακας `registrations` στη βάση δημιουργήθηκε με παλαιότερο schema. Το deployment της σελίδας είναι καινούργιο, αλλά η βάση όχι. Τρέξε τα `supabase/migrations/002_first_name_only.sql` και `supabase/migrations/004_username_birth_year_city.sql` στο **SQL Editor** (ή ξανατρέξε όλο το `schema.sql`, που τώρα περιέχει τα αντίστοιχα `alter table ... add/drop column if exists`). Μετά περίμενε λίγα δευτερόλεπτα ή κάνε refresh - το `notify pgrst, 'reload schema';` ανανεώνει το cache αμέσως. Σημείωση: η φόρμα και η βάση κρατούν πλέον ΜΟΝΟ `nickname` + `first_name` + `birth_year` + `city` - οι παλιές στήλες `email`, `geoguessr_url`, `discord` διαγράφονται από τη μετακίνηση.
 
-**Ο δημόσιος API επιστρέφει τα πραγματικά ονόματα (`players.first_name`)** → Δεν έχει τρέξει το `supabase/migrations/003_security_hardening.sql`. Δες την ενότητα **Ασφάλεια** παραπάνω.
+**Ο δημόσιος API επιστρέφει τα προσωπικά πεδία (`players.first_name`, `birth_year`, `city`)** → Δεν έχει τρέξει το `supabase/migrations/003_security_hardening.sql` / `004_username_birth_year_city.sql`. Δες την ενότητα **Ασφάλεια** παραπάνω.
 
 **Η φόρμα εγγραφής λέει «Πολλές αιτήσεις»** → Το anti-spam trigger επιτρέπει 5 αιτήσεις / 15 λεπτά ανά IP. Περίμενε λίγα λεπτά ή δοκίμασε από άλλο δίκτυο. Για μαζικό seed, τρέξε SQL από το SQL Editor (εκεί το rate limit παραλείπεται).
 

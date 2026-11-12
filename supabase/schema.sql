@@ -6,7 +6,8 @@
 --  Το αρχείο είναι idempotent: μπορείς να το ξανατρέξεις πάνω σε
 --  υπάρχουσα βάση για να εφαρμόσεις τις διορθώσεις ασφαλείας.
 --  Αν έχεις ήδη βάση, μπορείς αντί για όλο το αρχείο να τρέξεις
---  το supabase/migrations/003_security_hardening.sql.
+--  τα supabase/migrations/003_security_hardening.sql και
+--  supabase/migrations/004_username_birth_year_city.sql.
 -- ============================================================
 
 create extension if not exists "pgcrypto";
@@ -15,6 +16,8 @@ create table if not exists public.players (
   id            uuid primary key default gen_random_uuid(),
   nickname      text not null unique,
   first_name    text,
+  birth_year    int,
+  city          text,
   joined_at     timestamptz not null default now(),
   is_active     boolean not null default true
 );
@@ -43,6 +46,8 @@ create table if not exists public.registrations (
   id            uuid primary key default gen_random_uuid(),
   nickname      text not null,
   first_name    text,
+  birth_year    int,
+  city          text,
   created_at    timestamptz not null default now(),
   status        text not null default 'pending'
                 check (status in ('pending', 'approved', 'rejected'))
@@ -51,7 +56,11 @@ create table if not exists public.registrations (
 -- Αν οι πίνακες υπήρχαν ήδη από παλαιότερη έκδοση του schema, το
 -- `create table if not exists` παραπάνω ΔΕΝ πειράζει τις στήλες τους.
 alter table public.registrations add column if not exists first_name text;
+alter table public.registrations add column if not exists birth_year int;
+alter table public.registrations add column if not exists city       text;
 alter table public.players       add column if not exists first_name text;
+alter table public.players       add column if not exists birth_year int;
+alter table public.players       add column if not exists city       text;
 
 -- Μόνο hash της IP για το anti-spam rate limit. Δεν αποθηκεύεται η IP.
 alter table public.registrations add column if not exists client_hash text;
@@ -90,6 +99,18 @@ begin
     alter table public.players add constraint players_first_name_len
       check (first_name is null or char_length(btrim(first_name)) between 1 and 40) not valid;
   end if;
+  if not exists (select 1 from pg_constraint where conname = 'players_birth_year_range') then
+    alter table public.players add constraint players_birth_year_range
+      check (birth_year is null or birth_year between 1900 and 2100) not valid;
+  end if;
+  if not exists (select 1 from pg_constraint where conname = 'players_city_len') then
+    alter table public.players add constraint players_city_len
+      check (city is null or char_length(btrim(city)) between 1 and 60) not valid;
+  end if;
+  if not exists (select 1 from pg_constraint where conname = 'players_city_no_ctrl') then
+    alter table public.players add constraint players_city_no_ctrl
+      check (city is null or city !~ '[[:cntrl:]]') not valid;
+  end if;
 
   if not exists (select 1 from pg_constraint where conname = 'registrations_nickname_len') then
     alter table public.registrations add constraint registrations_nickname_len
@@ -111,6 +132,18 @@ begin
     alter table public.registrations add constraint registrations_first_name_no_ctrl
       check (first_name is null or first_name !~ '[[:cntrl:]]') not valid;
   end if;
+  if not exists (select 1 from pg_constraint where conname = 'registrations_birth_year_range') then
+    alter table public.registrations add constraint registrations_birth_year_range
+      check (birth_year is null or birth_year between 1900 and 2100) not valid;
+  end if;
+  if not exists (select 1 from pg_constraint where conname = 'registrations_city_len') then
+    alter table public.registrations add constraint registrations_city_len
+      check (city is null or char_length(btrim(city)) between 1 and 60) not valid;
+  end if;
+  if not exists (select 1 from pg_constraint where conname = 'registrations_city_no_ctrl') then
+    alter table public.registrations add constraint registrations_city_no_ctrl
+      check (city is null or city !~ '[[:cntrl:]]') not valid;
+  end if;
 
   if not exists (select 1 from pg_constraint where conname = 'results_points_range') then
     alter table public.results add constraint results_points_range
@@ -121,6 +154,37 @@ begin
       check (raw_score is null or raw_score >= 0) not valid;
   end if;
 end $$;
+
+-- ------------------------------------------------------------
+--  Κανονικοποίηση ονομάτων
+--  Names/usernames are stored in ALL CAPS. The trigger also trims
+--  whitespace, so manually typed names and form submissions are
+--  identical without any extra work in the admin panel.
+-- ------------------------------------------------------------
+create or replace function public.normalize_person_fields()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  new.nickname   := upper(btrim(new.nickname));
+  new.first_name := nullif(upper(btrim(new.first_name)), '');
+  new.city       := nullif(btrim(new.city), '');
+  return new;
+end;
+$$;
+
+revoke all on function public.normalize_person_fields() from public;
+
+drop trigger if exists trg_players_normalize on public.players;
+create trigger trg_players_normalize
+  before insert or update on public.players
+  for each row execute function public.normalize_person_fields();
+
+drop trigger if exists trg_registrations_normalize on public.registrations;
+create trigger trg_registrations_normalize
+  before insert or update on public.registrations
+  for each row execute function public.normalize_person_fields();
 
 -- ------------------------------------------------------------
 --  Uniqueness (case-insensitive για να μην έχουμε "DCLN" και "dcln")
@@ -174,9 +238,9 @@ revoke all on function public.is_admin() from public;
 grant execute on function public.is_admin() to anon, authenticated;
 
 -- Δημόσια ανάγνωση δεδομένων πρωταθλήματος.
--- ΣΗΜΑΝΤΙΚΟ: το players_public_read δίνεται ΜΟΝΟ στο anon. Το
--- first_name δεν πρέπει να διαβάζεται δημόσια· ο admin το βλέπει
--- μέσω του players_admin_all.
+-- ΣΗΜΑΝΤΙΚΟ: το players_public_read δίνεται ΜΟΝΟ στο anon. Τα
+-- first_name/birth_year/city δεν πρέπει να διαβάζονται δημόσια· ο
+-- admin τα βλέπει μέσω του players_admin_all.
 drop policy if exists "players_public_read" on public.players;
 create policy "players_public_read"
   on public.players for select to anon using (true);
@@ -236,7 +300,7 @@ revoke all on public.registrations from anon;
 
 -- Το REVOKE ALL ON TABLE δεν πειράζει column-level grants. Καθάρισε
 -- ρητά και τυχόν παλιά column grant στο first_name.
-revoke all (id, nickname, first_name, joined_at, is_active)
+revoke all (id, nickname, first_name, birth_year, city, joined_at, is_active)
   on public.players from anon;
 
 -- Defense in depth: τίποτα δεν πρέπει να κληρονομείται από το PUBLIC,
@@ -253,9 +317,9 @@ grant select (id, nickname, joined_at, is_active) on public.players to anon;
 grant select on public.matches to anon;
 grant select on public.results to anon;
 
--- Η φόρμα μπορεί να γράψει ΜΟΝΟ nickname + first_name. Δεν μπορεί να
--- ορίσει status/created_at/client_hash/id.
-grant insert (nickname, first_name) on public.registrations to anon;
+-- Η φόρμα μπορεί να γράψει ΜΟΝΟ nickname + first_name + birth_year + city.
+-- Δεν μπορεί να ορίσει status/created_at/client_hash/id.
+grant insert (nickname, first_name, birth_year, city) on public.registrations to anon;
 
 -- Ο authenticated χρήστης είναι ο admin. Τα RLS φιλτράρουν τα rows.
 -- Το πλήρες select στο players χρειάζεται για το first_name και για
@@ -272,7 +336,7 @@ grant select, insert, update, delete on public.results to authenticated;
 grant select on public.registrations to authenticated;
 grant update (status) on public.registrations to authenticated;
 grant delete on public.registrations to authenticated;
-grant insert (nickname, first_name) on public.registrations to authenticated;
+grant insert (nickname, first_name, birth_year, city) on public.registrations to authenticated;
 
 -- ------------------------------------------------------------
 --  Anti-spam για τη δημόσια φόρμα εγγραφής

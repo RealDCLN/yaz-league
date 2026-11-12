@@ -268,7 +268,7 @@
             '<button class="player-btn" type="button" data-player="' + escapeAttr(row.id) + '">' +
               '<span class="avatar" aria-hidden="true">' + escapeHtml(initials(row.nickname)) + '</span>' +
               '<span class="player-meta">' +
-                '<span class="player-name">' + escapeHtml(row.nickname) + '</span>' +
+                '<span class="player-name">' + escapeHtml(upperName(row.nickname)) + '</span>' +
               '</span>' +
             '</button>' +
           '</td>' +
@@ -359,7 +359,7 @@
 
     document.getElementById('pmAvatar').className = 'pm-avatar';
     document.getElementById('pmAvatar').textContent = initials(row.nickname);
-    document.getElementById('pmName').textContent = row.nickname;
+    document.getElementById('pmName').textContent = upperName(row.nickname);
     document.getElementById('pmRank').textContent =
       'Θέση ' + row.rank + ' / ' + state.standings.length +
       (row.bestPlacement ? ' · Top ' + row.bestPlacement : '');
@@ -469,6 +469,10 @@
     const form = document.getElementById('signupForm');
     if (!form) return;
 
+    // Σταθερό upper bound για το έτος γέννησης, ώστε να μη χρειάζεται
+    // ενημέρωση του HTML κάθε χρόνο.
+    form.birth_year.max = String(new Date().getFullYear());
+
     form.addEventListener('submit', async (ev) => {
       ev.preventDefault();
 
@@ -477,6 +481,8 @@
 
       const nickname = form.nickname.value.trim();
       const firstName = form.first_name.value.trim();
+      const birthYear = Number(form.birth_year.value);
+      const city = form.city.value.trim();
       const honey = form.website.value;
 
       form.querySelectorAll('input').forEach(i => i.classList.remove('invalid'));
@@ -490,9 +496,14 @@
         return;
       }
 
+      const currentYear = new Date().getFullYear();
       const problems = [];
-      if (nickname.length < 2) { problems.push('Το ψευδώνυμο είναι υποχρεωτικό.'); form.nickname.classList.add('invalid'); }
+      if (nickname.length < 2) { problems.push('Το username (GeoGuessr) είναι υποχρεωτικό.'); form.nickname.classList.add('invalid'); }
       if (firstName.length < 2) { problems.push('Το πραγματικό όνομα είναι υποχρεωτικό.'); form.first_name.classList.add('invalid'); }
+      if (!Number.isInteger(birthYear) || birthYear < 1900 || birthYear > currentYear) {
+        problems.push('Συμπλήρωσε ένα έγκυρο έτος γέννησης.'); form.birth_year.classList.add('invalid');
+      }
+      if (!city.length) { problems.push('Η πόλη ή περιφερειακή ενότητα είναι υποχρεωτική.'); form.city.classList.add('invalid'); }
 
       if (problems.length) {
         msg.className = 'form-msg err';
@@ -506,12 +517,14 @@
       try {
         const res = await Y.data.submitRegistration({
           nickname: nickname,
-          first_name: firstName
+          first_name: firstName,
+          birth_year: birthYear,
+          city: city
         });
 
         if (res.ok) {
           msg.className = 'form-msg ok';
-          msg.textContent = 'Ευχαριστούμε, ' + nickname + '! Η αίτησή σου καταχωρήθηκε και θα ελεγχθεί πριν την επόμενη αγωνιστική.';
+          msg.textContent = 'Ευχαριστούμε, ' + nickname.toUpperCase() + '! Η αίτησή σου καταχωρήθηκε και θα ελεγχθεί πριν την επόμενη αγωνιστική.';
           form.reset();
         } else {
           msg.className = 'form-msg err';
@@ -521,7 +534,7 @@
           msg.textContent = isRateLimited
             ? 'Έγιναν πολλές αιτήσεις σε λίγο χρόνο. Δοκίμασε ξανά σε λίγα λεπτά.'
             : isDuplicate
-              ? 'Υπάρχει ήδη εκκρεμής αίτηση με αυτό το ψευδώνυμο.'
+              ? 'Υπάρχει ήδη εκκρεμής αίτηση με αυτό το username.'
               : 'Κάτι πήγε στραβά. Δοκίμασε ξανά σε λίγο ή στείλε μήνυμα στο Discord.';
           console.error('[YAZ] registration error:', res.error);
         }
@@ -537,6 +550,10 @@
   }
 
   /* ---------------- utils ---------------- */
+
+  function upperName(str) {
+    return String(str == null ? '' : str).toUpperCase();
+  }
 
   function escapeHtml(str) {
     return String(str == null ? '' : str).replace(/[&<>"']/g, ch => ({

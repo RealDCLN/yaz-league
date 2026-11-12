@@ -267,12 +267,20 @@
       <h2 class="section-title signup-title" id="signupTitle">Εγγραφή</h2>
       <form class="signup-form panel-light reveal" id="signupForm" aria-labelledby="signupTitle" novalidate>
         <div class="field">
-          <label for="regNickname">Ψευδώνυμο (δημόσιο) <span aria-hidden="true">*</span></label>
-          <input id="regNickname" name="nickname" type="text" required maxlength="40" autocomplete="nickname" placeholder="π.χ. MAPMAKER_GR">
+          <label for="regNickname">Username (GeoGuessr username) <span aria-hidden="true">*</span></label>
+          <input id="regNickname" name="nickname" type="text" required maxlength="40" autocomplete="username" placeholder="π.χ. MAPMAKER_GR">
         </div>
         <div class="field">
           <label for="regFirst">Πραγματικό όνομα <span class="optional">(ιδιωτικό)</span> <span aria-hidden="true">*</span></label>
           <input id="regFirst" name="first_name" type="text" required maxlength="40" autocomplete="given-name" placeholder="π.χ. Γιώργος">
+        </div>
+        <div class="field">
+          <label for="regBirthYear">Έτος γέννησης <span aria-hidden="true">*</span></label>
+          <input id="regBirthYear" name="birth_year" type="number" required min="1900" step="1" inputmode="numeric" placeholder="π.χ. 1998">
+        </div>
+        <div class="field">
+          <label for="regCity">Πόλη ή Περιφερειακή Ενότητα <span aria-hidden="true">*</span></label>
+          <input id="regCity" name="city" type="text" required maxlength="60" autocomplete="address-level2" placeholder="π.χ. Καστοριά">
         </div>
         <div class="hp-field" aria-hidden="true">
           <label for="regWebsite">Website</label>
@@ -298,7 +306,6 @@
       <a data-link="tiktok" href="#" target="_blank" rel="noopener">TikTok</a>
       <a data-link="youtube" href="#" target="_blank" rel="noopener">YouTube</a>
       <a data-link="instagram" href="#" target="_blank" rel="noopener">Instagram</a>
-      <a data-link="linktree" href="#" target="_blank" rel="noopener">Linktree</a>
     </nav>
   </div>
   <div class="footer-map" aria-hidden="true"></div>
