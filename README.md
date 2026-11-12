@@ -12,7 +12,7 @@ Static site (HTML/CSS/JS, χωρίς build step) με προαιρετικό bac
 πλέγμα συντεταγμένων, κόκκινο pin τύπου GeoGuessr και περγαμηνή για το εγχειρίδιο κανόνων.
 Η αίσθηση είναι «χάρτης αποστολής» με HUD στοιχεία, όχι απλό dark theme.
 
-- Γραμματοσειρές: **Cinzel** / **Cinzel Decorative** (τίτλοι), **Inter** (κείμενο), **JetBrains Mono** (συντεταγμένες, νούμερα, HUD)
+- Γραμματοσειρές: **Cinzel** / **Cinzel Decorative** (τίτλοι), **Inter** (κείμενο), **JetBrains Mono** (νούμερα, HUD)
 - Χρώματα: `#071523` ocean · `#F1E6CC` parchment · `#E8B94A` gold · `#E8402E` pin red · `#57C7BC` map teal
 - Χάρτης: `assets/world-dots.svg` (dot-matrix ήπειροι + graticule) και `assets/topo-lines.svg` (contour lines στην περγαμηνή)
 - Χαρτογραφικά δεδομένα: Natural Earth 1:110m land (public domain)

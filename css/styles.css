@@ -246,13 +246,6 @@ a{color:inherit}
 .pin-label strong{display:block;color:var(--gold-bright);font-size:.58rem;letter-spacing:.18em}
 .pin-label span{display:block;color:var(--text-2);font-size:.54rem;letter-spacing:.08em}
 
-.hero-axis{
-  position:absolute;font-family:var(--mono);font-size:.52rem;letter-spacing:.24em;
-  color:var(--text-3);text-transform:uppercase;opacity:.65;
-}
-.hero-axis--n{right:.85rem;top:36%;writing-mode:vertical-rl}
-.hero-axis--e{left:1.3rem;bottom:1.2rem}
-
 .hero-grid{position:relative;z-index:3;display:grid;grid-template-columns:1fr;gap:2.6rem;align-items:center}
 
 .eyebrow{
@@ -824,7 +817,7 @@ a{color:inherit}
 
 @media (max-width:1099px){
   .pin-marker{left:auto;right:1.25rem;top:1.35rem;width:36px;height:50px;animation-delay:0s}
-  .pin-label,.hero-axis{display:none}
+  .pin-label{display:none}
 }
 
 @media (max-width:900px){
