@@ -78,7 +78,7 @@ insert into public.matches (week_number, match_date, league, location_name, lat,
   (8, '2026-11-06T19:00:00+02:00', 'map',  'Νιουφαουντλάντ, Καναδάς',    47.5615, -52.7126),
   (8, '2026-11-06T19:00:00+02:00', 'quiz', null, null, null);
 
-create temp table _skill (nickname text primary key, skill numeric) on commit drop;
+create temp table if not exists _skill (nickname text primary key, skill numeric);
 
 insert into _skill (nickname, skill) values
   ('MR. LAG', 100), ('VISIT KASTORIA', 99.15), ('KARIPIDIS', 98.3), ('DCLN', 97.45),

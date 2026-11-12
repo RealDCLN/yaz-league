@@ -96,7 +96,8 @@
     const nav = document.getElementById('mainNav');
     if (!toggle || !nav) return;
 
-    toggle.addEventListener('click', () => {
+    toggle.addEventListener('click', (ev) => {
+      ev.stopPropagation();
       const open = nav.classList.toggle('is-open');
       toggle.setAttribute('aria-expanded', String(open));
       toggle.setAttribute('aria-label', open ? 'Κλείσιμο μενού' : 'Άνοιγμα μενού');
@@ -107,6 +108,21 @@
         nav.classList.remove('is-open');
         toggle.setAttribute('aria-expanded', 'false');
       });
+    });
+
+    document.addEventListener('click', (ev) => {
+      if (nav.classList.contains('is-open') && !nav.contains(ev.target) && !toggle.contains(ev.target)) {
+        nav.classList.remove('is-open');
+        toggle.setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    document.addEventListener('keydown', (ev) => {
+      if (ev.key === 'Escape' && nav.classList.contains('is-open')) {
+        nav.classList.remove('is-open');
+        toggle.setAttribute('aria-expanded', 'false');
+        toggle.focus();
+      }
     });
   }
 
@@ -158,7 +174,6 @@
     if (countdownStarted) return;
     countdownStarted = true;
 
-    const { target } = resolveNextMatch();
     updateWeekLabel();
 
     const live = document.getElementById('liveBadge');
@@ -170,15 +185,19 @@
     };
 
     const pad = n => String(n).padStart(2, '0');
+    const MATCH_DURATION_MS = 2 * 3600 * 1000; // 2 ώρες διάρκεια (19:00 - 21:00)
 
     function tick() {
-      let diff = target.getTime() - Date.now();
-      const liveOn = diff > 0 && diff <= 3600000;
-      if (live) live.classList.toggle('is-on', liveOn);
+      const { target } = resolveNextMatch();
+      const now = Date.now();
+      const diff = target.getTime() - now;
 
-      if (diff < 0) diff = 0;
+      // Αν είμαστε μεταξύ έναρξης (19:00) και λήξης (+2 ώρες), η αγωνιστική είναι LIVE!
+      const isLive = diff <= 0 && now < target.getTime() + MATCH_DURATION_MS;
+      if (live) live.classList.toggle('is-on', isLive);
 
-      const s = Math.floor(diff / 1000);
+      const remainingMs = Math.max(0, diff);
+      const s = Math.floor(remainingMs / 1000);
       if (nums.days) nums.days.textContent = pad(Math.floor(s / 86400));
       if (nums.hours) nums.hours.textContent = pad(Math.floor((s % 86400) / 3600));
       if (nums.minutes) nums.minutes.textContent = pad(Math.floor((s % 3600) / 60));
@@ -198,7 +217,9 @@
   /* ---------------- leaderboard ---------------- */
 
   function initials(name) {
+    if (!name) return '—';
     const parts = String(name).replace(/[._-]+/g, ' ').trim().split(/\s+/);
+    if (!parts.length || !parts[0]) return '—';
     if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
     return (parts[0][0] + parts[1][0]).toUpperCase();
   }
@@ -237,12 +258,15 @@
     }
 
     const list = sortedStandings();
+    const isNaturalRankOrder = (state.sort.key === 'points' && state.sort.dir === 'desc') ||
+                               (state.sort.key === 'rank' && state.sort.dir === 'asc');
+    const groupSize = Number(cfg.groupSize) || 4;
 
-    tbody.innerHTML = list.map(row => {
+    tbody.innerHTML = list.map((row, i) => {
       const rankClass = row.rank <= 3 ? 'rank-' + row.rank : '';
       const group = row.group || 1;
       const groupClass = 'group-' + (group % 2 === 0 ? 'even' : 'odd');
-      const isGroupStart = row.rank > 1 && ((row.rank - 1) % 4 === 0);
+      const isGroupStart = isNaturalRankOrder && i > 0 && (i % groupSize === 0);
       const trClass = [
         rankClass,
         groupClass,
@@ -277,7 +301,7 @@
       btn.addEventListener('click', () => {
         const id = btn.getAttribute('data-player');
         const row = state.standings.find(r => String(r.id) === id);
-        if (row) openPlayer(row);
+        if (row) openPlayer(row, btn);
       });
     });
 
@@ -310,6 +334,8 @@
 
   /* ---------------- modal ---------------- */
 
+  let lastFocusedEl = null;
+
   function wireModal() {
     const modal = document.getElementById('playerModal');
     const closeBtn = document.getElementById('pmClose');
@@ -333,9 +359,14 @@
       state.chart.destroy();
       state.chart = null;
     }
+    if (lastFocusedEl && typeof lastFocusedEl.focus === 'function') {
+      lastFocusedEl.focus();
+      lastFocusedEl = null;
+    }
   }
 
-  function openPlayer(row) {
+  function openPlayer(row, triggerEl) {
+    lastFocusedEl = triggerEl || document.activeElement;
     const modal = document.getElementById('playerModal');
     if (!modal) return;
 

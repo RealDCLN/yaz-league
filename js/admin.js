@@ -169,7 +169,14 @@
     }
 
     $('mDate').value = toLocalInput(nextFriday19());
-    $('mWeek').value = nextWeekNumber();
+    const info = nextWeekInfo();
+    $('mWeek').value = info.week;
+    if ($('mLeague')) {
+      $('mLeague').value = info.defaultLeague;
+      league = info.defaultLeague;
+      const row = $('locationRow');
+      if (row) row.style.display = league === 'map' ? '' : 'none';
+    }
 
     if (!entries.length) entries = [{ nickname: '', concept: false }];
 
@@ -227,9 +234,9 @@
 
   async function loadAll() {
     const [p, m, r] = await Promise.all([
-      sb.from('players').select('*').order('nickname'),
-      sb.from('matches').select('*').order('week_number'),
-      sb.from('results').select('*')
+      sb.from('players').select('*').order('nickname').limit(10000),
+      sb.from('matches').select('*').order('week_number').limit(10000),
+      sb.from('results').select('*').limit(10000)
     ]);
     const err = p.error || m.error || r.error;
     if (err) {
@@ -241,10 +248,19 @@
     cache.results = r.data || [];
   }
 
-  function nextWeekNumber() {
-    if (!cache.matches.length) return 1;
+  function nextWeekInfo() {
+    if (!cache.matches.length) return { week: 1, defaultLeague: 'map' };
     const max = cache.matches.reduce((acc, m) => Math.max(acc, Number(m.week_number) || 0), 0);
-    return max + 1;
+    const hasMap = cache.matches.some(m => Number(m.week_number) === max && m.league === 'map');
+    const hasQuiz = cache.matches.some(m => Number(m.week_number) === max && m.league === 'quiz');
+
+    if (!hasMap) return { week: max, defaultLeague: 'map' };
+    if (!hasQuiz) return { week: max, defaultLeague: 'quiz' };
+    return { week: max + 1, defaultLeague: 'map' };
+  }
+
+  function nextWeekNumber() {
+    return nextWeekInfo().week;
   }
 
   function populateDatalist() {
@@ -301,6 +317,23 @@
         renderPreview();
       });
 
+      nickEl.addEventListener('keydown', (ev) => {
+        if (ev.key === 'Enter') {
+          ev.preventDefault();
+          if (i === entries.length - 1 && nickEl.value.trim()) {
+            entries.push({ nickname: '', concept: false });
+            renderEntries();
+            renderPreview();
+            const rows = list.querySelectorAll('.entry-row');
+            const lastRow = rows[rows.length - 1];
+            if (lastRow) {
+              const nextInput = lastRow.querySelector('[data-role="nick"]');
+              if (nextInput) nextInput.focus();
+            }
+          }
+        }
+      });
+
       if (conceptEl) {
         conceptEl.addEventListener('change', () => {
           if (conceptEl.checked) {
@@ -344,19 +377,23 @@
     const totals = currentTotals();
     const playersByName = new Map(cache.players.map(p => [p.nickname.toLowerCase(), p]));
 
-    const rows = entries.map((e, i) => {
-      const name = (e.nickname || '').trim();
-      const player = name ? playersByName.get(name.toLowerCase()) : null;
+    const validEntries = entries
+      .map(e => ({ nickname: (e.nickname || '').trim(), concept: !!e.concept }))
+      .filter(e => e.nickname);
+
+    const rows = validEntries.map((e, i) => {
+      const name = e.nickname;
+      const player = playersByName.get(name.toLowerCase());
       const current = player ? (totals.get(String(player.id)) || 0) : 0;
       // Concept bonus is map-only. Guard the preview the same way the save
       // path does so the projected totals don't mislead the admin.
       const pts = pointsFor(i + 1) + ((league === 'map' && e.concept) ? CONCEPT_BONUS : 0);
       return {
-        name: name || '—',
+        name,
         matchPts: pts,
         current,
         after: current + pts,
-        isNew: !player && name.length > 0
+        isNew: !player
       };
     });
 
@@ -399,13 +436,19 @@
 
     const problems = [];
     if (!Number.isInteger(week) || week < 1) problems.push('Συμπλήρωσε έγκυρη αγωνιστική.');
-    if (!dateStr) problems.push('Συμπλήρωσε ημερομηνία.');
+    const matchDate = dateStr ? new Date(dateStr) : null;
+    if (!matchDate || isNaN(matchDate.getTime())) problems.push('Συμπλήρωσε έγκυρη ημερομηνία.');
 
-    const clean = entries.map((e, i) => ({
-      nickname: (e.nickname || '').trim(),
-      concept: !!e.concept,
-      place: i + 1
-    })).filter(e => e.nickname);
+    const clean = entries
+      .map(e => ({
+        nickname: (e.nickname || '').trim(),
+        concept: !!e.concept
+      }))
+      .filter(e => e.nickname)
+      .map((e, idx) => ({
+        ...e,
+        place: idx + 1
+      }));
 
     if (!clean.length) problems.push('Πρόσθεσε τουλάχιστον έναν παίκτη.');
 
@@ -437,12 +480,14 @@
     const createdPlayerIds = [];
     try {
       const loc = leagueSel === 'map' ? ($('mLocation').value.trim() || null) : null;
-      const lat = leagueSel === 'map' ? (Number($('mLat').value) || null) : null;
-      const lng = leagueSel === 'map' ? (Number($('mLng').value) || null) : null;
+      const latVal = $('mLat').value.trim();
+      const lngVal = $('mLng').value.trim();
+      const lat = (leagueSel === 'map' && latVal !== '' && isFinite(Number(latVal))) ? Number(latVal) : null;
+      const lng = (leagueSel === 'map' && lngVal !== '' && isFinite(Number(lngVal))) ? Number(lngVal) : null;
 
       const { data: matchRow, error: mErr } = await sb.from('matches').insert({
         week_number: week,
-        match_date: new Date(dateStr).toISOString(),
+        match_date: matchDate.toISOString(),
         league: leagueSel,
         location_name: loc,
         lat, lng
@@ -474,21 +519,34 @@
       const { error: rErr } = await sb.from('results').insert(resultRows);
       if (rErr) throw rErr;
 
-      msg.className = 'form-msg ok';
-      msg.textContent = 'Αποθηκεύτηκε η αγωνιστική ' + week + ' (' + leagueSel + ') με ' + resultRows.length + ' αποτελέσματα.';
-
       entries = [{ nickname: '', concept: false }];
-      $('mWeek').value = week + 1;
       $('mLocation').value = '';
       $('mLat').value = '';
       $('mLng').value = '';
 
       await loadAll();
+
+      const nextInfo = nextWeekInfo();
+      $('mWeek').value = nextInfo.week;
+      $('mLeague').value = nextInfo.defaultLeague;
+      league = nextInfo.defaultLeague;
+      const locRow = $('locationRow');
+      if (locRow) locRow.style.display = league === 'map' ? '' : 'none';
+
       renderEntries();
       renderPreview();
       renderPlayersTable();
       renderHistoryTable();
       populateDatalist();
+
+      msg.className = 'form-msg ok';
+      if (nextInfo.week === week) {
+        msg.textContent = 'Αποθηκεύτηκε η αγωνιστική ' + week + ' (' + (leagueSel === 'map' ? 'Χάρτης' : 'Quiz') + ') με ' + resultRows.length + ' αποτελέσματα. ' +
+          'Τώρα μπορείς να καταχωρίσεις το ' + (nextInfo.defaultLeague === 'quiz' ? 'Quiz' : 'Χάρτη') + ' για την αγωνιστική ' + week + '.';
+      } else {
+        msg.textContent = 'Αποθηκεύτηκε η αγωνιστική ' + week + ' (' + (leagueSel === 'map' ? 'Χάρτης' : 'Quiz') + ') με ' + resultRows.length + ' αποτελέσματα. ' +
+          'Ολοκληρώθηκε η αγωνιστική ' + week + '!';
+      }
     } catch (err) {
       console.error('[admin] save failed:', err);
       if (matchId) { try { await sb.from('matches').delete().eq('id', matchId); } catch (_) {} }
@@ -632,6 +690,18 @@
     const reg = cache.regs.find(r => String(r.id) === String(id));
     if (!reg) return;
     try {
+      const lower = reg.nickname.trim().toLowerCase();
+      const existing = cache.players.find(p => p.nickname.toLowerCase() === lower);
+      if (existing) {
+        if (!confirm('Ο παίκτης "' + reg.nickname + '" υπάρχει ήδη στους ενεργούς παίκτες. Έγκριση της αίτησης χωρίς διπλοεγγραφή;')) {
+          return;
+        }
+        const { error: uErr } = await sb.from('registrations').update({ status: 'approved' }).eq('id', id);
+        if (uErr) throw uErr;
+        await loadRegs();
+        return;
+      }
+
       const { error: pErr } = await sb.from('players').insert({
         nickname: reg.nickname,
         first_name: reg.first_name
@@ -704,6 +774,12 @@
       await loadAll();
       renderHistoryTable();
       renderPreview();
+      const nextInfo = nextWeekInfo();
+      $('mWeek').value = nextInfo.week;
+      $('mLeague').value = nextInfo.defaultLeague;
+      league = nextInfo.defaultLeague;
+      const locRow = $('locationRow');
+      if (locRow) locRow.style.display = league === 'map' ? '' : 'none';
     } catch (err) {
       alert('Αποτυχία διαγραφής: ' + (err.message || ''));
     }

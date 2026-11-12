@@ -4,21 +4,22 @@ title Git Auto Push
 
 rem Always run from the folder the .bat lives in
 cd /d "%~dp0"
+set "GIT=git -c safe.directory=*"
 
 echo === Git Auto Push ===
 echo Folder: %cd%
 echo:
 
 :: 1. Sanity check: inside git repository?
-git rev-parse --is-inside-work-tree >nul 2>&1
+!GIT! rev-parse --is-inside-work-tree >nul 2>&1
 if !errorlevel! neq 0 goto not_repo
 
 :: 2. Check for upstream branch
-git rev-parse --abbrev-ref --symbolic-full-name @{u} >nul 2>&1
+!GIT! rev-parse --abbrev-ref --symbolic-full-name @{u} >nul 2>&1
 if !errorlevel! neq 0 goto no_upstream
 
 echo [.] Pulling latest changes from remote...
-git pull
+!GIT! pull
 if !errorlevel! neq 0 goto pull_failed
 goto stage
 
@@ -27,10 +28,10 @@ echo [i] No upstream branch set yet; skipping initial pull.
 
 :stage
 :: 3. Stage all changes
-git add -A
+!GIT! add -A
 
 :: 4. Check if there are staged changes
-git diff --cached --quiet
+!GIT! diff --cached --quiet
 if !errorlevel! equ 0 goto no_changes
 
 :: 5. Commit staged changes
@@ -38,7 +39,7 @@ set "MSG=%~1"
 if "%MSG%"=="" set "MSG=auto-commit %DATE% %TIME%"
 
 echo [.] Committing: !MSG!
-git commit -m "!MSG!"
+!GIT! commit -m "!MSG!"
 if !errorlevel! neq 0 goto commit_failed
 goto push
 
@@ -47,17 +48,17 @@ echo [i] No local changes to commit.
 
 :push
 :: 6. Push changes
-git rev-parse --abbrev-ref --symbolic-full-name @{u} >nul 2>&1
+!GIT! rev-parse --abbrev-ref --symbolic-full-name @{u} >nul 2>&1
 if !errorlevel! neq 0 goto push_no_upstream
 
 echo [.] Pushing...
-git push
+!GIT! push
 if !errorlevel! neq 0 goto push_failed
 goto success
 
 :push_no_upstream
 echo [.] No upstream branch set, pushing to origin HEAD...
-git push -u origin HEAD
+!GIT! push -u origin HEAD
 if !errorlevel! neq 0 goto push_failed
 goto success
 

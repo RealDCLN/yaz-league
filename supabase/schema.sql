@@ -81,6 +81,8 @@ as $$
   select coalesce(auth.jwt() ->> 'email', '') = 'admin@example.com'
 $$;
 
+grant execute on function public.is_admin() to authenticated, anon;
+
 -- Δημόσια ανάγνωση δεδομένων πρωταθλήματος
 drop policy if exists "players_public_read" on public.players;
 create policy "players_public_read"

@@ -12,12 +12,12 @@
 <meta property="og:site_name" content="YAZ LEAGUE">
 <meta property="og:title" content="YAZ LEAGUE — Το απόλυτο πρωτάθλημα γεωγραφίας">
 <meta property="og:description" content="Κάθε Παρασκευή στις 19:00, δύο leagues, ένας χάρτης κι ένα quiz. Μάζεψε πόντους και σκαρφάλωσε στην κατάταξη.">
-<meta property="og:image" content="assets/og-image.svg">
+<meta property="og:image" content="https://yaz-league.netlify.app/assets/og-image.svg">
 <meta property="og:url" content="https://yaz-league.netlify.app/">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="YAZ LEAGUE — Το απόλυτο πρωτάθλημα γεωγραφίας">
 <meta name="twitter:description" content="Το εβδομαδιαίο πρωτάθλημα γεωγραφίας του DE.VOYAGEUR.">
-<meta name="twitter:image" content="assets/og-image.svg">
+<meta name="twitter:image" content="https://yaz-league.netlify.app/assets/og-image.svg">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="assets/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -48,6 +48,7 @@
     </button>
     <nav class="main-nav" id="mainNav" aria-label="Κύρια πλοήγηση">
       <a href="#arxiki">Αρχική</a>
+      <a href="#xartis">Χάρτης</a>
       <a href="#katataxi">Κατάταξη</a>
       <a href="#kanones">Κανόνες</a>
       <a href="#egrafi">Εγγραφή</a>
@@ -98,7 +99,7 @@
           <p class="eyebrow" id="nextTitle">Επόμενη αγωνιστική</p>
           <span class="live-badge" id="liveBadge"><i></i>LIVE</span>
         </div>
-        <p class="next-week">Αγωνιστική <span id="nextWeek">9</span></p>
+        <p class="next-week">Αγωνιστική <span id="nextWeek">—</span></p>
         <p class="next-when">Παρασκευή · 19:00</p>
         <div class="league-tags">
           <span class="league-tag">
@@ -118,6 +119,27 @@
         </div>
         <p class="next-note">Το concept μένει μυστικό — η δουλειά σου είναι να το ανακαλύψεις μέσα από τις τοποθεσίες.</p>
       </aside>
+    </div>
+  </section>
+
+  <!-- ================= WORLD MAP ================= -->
+  <section class="section section-map" id="xartis">
+    <div class="wrap">
+      <header class="section-head reveal">
+        <p class="eyebrow">Παγκόσμιος χάρτης</p>
+        <h2 class="section-title">Οι διαδρομές μας</h2>
+        <p class="section-sub">Κάθε pin είναι μια αγωνιστική. Κάθε γραμμή, ένα ταξίδι. Πάτησε σε ένα pin για την τοποθεσία.</p>
+      </header>
+      <div class="map-shell reveal">
+        <div class="map-canvas">
+          <svg id="worldSvg" viewBox="0 0 1000 500" aria-label="Χάρτης αγωνιστικών" role="img"></svg>
+        </div>
+        <div class="map-tooltip" id="mapTooltip" aria-hidden="true"></div>
+      </div>
+      <div class="map-controls">
+        <div class="week-chips" id="weekChips"></div>
+        <button class="btn btn-outline btn-sm" id="randomPinBtn" type="button">Τυχαία τοποθεσία</button>
+      </div>
     </div>
   </section>
 
@@ -300,12 +322,15 @@
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
 <script src="js/config.js"></script>
 <script src="js/seed.js"></script>
 <script src="js/stats.js"></script>
 <script src="js/data.js"></script>
+<script src="js/map.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

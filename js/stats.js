@@ -15,7 +15,7 @@ window.YAZ = window.YAZ || {};
   }
 
   function weeksOf(matches) {
-    const set = new Set(matches.map(m => num(m.week_number)));
+    const set = new Set((matches || []).map(m => num(m.week_number)).filter(w => w > 0));
     return Array.from(set).sort((a, b) => a - b);
   }
 
@@ -132,8 +132,18 @@ window.YAZ = window.YAZ || {};
       return String(a.id).localeCompare(String(b.id));
     });
 
+    let lastPts = null;
+    let lastWc = null;
+    let lastRank = 0;
     list.forEach((row, i) => {
-      row.rank = i + 1;
+      if (lastPts !== null && row.points === lastPts && row.wildcards === lastWc) {
+        row.rank = lastRank;
+      } else {
+        row.rank = i + 1;
+        lastRank = row.rank;
+        lastPts = row.points;
+        lastWc = row.wildcards;
+      }
       row.group = groupForRank(row.rank);
 
       /* Μετακίνηση θέσης από την προηγούμενη εβδομάδα */
@@ -144,12 +154,15 @@ window.YAZ = window.YAZ || {};
     return list;
   }
 
-  /* Επόμενη Παρασκευή 19:00 (τοπική ώρα) */
+  /* Επόμενη Παρασκευή 19:00 (τοπική ώρα).
+     Διάρκεια αγωνιστικής: 2 ώρες (19:00 - 21:00).
+     Αν είμαστε Παρασκευή μεταξύ 19:00 και 21:00, η αγωνιστική είναι LIVE τώρα. */
   function nextFriday19() {
     const now = new Date();
     const d = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 19, 0, 0, 0);
+    const matchDurationMs = 2 * 60 * 60 * 1000;
     let diff = (5 - d.getDay() + 7) % 7;
-    if (diff === 0 && now.getTime() >= d.getTime()) diff = 7;
+    if (diff === 0 && now.getTime() >= d.getTime() + matchDurationMs) diff = 7;
     d.setDate(d.getDate() + diff);
     return d;
   }

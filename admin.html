@@ -6,17 +6,17 @@
 <title>Διαχείριση · YAZ LEAGUE</title>
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#0F1626">
-<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/styles.css">
-<link rel="stylesheet" href="css/admin.css">
+<link rel="stylesheet" href="/css/styles.css">
+<link rel="stylesheet" href="/css/admin.css">
 </head>
-<body>
+<body class="admin-body">
 <header class="admin-header">
   <div class="wrap admin-header-inner">
-    <a class="brand" href="index.html">
+    <a class="brand" href="/">
       <svg class="brand-mark" viewBox="0 0 64 64" aria-hidden="true">
         <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="1.6"/>
         <circle cx="32" cy="32" r="21" fill="none" stroke="currentColor" stroke-width=".8" stroke-dasharray="2 4"/>
@@ -184,7 +184,7 @@
         <p class="admin-lead">Μπορείς να διαγράψεις μια αγωνιστική. Τα αποτελέσματά της διαγράφονται μαζί της.</p>
         <div class="table-scroll">
           <table class="board-table">
-            <thead><tr><th>Αγωνιστική</th><th>League</th><th>Ημερομηνία</th><th></th></tr></thead>
+            <thead><tr><th>Αγωνιστική</th><th>League</th><th>Ημερομηνία</th><th>Τοποθεσία</th><th></th></tr></thead>
             <tbody id="historyBody"></tbody>
           </table>
         </div>
@@ -194,7 +194,7 @@
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="js/config.js"></script>
-<script src="js/admin.js"></script>
+<script src="/js/config.js"></script>
+<script src="/js/admin.js"></script>
 </body>
 </html>

@@ -216,7 +216,16 @@ window.YAZ = window.YAZ || {};
   function activatePin(id) {
     svgEl.querySelectorAll('.pin').forEach(p => p.classList.remove('is-active'));
     const pin = svgEl.querySelector('.pin[data-id="' + cssEscape(id) + '"]');
-    if (pin) pin.classList.add('is-active');
+    if (pin) {
+      pin.classList.add('is-active');
+      const m = matches.find(match => String(match.id) === String(id));
+      if (m) {
+        const pt = project(m.lat, m.lng);
+        const weekLabel = 'Αγωνιστική ' + m.week_number;
+        const nameLabel = m.location_name || (m.league === 'quiz' ? 'Quiz' : '—');
+        showTip(pt[0], pt[1], weekLabel, nameLabel);
+      }
+    }
   }
 
   function buildChips() {

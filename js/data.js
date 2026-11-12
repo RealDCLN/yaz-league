@@ -33,9 +33,9 @@ window.YAZ = window.YAZ || {};
   async function fromSupabase() {
     const sb = getClient();
     const [p, m, r] = await Promise.all([
-      sb.from('players').select('*').order('nickname', { ascending: true }),
-      sb.from('matches').select('*').order('week_number', { ascending: true }),
-      sb.from('results').select('*')
+      sb.from('players').select('*').order('nickname', { ascending: true }).limit(10000),
+      sb.from('matches').select('*').order('week_number', { ascending: true }).limit(10000),
+      sb.from('results').select('*').limit(10000)
     ]);
 
     if (p.error) throw p.error;
