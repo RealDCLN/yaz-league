@@ -149,20 +149,26 @@ links: {
 
 ## Deployment
 
-### Netlify (drag & drop)
+### Netlify (συνδεδεμένο GitHub repo — προτεινόμενο)
 
-1. [app.netlify.com/drop](https://app.netlify.com/drop)
-2. Σύρε ολόκληρο τον φάκελο `yaz-league`.
-3. Live σε `random-name.netlify.app`.
+1. **Add new site** → **Import an existing project** → διάλεξε το repo.
+2. Άφησε τις default ρυθμίσεις· το `netlify.toml` ορίζει build + publish.
+3. Το build αντιγράφει **μόνο** τα αρχεία του site σε έναν φάκελο `dist/`.
+   `README.md`, `supabase/`, `*.sql`, `*.bat`, `.env*` και `.git/` **δεν
+   δημοσιεύονται καθόλου** — άρα δεν υπάρχουν ούτε με άλλα κεφαλαία/πεζά.
 4. **Site settings** → **Change site name** → `yaz-league`.
 
 Το `/admin` δουλεύει αυτόματα χάρη στο `netlify.toml`.
 
-### GitHub Pages
+### Netlify (drag & drop)
 
-1. Ανέβασε σε δημόσιο repo.
-2. **Settings** → **Pages** → Branch `main` / root.
-3. Το `/admin` δεν κάνει rewrite — μπες στο `/admin.html`.
+Το drag & drop του **root** φακέλου δεν δουλεύει πλέον, γιατί το publish
+είναι το `dist/`. Τρέξε πρώτα το build command του `netlify.toml` (ή απλά
+σύνδεσε το GitHub repo) και σύρε μόνο τον φάκελο `dist/`.
+
+> **GitHub Pages:** μην το χρησιμοποιείς για αυτό το project. Δημοσιεύει
+> όλο το repo (README, SQL, scripts) και δεν έχει τα security headers του
+> Netlify. Αν το κρατήσεις, μπες χειροκίνητα στο `/admin.html`.
 
 ---
 
@@ -245,6 +251,10 @@ column privileges. Αν δεν το τρέξεις, οποιοσδήποτε έ�
 - CSP, HSTS, `X-Frame-Options: DENY`, `Permissions-Policy`, `noindex` στο admin.
 - Τα CDN scripts είναι pinned + έχουν SRI hashes (αν αλλάξει το αρχείο στο CDN,
   ο browser δεν το εκτελεί).
+- Το Netlify **δεν σερβίρει** `README.md`, `supabase/*`, `*.sql`, `*.md`,
+  `*.bat`, `netlify.toml`, `.env*` ή `.git/*` (επιστρέφουν 404). Αν όμως το
+  αποθετήριο στο GitHub είναι δημόσιο, αυτά φαίνονται στο GitHub· κάνε το repo
+  **private** αν θέλεις να μη βλέπει κανείς τον κώδικα/το schema.
 
 ### Αν έχεις ήδη βάση — τρέξε το migration
 

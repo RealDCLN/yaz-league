@@ -12,6 +12,9 @@ desktop.ini
 .vscode/
 .idea/
 
+# Netlify build output
+dist/
+
 # Logs / temp
 *.log
 *.tmp

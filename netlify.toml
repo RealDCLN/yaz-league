@@ -1,5 +1,10 @@
 [build]
-  publish = "."
+  # Only the actual site is published. README, SQL, .env, .git and the
+  # scripts stay in the repo but are NEVER copied to the public directory.
+  # This also avoids Netlify's case-insensitive file serving: a request
+  # such as /ReadMe.MD has no file to fall back to.
+  command = "rm -rf dist && mkdir -p dist && cp index.html admin.html 404.html robots.txt dist/ && cp -R assets css js dist/"
+  publish = "dist"
 
 [[redirects]]
   from = "/admin"
