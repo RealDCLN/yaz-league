@@ -234,6 +234,11 @@ revoke all on public.matches       from anon;
 revoke all on public.results       from anon;
 revoke all on public.registrations from anon;
 
+-- Το REVOKE ALL ON TABLE δεν πειράζει column-level grants. Καθάρισε
+-- ρητά και τυχόν παλιά column grant στο first_name.
+revoke all (id, nickname, first_name, joined_at, is_active)
+  on public.players from anon;
+
 -- Defense in depth: τίποτα δεν πρέπει να κληρονομείται από το PUBLIC,
 -- και οι client ρόλοι δεν χρειάζονται δικαίωμα δημιουργίας στο schema.
 revoke all on public.players       from public;
