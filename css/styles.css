@@ -611,17 +611,9 @@ a{color:inherit}
 .rule-foot{font-size:.83rem;color:var(--ink-3) !important;margin:0}
 
 /* ============================ SIGNUP ============================ */
-.signup-grid{display:grid;grid-template-columns:minmax(0,620px);justify-content:center;gap:1rem}
-.signup-eyebrow{text-align:center;color:var(--teal);margin-bottom:.7rem}
+.signup-grid{display:grid;grid-template-columns:minmax(0,620px);justify-content:center;gap:1.25rem}
 .signup-title{text-align:center;margin:0}
 .signup-title::after{margin-inline:auto}
-.signup-lead{text-align:center;color:var(--text-2);max-width:52ch;margin:0 auto .2rem;font-size:.93rem}
-.signup-coords{
-  display:flex;align-items:center;justify-content:center;gap:.55rem;
-  font-family:var(--mono);font-size:.54rem;letter-spacing:.18em;color:var(--text-3);
-  margin:0 0 .55rem;text-transform:uppercase;
-}
-.signup-coords em{font-style:normal;color:var(--gold);letter-spacing:.16em}
 
 .panel-light{
   background:
