@@ -19,8 +19,9 @@
 --    from public.registrations where status = 'pending'
 --    group by 1 having count(*) > 1;
 -- ============================================================
-
-begin;
+--  ΣΗΜΑΝΤΙΚΟ: πριν πατήσεις Run, πάτησε Ctrl+A μέσα στον editor
+--  ώστε να είναι επιλεγμένο ΟΛΟ το script (όχι μόνο μία γραμμή).
+-- ============================================================
 
 create extension if not exists "pgcrypto";
 
@@ -275,4 +276,4 @@ create trigger trg_registration_rules
 
 notify pgrst, 'reload schema';
 
-commit;
+select 'Migration 003 applied successfully.' as result;
