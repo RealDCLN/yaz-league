@@ -5,31 +5,51 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Σελίδα δεν βρέθηκε · YAZ LEAGUE</title>
 <meta name="robots" content="noindex, follow">
+<meta name="theme-color" content="#071523">
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Cinzel+Decorative:wght@700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/styles.css">
 <style>
-  .err-page{min-height:100vh;display:grid;place-items:center;text-align:center;padding:2rem 1rem}
+  .err-page{
+    position:relative;min-height:100vh;display:grid;place-items:center;text-align:center;padding:2rem 1rem;overflow:hidden;
+  }
+  .err-page::before{
+    content:"";position:absolute;inset:-8% -10%;pointer-events:none;
+    background:url("/assets/world-dots.svg") center/contain no-repeat;
+    opacity:.16;
+    mask-image:radial-gradient(70% 70% at 50% 45%, #000, transparent 100%);
+    -webkit-mask-image:radial-gradient(70% 70% at 50% 45%, #000, transparent 100%);
+  }
+  .err-page .wrap{position:relative;z-index:1}
   .err-code{
     font-family:var(--mono);font-size:clamp(4.5rem,18vw,9rem);line-height:.9;
     color:var(--gold);margin:0;letter-spacing:.05em;
-    text-shadow:0 0 60px rgba(227,179,65,.4);
+    text-shadow:0 0 60px rgba(232,185,74,.4);
   }
   .err-title{font-size:clamp(1.4rem,4vw,2rem);margin:.6rem 0 .9rem;color:var(--parchment)}
   .err-text{color:var(--text-2);max-width:44ch;margin:0 auto 1.8rem}
-  .err-compass{width:104px;height:104px;color:var(--gold);opacity:.4;margin:0 auto 1.4rem}
+  .err-pin{width:76px;height:104px;margin:0 auto 1.2rem;filter:drop-shadow(0 16px 22px rgba(0,0,0,.5)) drop-shadow(0 0 26px rgba(232,64,46,.4))}
+  .err-coords{font-family:var(--mono);font-size:.54rem;letter-spacing:.2em;color:var(--teal);text-transform:uppercase;margin:-1rem 0 1.6rem}
 </style>
 </head>
 <body>
 <main class="err-page">
   <div class="wrap">
-    <svg class="err-compass" viewBox="0 0 100 100" aria-hidden="true">
-      <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" stroke-width="1"/>
-      <circle cx="50" cy="50" r="33" fill="none" stroke="currentColor" stroke-width=".6" stroke-dasharray="1.5 4"/>
-      <path d="M50 8 L56 46 L92 50 L56 54 L50 92 L44 54 L8 50 L44 46 Z" fill="currentColor"/>
-      <circle cx="50" cy="50" r="3.4" fill="#E2572B"/>
+    <svg class="err-pin" viewBox="0 0 64 88" aria-hidden="true">
+      <defs>
+        <linearGradient id="errPinGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#FF7059"/>
+          <stop offset=".55" stop-color="#E8402E"/>
+          <stop offset="1" stop-color="#B92C1F"/>
+        </linearGradient>
+      </defs>
+      <ellipse cx="32" cy="82" rx="13" ry="4.3" fill="#000" opacity=".35"/>
+      <path d="M32 3C20.4 3 11 12.4 11 24c0 15.9 21 36 21 36s21-20.1 21-36C53 12.4 43.6 3 32 3z"
+            fill="url(#errPinGrad)" stroke="#FF9B86" stroke-width="1.2"/>
+      <circle cx="32" cy="23" r="8.2" fill="#071523"/>
+      <circle cx="32" cy="23" r="3.4" fill="#FFD577"/>
     </svg>
     <p class="err-code">404</p>
     <h1 class="err-title">Χαθήκαμε στον χάρτη</h1>
@@ -37,6 +57,7 @@
       Η σελίδα που ψάχνεις δεν υπάρχει ή μετακινήθηκε σε άλλη γωνιά του πλανήτη.
       Γύρνα στην αρχική και συνέχισε από εκεί.
     </p>
+    <p class="err-coords">37°58′N · 23°43′E — OFF THE MAP</p>
     <a class="btn btn-primary" href="/">Επιστροφή στην αρχική</a>
   </div>
 </main>

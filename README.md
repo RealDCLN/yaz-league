@@ -8,12 +8,15 @@ Static site (HTML/CSS/JS, χωρίς build step) με προαιρετικό bac
 
 ## Σχεδιαστική κατεύθυνση
 
-Χάρτης θησαυρού σε σκοτεινό δωμάτιο πλοιάρχου: βαθύ navy υπόβαθρο,
-περγαμηνή για το εγχειρίδιο κανόνων, χαραγμένες γωνίες (chamfer), μονοπλάγια ψηφία τύπου HUD.
+Νυχτερινός χαρτογραφικός πίνακας: βαθύ ωκεάνιο navy, dot-matrix παγκόσμιος χάρτης,
+πλέγμα συντεταγμένων, κόκκινο pin τύπου GeoGuessr και περγαμηνή για το εγχειρίδιο κανόνων.
+Η αίσθηση είναι «χάρτης αποστολής» με HUD στοιχεία, όχι απλό dark theme.
 
-- Γραμματοσειρές: **Cinzel** / **Cinzel Decorative** (τίτλοι), **Inter** (κείμενο), **JetBrains Mono** (νούμερα, HUD)
-- Χρώματα: `#0F1626` night · `#F0E4C8` parchment · `#E3B341` gold · `#E2572B` terracotta · `#3FBFAE` teal
-- Κίνηση: μόνο διακριτικά reveals, live badge κάτω από 1 ώρα
+- Γραμματοσειρές: **Cinzel** / **Cinzel Decorative** (τίτλοι), **Inter** (κείμενο), **JetBrains Mono** (συντεταγμένες, νούμερα, HUD)
+- Χρώματα: `#071523` ocean · `#F1E6CC` parchment · `#E8B94A` gold · `#E8402E` pin red · `#57C7BC` map teal
+- Χάρτης: `assets/world-dots.svg` (dot-matrix ήπειροι + graticule) και `assets/topo-lines.svg` (contour lines στην περγαμηνή)
+- Χαρτογραφικά δεδομένα: Natural Earth 1:110m land (public domain)
+- Κίνηση: pin-drop στο hero, αργό dashed route, διακριτικά reveals, live badge κάτω από 1 ώρα
 
 ---
 
@@ -50,6 +53,8 @@ yaz-league/
 ├── README.md
 ├── assets/
 │   ├── favicon.svg
+│   ├── world-dots.svg ← dot-matrix παγκόσμιος χάρτης
+│   ├── topo-lines.svg  ← contour lines για την περγαμηνή
 │   ├── og-image.svg
 │   └── og-image.png   ← χρησιμοποιείται στα social previews
 ├── css/
@@ -347,11 +352,12 @@ fetch('https://bgjprkmpyraflesqovos.supabase.co/rest/v1/players?select=first_nam
 
 ```
 :root{
-  --night:#0F1626;
-  --parchment:#F0E4C8;
-  --gold:#E3B341;
-  --terracotta:#E2572B;
-  --teal:#3FBFAE;
+  --night:#071523;
+  --parchment:#F1E6CC;
+  --gold:#E8B94A;
+  --pin:#E8402E;
+  --terracotta:#E8402E;
+  --teal:#57C7BC;
 }
 ```
 

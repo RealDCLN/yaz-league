@@ -5,17 +5,19 @@
 .admin-body{background:var(--night)}
 
 .admin-header{
-  background:rgba(15,22,38,.97);
-  border-bottom:1px solid var(--line-mid);
+  background:rgba(7,21,35,.96);
+  border-bottom:1px solid var(--line);
   position:sticky;top:0;z-index:50;
+  backdrop-filter:blur(10px);
 }
 .admin-header::after{
   content:"";display:block;height:2px;
-  background:linear-gradient(90deg,transparent,var(--gold) 20%,var(--gold) 80%,transparent);
-  opacity:.5;
+  background:linear-gradient(90deg,transparent,var(--teal) 16%,var(--gold) 52%,var(--pin) 80%,transparent);
+  opacity:.6;
 }
 .admin-header-inner{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.75rem 0}
 .admin-user{display:flex;align-items:center;gap:.9rem;font-family:var(--mono);font-size:.72rem;color:var(--text-2)}
+.admin-user[hidden]{display:none}
 
 .admin-main{padding:clamp(1.6rem,4vw,3rem) 0 4rem}
 .admin-view[hidden]{display:none}
@@ -35,7 +37,10 @@
 .admin-form{display:grid;gap:1rem}
 
 .admin-card{
-  background:linear-gradient(180deg, rgba(29,42,68,.55), rgba(21,31,51,.95));
+  background:
+    linear-gradient(rgba(87,199,188,.035) 1px, transparent 1px) 0 0/32px 32px,
+    linear-gradient(90deg, rgba(87,199,188,.035) 1px, transparent 1px) 0 0/32px 32px,
+    linear-gradient(180deg, rgba(16,40,59,.6), rgba(11,29,46,.96));
   border:1px solid var(--line-mid);
   padding:1.7rem 1.5rem;margin-bottom:1.4rem;
   clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px);
@@ -58,7 +63,7 @@
 .admin-body input[type="email"],
 .admin-body input[type="password"]{
   font-family:var(--sans);font-size:.92rem;color:var(--parchment);
-  background:rgba(10,16,28,.7);
+  background:rgba(7,21,35,.7);
   border:1px solid var(--line-mid);
   padding:.7rem .8rem;width:100%;
   transition:border-color .16s ease, box-shadow .16s ease, background .16s ease;
@@ -68,8 +73,8 @@
 .admin-body input::placeholder{color:var(--text-3)}
 .admin-body input:focus,
 .admin-body select:focus{
-  outline:none;background:rgba(10,16,28,.95);border-color:var(--gold);
-  box-shadow:0 0 0 2px rgba(227,179,65,.22), 0 0 20px -8px rgba(227,179,65,.7);
+  outline:none;background:rgba(7,21,35,.95);border-color:var(--gold);
+  box-shadow:0 0 0 2px rgba(232,185,74,.22), 0 0 20px -8px rgba(232,185,74,.7);
 }
 .admin-card .field label{color:var(--text-2)}
 .admin-body input[type="datetime-local"]{color-scheme:dark}
@@ -78,7 +83,7 @@
 .admin-login .field label{color:var(--ink-2)}
 .admin-login input[type="email"],
 .admin-login input[type="password"]{
-  color:var(--ink);background:rgba(255,255,255,.75);border-color:rgba(14,22,38,.28);
+  color:var(--ink);background:rgba(255,255,255,.75);border-color:rgba(10,23,36,.28);
 }
 .admin-login input:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(63,111,107,.18)}
 .admin-login .form-msg.ok{color:#2E6B62}
@@ -95,7 +100,7 @@
   clip-path:polygon(7px 0,100% 0,100% calc(100% - 7px),calc(100% - 7px) 100%,0 100%,0 7px);
   transition:background .16s ease,color .16s ease,border-color .16s ease;
 }
-.admin-tab:hover{background:rgba(227,179,65,.08);color:var(--parchment)}
+.admin-tab:hover{background:rgba(232,185,74,.08);color:var(--parchment)}
 .admin-tab.is-active{background:var(--gold);color:var(--ink);border-color:var(--gold)}
 .tab-count{
   display:inline-block;min-width:20px;padding:0 .35rem;
@@ -109,14 +114,14 @@
 .entry-list{display:grid;gap:.5rem}
 .entry-row{
   display:grid;grid-template-columns:44px 1fr auto auto;gap:.6rem;align-items:center;
-  background:rgba(10,16,28,.5);
+  background:rgba(7,21,35,.5);
   border:1px solid var(--line);
   padding:.5rem .6rem;
   clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px);
 }
 .entry-pos{
   display:grid;place-items:center;width:32px;height:32px;
-  background:rgba(227,179,65,.16);border:1px solid var(--line-mid);
+  background:rgba(232,185,74,.16);border:1px solid var(--line-mid);
   color:var(--gold-bright);font-family:var(--mono);font-size:.76rem;font-weight:700;
   clip-path:polygon(6px 0,100% 0,100% calc(100% - 6px),calc(100% - 6px) 100%,0 100%,0 6px);
 }
@@ -146,7 +151,7 @@
 .reg-item{
   display:grid;grid-template-columns:1fr;gap:.6rem;
   border:1px dashed var(--line-mid);padding:.9rem 1rem;
-  background:rgba(10,16,28,.45);
+  background:rgba(7,21,35,.45);
 }
 @media(min-width:640px){
   .reg-item{grid-template-columns:1fr auto;align-items:center}
@@ -158,10 +163,10 @@
 
 /* alerts */
 .alert{border-radius:0;padding:.8rem 1rem;font-size:.84rem;line-height:1.55;margin-bottom:1.2rem;clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px)}
-.alert-warn{background:rgba(227,179,65,.16);border-left:3px solid var(--gold);color:var(--ink)}
-.alert-ok{background:rgba(63,191,174,.13);border-left:3px solid var(--teal);color:var(--ink)}
-.alert-err{background:rgba(226,87,43,.13);border-left:3px solid var(--terracotta);color:var(--ink)}
-.alert code{background:rgba(14,22,38,.12);padding:.05rem .3rem;font-size:.9em;font-family:var(--mono)}
+.alert-warn{background:rgba(232,185,74,.16);border-left:3px solid var(--gold);color:var(--ink)}
+.alert-ok{background:rgba(87,199,188,.13);border-left:3px solid var(--teal);color:var(--ink)}
+.alert-err{background:rgba(232,64,46,.13);border-left:3px solid var(--terracotta);color:var(--ink)}
+.alert code{background:rgba(10,23,36,.12);padding:.05rem .3rem;font-size:.9em;font-family:var(--mono)}
 
 .admin-card .form-msg.ok{color:var(--teal)}
 .admin-card .form-msg.err{color:#F09A7E}
@@ -179,7 +184,7 @@
   letter-spacing:.1em;
   text-transform:uppercase;
   color:var(--teal);
-  border:1px solid rgba(63,191,174,.4);
-  background:rgba(63,191,174,.08);
+  border:1px solid rgba(87,199,188,.4);
+  background:rgba(87,199,188,.08);
   clip-path:polygon(4px 0,100% 0,100% calc(100% - 4px),calc(100% - 4px) 100%,0 100%,0 4px);
 }

@@ -1,8 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="YAZ LEAGUE">
-  <rect width="64" height="64" fill="#0F1626"/>
-  <circle cx="32" cy="32" r="27" fill="none" stroke="#E3B341" stroke-width="1.6"/>
-  <circle cx="32" cy="32" r="21" fill="none" stroke="#E3B341" stroke-width=".8" stroke-dasharray="2 4"/>
-  <path d="M32 9 L36.5 30 L32 55 L27.5 30 Z" fill="#E2572B"/>
-  <path d="M9 32 L30 27.5 L55 32 L30 36.5 Z" fill="#E3B341" opacity=".85"/>
-  <circle cx="32" cy="32" r="2.8" fill="#F0E4C8"/>
+  <rect width="64" height="64" rx="12" fill="#071523"/>
+  <g fill="none" stroke="#57C7BC" stroke-opacity=".45">
+    <circle cx="32" cy="31" r="24" stroke-width="1.2"/>
+    <ellipse cx="32" cy="31" rx="10" ry="24" stroke-width=".7"/>
+    <path d="M8 31h48M13 19h38M13 43h38" stroke-width=".6"/>
+  </g>
+  <path d="M32 7.5c-8.6 0-15.5 6.9-15.5 15.5 0 12 15.5 28 15.5 28s15.5-16 15.5-28c0-8.6-6.9-15.5-15.5-15.5z" fill="#E8402E"/>
+  <circle cx="32" cy="23" r="5.6" fill="#071523"/>
+  <circle cx="32" cy="23" r="2.2" fill="#FFD577"/>
 </svg>

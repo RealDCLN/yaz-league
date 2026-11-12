@@ -410,11 +410,11 @@
         datasets: [{
           label: 'Θέση',
           data: data,
-          borderColor: '#E3B341',
-          backgroundColor: 'rgba(227,179,65,.12)',
+          borderColor: '#E8B94A',
+          backgroundColor: 'rgba(87,199,188,.12)',
           borderWidth: 2,
-          pointBackgroundColor: '#0F1626',
-          pointBorderColor: '#E3B341',
+          pointBackgroundColor: '#071523',
+          pointBorderColor: '#E8B94A',
           pointBorderWidth: 2,
           pointRadius: 4,
           pointHoverRadius: 6,
@@ -429,11 +429,11 @@
         plugins: {
           legend: { display: false },
           tooltip: {
-            backgroundColor: 'rgba(10,16,28,.96)',
-            borderColor: '#E3B341',
+            backgroundColor: 'rgba(7,21,35,.96)',
+            borderColor: '#57C7BC',
             borderWidth: 1,
-            titleColor: '#F0E4C8',
-            bodyColor: '#FFD166',
+            titleColor: '#F1E6CC',
+            bodyColor: '#FFD577',
             bodyFont: { family: 'JetBrains Mono, monospace', size: 12 },
             callbacks: { label: (ctx) => 'Θέση ' + ctx.parsed.y }
           }
@@ -445,14 +445,14 @@
             max: maxRank,
             ticks: {
               stepSize: Math.max(1, Math.round(maxRank / 6)),
-              color: '#7C8BA3',
+              color: '#72899A',
               font: { size: 11, family: 'JetBrains Mono, monospace' }
             },
-            grid: { color: 'rgba(227,179,65,.1)' },
-            title: { display: true, text: 'Θέση', color: '#7C8BA3', font: { size: 10 } }
+            grid: { color: 'rgba(87,199,188,.1)' },
+            title: { display: true, text: 'Θέση', color: '#72899A', font: { size: 10 } }
           },
           x: {
-            ticks: { color: '#7C8BA3', font: { size: 10 } },
+            ticks: { color: '#72899A', font: { size: 10 } },
             grid: { display: false }
           }
         }
