@@ -255,6 +255,8 @@ groupSize: 4
 
 **«Υπάρχει ήδη καταχώριση»** → Διάγραψε την παλιά από **«Αγωνιστικές»**.
 
+**Σφάλμα εγγραφής: `PGRST204 — Could not find the 'email' column of 'registrations'`** → Ο πίνακας `registrations` στη βάση δημιουργήθηκε με παλαιότερο schema (χωρίς τη στήλη `email`). Το deployment της σελίδας είναι καινούργιο, αλλά η βάση όχι. Τρέξε το `supabase/migrations/001_add_email_to_registrations.sql` στο **SQL Editor** (ή ξανατρέξε όλο το `schema.sql`, που τώρα περιέχει τα αντίστοιχα `alter table ... add column if not exists`). Μετά περίμενε λίγα δευτερόλεπτα ή κάνε refresh — το `notify pgrst, 'reload schema';` ανανεώνει το cache αμέσως.
+
 **Κενός χάρτης** → Χωρίς internet δεν φορτώνει το περίγραμμα ηπείρων (D3 + world-atlas CDN)· τα pins δουλεύουν κανονικά.
 
 ---
