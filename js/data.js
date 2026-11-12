@@ -69,11 +69,14 @@ window.YAZ = window.YAZ || {};
       await new Promise(res => setTimeout(res, 600));
       return { ok: true, demo: true };
     }
+    // The registration form collects ONLY nickname + first_name.
+    // Never send email/discord/geoguessr_url here — if the live DB is on an
+    // older schema without those columns (or without first_name), PostgREST
+    // rejects the whole insert with PGRST204 and the first name silently
+    // never arrives.
     const { error } = await sb.from('registrations').insert({
       nickname: payload.nickname,
-      geoguessr_url: payload.geoguessr_url,
-      discord: payload.discord,
-      email: payload.email || null,
+      first_name: payload.first_name,
       status: 'pending'
     });
     if (error) return { ok: false, error: error.message };
