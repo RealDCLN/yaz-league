@@ -1,3 +1,12 @@
+Site: https://yaz-league.netlify.app
+https://github.com/RealDCLN/yaz-league
+Stack: static HTML/CSS/JS  GitHub  Netlify auto-deploy
+Supabase backend (project: bgjprkmpyraflesqovos)
+Admin at /admin, logged in with admin@example.com.
+
+
+
+
 # YAZ LEAGUE
 
 **«Το απόλυτο πρωτάθλημα γεωγραφίας»** - επίσημη ιστοσελίδα της YAZ LEAGUE, της εβδομαδιαίας διοργάνωσης γεωγραφίας του **DE.VOYAGEUR**.
