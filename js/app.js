@@ -923,6 +923,9 @@
     const form = $('signupForm');
     if (!form) return;
 
+    const currentYear = new Date().getFullYear();
+    form.birth_year.max = String(currentYear);
+
     form.addEventListener('submit', async (ev) => {
       ev.preventDefault();
 
@@ -931,7 +934,7 @@
 
       const nickname = form.nickname.value.trim();
       const firstName = form.first_name.value.trim();
-      const age = Number(form.age.value);
+      const birthYear = Number(form.birth_year.value);
       const city = form.city.value.trim();
       const consent = form.consent.checked;
       const honey = form.website.value;
@@ -950,8 +953,8 @@
       const problems = [];
       if (nickname.length < 2) { problems.push('Το όνομα/username είναι υποχρεωτικό.'); form.nickname.classList.add('invalid'); }
       if (firstName.length < 2) { problems.push('Το username στο GeoGuessr είναι υποχρεωτικό.'); form.first_name.classList.add('invalid'); }
-      if (!Number.isInteger(age) || age < 1 || age > 120) {
-        problems.push('Συμπλήρωσε μια έγκυρη ηλικία.'); form.age.classList.add('invalid');
+      if (!Number.isInteger(birthYear) || birthYear < 1900 || birthYear > currentYear) {
+        problems.push('Συμπλήρωσε ένα έγκυρο έτος γέννησης.'); form.birth_year.classList.add('invalid');
       }
       if (!city.length) { problems.push('Η περιοχή εκπροσώπησης είναι υποχρεωτική.'); form.city.classList.add('invalid'); }
       if (!consent) { problems.push('Πρέπει να αποδεχτείς τους κανόνες για να συμμετάσχεις.'); }
@@ -969,7 +972,7 @@
         const res = await Y.data.submitRegistration({
           nickname: nickname,
           first_name: firstName,
-          age: age,
+          birth_year: birthYear,
           city: city
         });
 

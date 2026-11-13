@@ -1514,8 +1514,9 @@
   function wirePlayerForm() {
     const form = $('playerForm');
     if (!form) return;
-    const ageInput = $('pAge');
-    if (ageInput) { ageInput.max = '120'; }
+    const currentYear = new Date().getFullYear();
+    const birthInput = $('pBirthYear');
+    if (birthInput) birthInput.max = String(currentYear);
 
     const search = $('playerSearch');
     if (search) search.addEventListener('input', () => {
@@ -1531,9 +1532,8 @@
 
       const nickname = upperName($('pNick').value.trim());
       const firstName = upperName($('pFirst').value.trim()) || null;
-      const age = Number($('pAge').value);
+      const birthYear = Number($('pBirthYear').value);
       const city = $('pCity').value.trim() || null;
-      const currentYear = new Date().getFullYear();
 
       if (nickname.length < 2) {
         msg.className = 'form-msg err';
@@ -1545,9 +1545,9 @@
         msg.textContent = 'Το username στο GeoGuessr είναι υποχρεωτικό.';
         return;
       }
-      if (!Number.isInteger(age) || age < 1 || age > 120) {
+      if (!Number.isInteger(birthYear) || birthYear < 1900 || birthYear > currentYear) {
         msg.className = 'form-msg err';
-        msg.textContent = 'Συμπλήρωσε έγκυρη ηλικία.';
+        msg.textContent = 'Συμπλήρωσε έγκυρο έτος γέννησης.';
         return;
       }
       if (!city) {
@@ -1560,7 +1560,7 @@
         const payload = {
           nickname,
           first_name: firstName,
-          birth_year: currentYear - age,
+          birth_year: birthYear,
           city
         };
         if (schema.patreon) payload.is_patreon = false;
@@ -1586,7 +1586,6 @@
     const tbody = $('playersBody');
     if (!tbody) return;
 
-    const currentYear = new Date().getFullYear();
     const list = cache.players
       .filter(p => !playerSearch || String(p.nickname).toLowerCase().includes(playerSearch))
       .slice()
@@ -1601,14 +1600,13 @@
     }
 
     tbody.innerHTML = list.map(p => {
-      const age = p.birth_year ? currentYear - Number(p.birth_year) : '—';
       const patron = schema.patreon
         ? '<label class="patron-toggle patron-toggle--inline"><input type="checkbox" data-player-patreon="' + esc(p.id) + '"' + (p.is_patreon ? ' checked' : '') + '><span>' + (p.is_patreon ? 'Ναι' : 'Όχι') + '</span></label>'
         : '<span class="empty">—</span>';
       return '<tr>' +
         '<td>' + esc(upperName(p.nickname)) + '</td>' +
         '<td>' + esc(p.first_name ? upperName(p.first_name) : '—') + '</td>' +
-        '<td class="num">' + esc(age) + '</td>' +
+        '<td class="num">' + esc(p.birth_year || '—') + '</td>' +
         '<td>' + esc(p.city || '—') + '</td>' +
         '<td>' + patron + '</td>' +
       '</tr>';
@@ -1666,10 +1664,8 @@
         return;
       }
 
-      const currentYear = new Date().getFullYear();
       box.innerHTML = cache.regs.map(r => {
-        const age = r.birth_year ? (currentYear - Number(r.birth_year)) : '—';
-        const meta = [upperName(r.first_name), age !== '—' ? age + ' ετών' : null, r.city]
+        const meta = [upperName(r.first_name), r.birth_year ? 'γεν. ' + r.birth_year : null, r.city]
           .filter(v => v !== null && v !== undefined && v !== '')
           .map(esc)
           .join(' · ') || '—';

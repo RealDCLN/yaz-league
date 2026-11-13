@@ -229,7 +229,7 @@
     <div class="admin-panel" id="tab-regs">
       <div class="admin-card">
         <h2 class="admin-h2">Αιτήσεις εγγραφής</h2>
-        <p class="admin-lead">Έγκρινε ή απέρριψε τις εκκρεμείς αιτήσεις. Η έγκριση δημιουργεί αυτόματα παίκτη. Το username GeoGuessr, η ηλικία και η περιοχή αποθηκεύονται ιδιωτικά και δεν εμφανίζονται δημόσια.</p>
+        <p class="admin-lead">Έγκρινε ή απέρριψε τις εκκρεμείς αιτήσεις. Η έγκριση δημιουργεί αυτόματα παίκτη. Το username GeoGuessr, το έτος γέννησης και η περιοχή αποθηκεύονται ιδιωτικά και δεν εμφανίζονται δημόσια.</p>
         <div id="regsList" class="reg-list"><p class="loading-row">Φόρτωση…</p></div>
       </div>
     </div>
@@ -251,8 +251,8 @@
           </div>
           <div class="admin-row">
             <div class="field">
-              <label for="pAge">Ηλικία</label>
-              <input id="pAge" type="number" required min="1" max="120" step="1" inputmode="numeric">
+              <label for="pBirthYear">Έτος γέννησης</label>
+              <input id="pBirthYear" type="number" required min="1900" step="1" inputmode="numeric">
             </div>
             <div class="field">
               <label for="pCity">Περιοχή εκπροσώπησης</label>
@@ -275,7 +275,7 @@
         </div>
         <div class="table-scroll">
           <table class="board-table">
-            <thead><tr><th>Username</th><th>GeoGuessr</th><th>Ηλικία</th><th>Περιοχή</th><th>Patreon</th></tr></thead>
+            <thead><tr><th>Username</th><th>GeoGuessr</th><th>Έτος γέννησης</th><th>Περιοχή</th><th>Patreon</th></tr></thead>
             <tbody id="playersBody"></tbody>
           </table>
         </div>

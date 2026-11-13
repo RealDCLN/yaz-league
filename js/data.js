@@ -141,16 +141,7 @@ window.YAZ = window.YAZ || {};
     const city = String(payload.city || '').trim().replace(/\s+/g, ' ');
     const currentYear = new Date().getFullYear();
 
-    let birthYear;
-    if (payload.age !== undefined && payload.age !== null && payload.age !== '') {
-      const age = Number(payload.age);
-      if (!Number.isInteger(age) || age < 1 || age > 120) {
-        return { ok: false, error: 'Συμπλήρωσε μια έγκυρη ηλικία.' };
-      }
-      birthYear = currentYear - age;
-    } else {
-      birthYear = Number(payload.birth_year);
-    }
+    const birthYear = Number(payload.birth_year);
 
     if (nickname.length < 2 || nickname.length > 40) {
       return { ok: false, error: 'Το username πρέπει να έχει 2-40 χαρακτήρες.' };
@@ -159,7 +150,7 @@ window.YAZ = window.YAZ || {};
       return { ok: false, error: 'Το username στο GeoGuessr πρέπει να έχει 2-40 χαρακτήρες.' };
     }
     if (!Number.isInteger(birthYear) || birthYear < 1900 || birthYear > currentYear) {
-      return { ok: false, error: 'Συμπλήρωσε μια έγκυρη ηλικία.' };
+      return { ok: false, error: 'Συμπλήρωσε ένα έγκυρο έτος γέννησης.' };
     }
     if (city.length < 1 || city.length > 60) {
       return { ok: false, error: 'Η περιοχή εκπροσώπησης είναι υποχρεωτική (έως 60 χαρακτήρες).' };
