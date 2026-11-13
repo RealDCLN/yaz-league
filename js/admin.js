@@ -11,7 +11,7 @@
   const Y = window.YAZ || {};
   const cfg = Y.config || {};
   const S = Y.stats || {};
-  const PTS = cfg.points || [12, 9, 8, 7, 6, 5, 4, 3, 2, 1];
+  const PTS = cfg.points || [12, 10, 8, 7, 6, 5, 4, 3, 2, 1];
   const BONUS = cfg.conceptBonus || 3;
   const SCHEDULE = (cfg.schedule || []).slice().sort((a, b) => a.week - b.week);
   const HOLIDAY_WEEKS = SCHEDULE.filter(m => m.holiday).map(m => m.week);

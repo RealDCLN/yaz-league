@@ -34,7 +34,7 @@ window.YAZ = window.YAZ || {};
   }
 
   function pointsFor(place) {
-    const pts = config().points || [12, 9, 8, 7, 6, 5, 4, 3, 2, 1];
+    const pts = config().points || [12, 10, 8, 7, 6, 5, 4, 3, 2, 1];
     return (place >= 1 && place <= pts.length) ? num(pts[place - 1]) : 0;
   }
 

@@ -76,7 +76,7 @@ declare
   m        record;
   r        record;
   i        int;
-  pts      int[] := array[12, 9, 8, 7, 6, 5, 4, 3, 2, 1];
+  pts      int[] := array[12, 10, 8, 7, 6, 5, 4, 3, 2, 1];
   bonus_id uuid;
 begin
   for m in select id, league from public.matches order by week_number, league loop

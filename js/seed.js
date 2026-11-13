@@ -38,7 +38,7 @@ window.YAZ = window.YAZ || {};
 
   function build() {
     const cfg = YAZ.config;
-    const pts = cfg.points || [12, 9, 8, 7, 6, 5, 4, 3, 2, 1];
+    const pts = cfg.points || [12, 10, 8, 7, 6, 5, 4, 3, 2, 1];
     const rnd = mulberry32(20261120);
     const schedule = (cfg.schedule || []).slice().sort((a, b) => a.week - b.week);
 

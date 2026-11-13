@@ -165,5 +165,21 @@ grant select, insert, update, delete on public.multipliers   to authenticated;
 grant select, insert, update, delete on public.group_members to authenticated;
 grant select, insert, update, delete on public.phase_matches to authenticated;
 
+-- ------------------------------------------------------------
+--  7. Διόρθωση παλιών αποτελεσμάτων
+--     Νέα κλίμακα: 1η=12, 2η=10, 3η=8, 4η=7 … 10η=1.
+--     Η 2η θέση έδινε 9 πόντους σε παλιές καταχωρήσεις.
+--     Το concept bonus (+3) διατηρείται. Είναι idempotent.
+-- ------------------------------------------------------------
+with base(placement, pts) as (
+  values (1, 12), (2, 10), (3, 8), (4, 7), (5, 6),
+         (6, 5),  (7, 4),  (8, 3), (9, 2), (10, 1)
+)
+update public.results r
+set points = base.pts + case when r.concept_bonus then 3 else 0 end
+from base
+where r.placement = base.placement
+  and r.points <> base.pts + case when r.concept_bonus then 3 else 0 end;
+
 -- Ανανέωσε το schema cache του PostgREST.
 notify pgrst, 'reload schema';
