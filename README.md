@@ -87,7 +87,8 @@ yaz-league/
         ├── 002_first_name_only.sql
         ├── 003_security_hardening.sql
         ├── 004_username_birth_year_city.sql
-        └── 005_winter_2026_27.sql   ← Χ2, Patreon, όμιλοι, bracket
+        ├── 005_winter_2026_27.sql   ← Χ2, Patreon, όμιλοι, bracket
+        └── 006_public_username.sql  ← δημόσιο username, ιδιωτικό όνομα
 ```
 
 ---
@@ -126,14 +127,21 @@ SQL Editor → New query → επικόλλησε **ολόκληρο** το `sup
 
 ```
 supabase/migrations/005_winter_2026_27.sql
+supabase/migrations/006_public_username.sql
 ```
 
-Αυτό προσθέτει `players.is_patreon`, `multipliers`, `group_members`, `phase_matches`, policies και grants. **Δεν** πειράζει παίκτες, αγωνιστικές ή αποτελέσματα.
+Το **005** προσθέτει `players.is_patreon`, `multipliers`, `group_members`, `phase_matches`, policies και grants. **Δεν** πειράζει παίκτες, αγωνιστικές ή αποτελέσματα.
+
+Το **006** αλλάζει τα δημόσια grants και τα unique indexes ώστε δημόσιο να είναι το `first_name` (username) και ιδιωτικό το `nickname` (όνομα). **Δεν** κάνει swap τιμών και είναι idempotent.
 
 Χωρίς το migration 005:
 
 - Η κατάταξη και η καταχώριση αγωνιστικών δουλεύουν κανονικά.
 - Το admin εμφανίζει προειδοποίηση και τα tabs **Χ2 & Patreon** / **Φάσεις** δεν μπορούν να γράψουν.
+
+Χωρίς το migration 006:
+
+- Η κατάταξη θα συνεχίσει να δείχνει το παλιό δημόσιο πεδίο (`nickname`).
 
 ### 4. Admin user
 
@@ -188,7 +196,7 @@ SQL Editor → `supabase/seed.sql` → Run. Σπέρνει 24 παίκτες, 12
 
 ### Εγγραφές
 
-Έγκριση → δημιουργεί παίκτη. Απόρριψη → κλείνει την αίτηση. Το username του GeoGuessr, το έτος γέννησης και η περιοχή μένουν ιδιωτικά (δεν εκδίδονται στο δημόσιο API).
+Έγκριση → δημιουργεί παίκτη. Απόρριψη → κλείνει την αίτηση. Το όνομα, το έτος γέννησης και η περιοχή μένουν ιδιωτικά. Το username του GeoGuessr εμφανίζεται δημόσια στην κατάταξη.
 
 ### Ιστορικό
 
@@ -244,8 +252,8 @@ python -m http.server 8080
 
 ## Ασφάλεια
 
-- Το δημόσιο API εκδίδει μόνο `id, nickname, joined_at, is_active, is_patreon` από τους παίκτες.
-- `first_name` (το ιδιωτικό username του GeoGuessr), `birth_year`, `city` είναι διαθέσιμα **μόνο** στον admin.
+- Το δημόσιο API εκδίδει μόνο `id, first_name, joined_at, is_active, is_patreon` από τους παίκτες.
+- `nickname` (το ιδιωτικό όνομα), `birth_year`, `city` είναι διαθέσιμα **μόνο** στον admin. Το δημόσιο `first_name` είναι το username του GeoGuessr.
 - RLS παντού + column-level grants.
 - Ο έλεγχος admin γίνεται server-side με `public.is_admin()` από το JWT.
 - Anti-spam: 5 αιτήσεις / 15 λεπτά ανά IP hash.
@@ -260,3 +268,4 @@ python -m http.server 8080
 - **Ισοπαλία κατάταξης:** πόντοι → wild cards → concept → καλύτερη εβδομάδα → όνομα.
 - **1v1:** δεν επιτρέπεται ισοπαλία. Το admin ζητά διαφορετικά σκορ.
 - **Migration 005 είναι απαραίτητο** για Χ2/φάσεις. Χωρίς αυτό, το site δουλεύει με graceful degradation.
+- **Migration 006** είναι απαραίτητο για να εμφανίζεται το username στην κατάταξη. Το `first_name` είναι το δημόσιο username, το `nickname` το ιδιωτικό όνομα.

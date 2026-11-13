@@ -229,7 +229,7 @@
     <div class="admin-panel" id="tab-regs">
       <div class="admin-card">
         <h2 class="admin-h2">Αιτήσεις εγγραφής</h2>
-        <p class="admin-lead">Έγκρινε ή απέρριψε τις εκκρεμείς αιτήσεις. Η έγκριση δημιουργεί αυτόματα παίκτη. Το username GeoGuessr, το έτος γέννησης και η περιοχή αποθηκεύονται ιδιωτικά και δεν εμφανίζονται δημόσια.</p>
+        <p class="admin-lead">Έγκρινε ή απέρριψε τις εκκρεμείς αιτήσεις. Η έγκριση δημιουργεί αυτόματα παίκτη. Το όνομα, το έτος γέννησης και η περιοχή μένουν ιδιωτικά. Το username του GeoGuessr εμφανίζεται δημόσια στην κατάταξη.</p>
         <div id="regsList" class="reg-list"><p class="loading-row">Φόρτωση…</p></div>
       </div>
     </div>
@@ -241,11 +241,11 @@
         <form id="playerForm" class="admin-form">
           <div class="admin-row">
             <div class="field">
-              <label for="pNick">Όνομα / Username</label>
+              <label for="pNick">Όνομα (ιδιωτικό)</label>
               <input id="pNick" type="text" required maxlength="40">
             </div>
             <div class="field">
-              <label for="pFirst">Username στο GeoGuessr (ιδιωτικό)</label>
+              <label for="pFirst">Username στο GeoGuessr (δημόσιο)</label>
               <input id="pFirst" type="text" required maxlength="40">
             </div>
           </div>
@@ -275,7 +275,7 @@
         </div>
         <div class="table-scroll">
           <table class="board-table">
-            <thead><tr><th>Username</th><th>GeoGuessr</th><th>Έτος γέννησης</th><th>Περιοχή</th><th>Patreon</th></tr></thead>
+            <thead><tr><th>Username (δημόσιο)</th><th>Όνομα (ιδιωτικό)</th><th>Έτος γέννησης</th><th>Περιοχή</th><th>Patreon</th></tr></thead>
             <tbody id="playersBody"></tbody>
           </table>
         </div>

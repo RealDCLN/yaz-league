@@ -7,8 +7,9 @@
    τρέξει ακόμη, η δημόσια σελίδα δουλεύει κανονικά χωρίς Χ2/φάσεις
    αντί να σπάσει.
 
-   SECURITY: το δημόσιο leaderboard διαβάζει μόνο μη-ευαίσθητες
-   στήλες. Τα first_name / birth_year / city δεν εκτίθενται ποτέ.
+   SECURITY: το δημόσιο leaderboard δείχνει το username του GeoGuessr
+   (στήλη first_name). Το πραγματικό όνομα (στήλη nickname) και τα
+   birth_year / city μένουν ιδιωτικά.
    ============================================================ */
 
 window.YAZ = window.YAZ || {};
@@ -16,8 +17,9 @@ window.YAZ = window.YAZ || {};
 (function (YAZ) {
   'use strict';
 
-  const PUBLIC_PLAYER_COLUMNS = 'id,nickname,joined_at,is_active,is_patreon';
-  const PUBLIC_PLAYER_COLUMNS_LEGACY = 'id,nickname,joined_at,is_active';
+  const PUBLIC_PLAYER_COLUMNS = 'id,first_name,joined_at,is_active,is_patreon';
+  const PUBLIC_PLAYER_COLUMNS_NO_PATREON = 'id,first_name,joined_at,is_active';
+  const LEGACY_PLAYER_COLUMNS = 'id,nickname,joined_at,is_active';
 
   let client = null;
   let mode = 'demo';
@@ -71,29 +73,44 @@ window.YAZ = window.YAZ || {};
     }
   }
 
+  async function fetchPublicPlayers(sb) {
+    // Το δημόσιο username είναι το first_name.
+    let res = await sb.from('players')
+      .select(PUBLIC_PLAYER_COLUMNS)
+      .order('first_name', { ascending: true })
+      .limit(10000);
+    if (!res.error) return { rows: res.data || [], patreon: true };
+
+    // Το migration 005 (is_patreon) μπορεί να λείπει.
+    res = await sb.from('players')
+      .select(PUBLIC_PLAYER_COLUMNS_NO_PATREON)
+      .order('first_name', { ascending: true })
+      .limit(10000);
+    if (!res.error) return { rows: res.data || [], patreon: false };
+
+    // Παλιό schema/migration 006: δημόσιο είναι ακόμη το nickname.
+    res = await sb.from('players')
+      .select(LEGACY_PLAYER_COLUMNS)
+      .order('nickname', { ascending: true })
+      .limit(10000);
+    if (res.error) throw res.error;
+    return { rows: res.data || [], patreon: false };
+  }
+
+  function publicPlayers(rows) {
+    return (rows || []).map(p => Object.assign({}, p, {
+      nickname: p.first_name || p.nickname || '—'
+    }));
+  }
+
   async function fromSupabase() {
     const sb = getClient();
 
-    const [playersRes, matchesRes, resultsRes] = await Promise.all([
-      sb.from('players').select(PUBLIC_PLAYER_COLUMNS).order('nickname', { ascending: true }).limit(10000),
+    const [playersInfo, matchesRes, resultsRes] = await Promise.all([
+      fetchPublicPlayers(sb),
       sb.from('matches').select('*').order('week_number', { ascending: true }).limit(10000),
       sb.from('results').select('*').limit(10000)
     ]);
-
-    let players = playersRes.data;
-    let patreonOk = !playersRes.error;
-
-    if (playersRes.error) {
-      // Πιθανότατα δεν έχει τρέξει το migration που προσθέτει το
-      // is_patreon. Ξαναδοκίμασε με τις παλιές δημόσιες στήλες.
-      const retry = await sb.from('players')
-        .select(PUBLIC_PLAYER_COLUMNS_LEGACY)
-        .order('nickname', { ascending: true })
-        .limit(10000);
-      if (retry.error) throw retry.error;
-      players = retry.data;
-      patreonOk = false;
-    }
 
     if (matchesRes.error) throw matchesRes.error;
     if (resultsRes.error) throw resultsRes.error;
@@ -105,14 +122,14 @@ window.YAZ = window.YAZ || {};
     ]);
 
     schema = {
-      patreon: patreonOk,
+      patreon: playersInfo.patreon,
       multipliers: multRes.ok,
       groups: groupRes.ok,
       phases: phaseRes.ok
     };
 
     return {
-      players: players || [],
+      players: publicPlayers(playersInfo.rows),
       matches: matchesRes.data || [],
       results: resultsRes.data || [],
       multipliers: multRes.rows,
@@ -132,7 +149,7 @@ window.YAZ = window.YAZ || {};
     mode = 'demo';
     const seed = YAZ.seed.build();
     schema = { patreon: true, multipliers: true, groups: true, phases: true };
-    return Object.assign({ schema }, seed);
+    return Object.assign({ schema }, seed, { players: publicPlayers(seed.players) });
   }
 
   async function submitRegistration(payload) {
@@ -144,7 +161,7 @@ window.YAZ = window.YAZ || {};
     const birthYear = Number(payload.birth_year);
 
     if (nickname.length < 2 || nickname.length > 40) {
-      return { ok: false, error: 'Το username πρέπει να έχει 2-40 χαρακτήρες.' };
+      return { ok: false, error: 'Το όνομα πρέπει να έχει 2-40 χαρακτήρες.' };
     }
     if (firstName.length < 2 || firstName.length > 40) {
       return { ok: false, error: 'Το username στο GeoGuessr πρέπει να έχει 2-40 χαρακτήρες.' };
@@ -168,8 +185,8 @@ window.YAZ = window.YAZ || {};
       return { ok: false, error: err.message };
     }
 
-    // Το `first_name` είναι το ιστορικό όνομα της στήλης στη βάση· η
-    // φόρμα το χρησιμοποιεί για το ιδιωτικό username του GeoGuessr.
+    // Το `nickname` κρατά το ιδιωτικό όνομα και το `first_name` το
+    // δημόσιο username του GeoGuessr (ιστορικό όνομα στήλης).
     try {
       const { error } = await sb.from('registrations').insert({
         nickname: nickname,

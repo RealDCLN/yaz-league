@@ -43,6 +43,11 @@ insert into public.players (nickname, is_patreon) values
   ('ZAGORI_ZOI', false),
   ('MERCHANT_OF_MAPS', false);
 
+-- Στο demo κάθε nickname είναι και δημόσιο username.
+update public.players
+set first_name = nickname
+where first_name is null;
+
 insert into public.matches (week_number, match_date, league) values
   (1,  '2026-11-20T19:30:00+02:00', 'map'), (1,  '2026-11-20T19:30:00+02:00', 'quiz'),
   (2,  '2026-11-27T19:30:00+02:00', 'map'), (2,  '2026-11-27T19:30:00+02:00', 'quiz'),

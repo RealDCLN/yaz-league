@@ -12,11 +12,12 @@
 
 create extension if not exists "pgcrypto";
 
--- ΣΗΜΕΙΩΣΗ: Η στήλη first_name διατηρεί το ιστορικό όνομά της. Στο
--- WINTER 2026-27 αποθηκεύει το ΙΔΙΩΤΙΚΟ username του GeoGuessr.
+-- ΣΗΜΕΙΩΣΗ: Το first_name είναι το ΔΗΜΟΣΙΟ username του GeoGuessr
+-- και εμφανίζεται στην κατάταξη. Το nickname διατηρεί το ιστορικό όνομά
+-- του και κρατά το ΙΔΙΩΤΙΚΟ όνομα του παίκτη.
 create table if not exists public.players (
   id            uuid primary key default gen_random_uuid(),
-  nickname      text not null unique,
+  nickname      text not null,
   first_name    text,
   birth_year    int,
   city          text,
@@ -246,16 +247,19 @@ create trigger trg_registrations_normalize
 -- ------------------------------------------------------------
 --  Uniqueness (case-insensitive για να μην έχουμε "DCLN" και "dcln")
 -- ------------------------------------------------------------
--- Αν το index αποτύχει, έχεις διπλά ονόματα. Τρέξε πρώτα:
---   select lower(btrim(nickname)), count(*) from public.players
+-- Το δημόσιο username είναι το first_name. Το nickname (ιδιωτικό όνομα)
+-- επιτρέπεται να έχει διπλότυπα.
+-- Αν το index αποτύχει, έχεις διπλά usernames. Τρέξε πρώτα:
+--   select lower(btrim(first_name)), count(*) from public.players
 --   group by 1 having count(*) > 1;
 -- και διόρθωσε/έσβησε τα διπλά.
-create unique index if not exists players_nickname_lower_uniq
-  on public.players (lower(btrim(nickname)));
+create unique index if not exists players_first_name_lower_uniq
+  on public.players (lower(btrim(first_name)))
+  where first_name is not null;
 
 -- Να μην μπορεί κάποιος να στείλει 50 ίδιες εκκρεμείς αιτήσεις.
-create unique index if not exists registrations_pending_nickname_uniq
-  on public.registrations (lower(btrim(nickname)))
+create unique index if not exists registrations_pending_first_name_uniq
+  on public.registrations (lower(btrim(first_name)))
   where status = 'pending';
 
 create index if not exists idx_results_match        on public.results (match_id);
@@ -315,9 +319,9 @@ revoke all on function public.is_admin() from public;
 grant execute on function public.is_admin() to anon, authenticated;
 
 -- Δημόσια ανάγνωση δεδομένων πρωταθλήματος.
--- ΣΗΜΑΝΤΙΚΟ: το players_public_read δίνεται ΜΟΝΟ στο anon. Τα
--- first_name/birth_year/city δεν πρέπει να διαβάζονται δημόσια· ο
--- admin τα βλέπει μέσω του players_admin_all.
+-- ΣΗΜΑΝΤΙΚΟ: το players_public_read δίνεται ΜΟΝΟ στο anon. Το δημόσιο
+-- πεδίο είναι το first_name (username). Τα nickname/birth_year/city
+-- μένουν ιδιωτικά· ο admin τα βλέπει μέσω του players_admin_all.
 drop policy if exists "players_public_read" on public.players;
 create policy "players_public_read"
   on public.players for select to anon using (true);
@@ -424,7 +428,7 @@ revoke create on schema public from anon, authenticated;
 grant usage on schema public to anon, authenticated;
 
 -- Ο δημόσιος επισκέπτης βλέπει μόνο τα μη-ευαίσθητα πεδία των παικτών.
-grant select (id, nickname, joined_at, is_active, is_patreon) on public.players to anon;
+grant select (id, first_name, joined_at, is_active, is_patreon) on public.players to anon;
 grant select on public.matches to anon;
 grant select on public.results to anon;
 grant select on public.multipliers   to anon;

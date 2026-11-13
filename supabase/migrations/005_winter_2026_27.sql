@@ -21,7 +21,7 @@ alter table public.players
 
 -- Ο δημόσιος επισκέπτης μπορεί να βλέπει αν κάποιος είναι Patreon
 -- (χρειάζεται για να εμφανίζονται σωστά τα διαθέσιμα Χ2).
-grant select (id, nickname, joined_at, is_active, is_patreon)
+grant select (id, first_name, joined_at, is_active, is_patreon)
   on public.players to anon;
 
 -- ------------------------------------------------------------

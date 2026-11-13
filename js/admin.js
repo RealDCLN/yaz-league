@@ -113,9 +113,19 @@
     return cache.players.find(p => String(p.id) === String(id)) || null;
   }
 
+  function displayName(p) {
+    return p ? (p.first_name || p.nickname || '—') : '—';
+  }
+
+  function displayPlayers() {
+    return cache.players.map(p => Object.assign({}, p, { nickname: displayName(p) }));
+  }
+
   function playerByName(name) {
     const lower = String(name || '').toLowerCase();
-    return cache.players.find(p => String(p.nickname).toLowerCase() === lower) || null;
+    return cache.players.find(p => String(p.first_name || '').toLowerCase() === lower) ||
+      cache.players.find(p => String(p.nickname || '').toLowerCase() === lower) ||
+      null;
   }
 
   function matchFor(week, league) {
@@ -392,7 +402,7 @@
   function renderPlayerOptions() {
     const dl = $('playerOptions');
     if (!dl) return;
-    dl.innerHTML = cache.players.map(p => '<option value="' + esc(p.nickname) + '"></option>').join('');
+    dl.innerHTML = cache.players.map(p => '<option value="' + esc(p.first_name || p.nickname) + '"></option>').join('');
   }
 
   /* ==================== MATCHDAY ==================== */
@@ -461,7 +471,7 @@
       .map(r => {
         const p = playerById(r.player_id);
         return {
-          nickname: p ? p.nickname : '',
+          nickname: p ? (p.first_name || p.nickname) : '',
           concept: !!r.concept_bonus
         };
       })
@@ -767,18 +777,29 @@
   }
 
   async function resolveOrCreatePlayer(rawNickname) {
-    const nickname = upperName(String(rawNickname || '').trim());
-    const lower = nickname.toLowerCase();
-    const existing = cache.players.find(p => String(p.nickname).toLowerCase() === lower);
+    const username = upperName(String(rawNickname || '').trim());
+    const lower = username.toLowerCase();
+    const existing = cache.players.find(p => String(p.first_name || '').toLowerCase() === lower) ||
+      cache.players.find(p => String(p.nickname || '').toLowerCase() === lower);
     if (existing) return { player: existing, created: false };
 
-    const { data, error } = await sb.from('players').insert({ nickname }).select().single();
+    // Νέος παίκτης από τη λίστα αγωνιστικής: το username πάει δημόσια,
+    // το ιδιωτικό όνομα συμπληρώνεται αργότερα από την έγκριση.
+    const { data, error } = await sb.from('players')
+      .insert({ nickname: username, first_name: username })
+      .select()
+      .single();
     if (error) {
       const { data: again } = await sb.from('players')
         .select('*')
-        .ilike('nickname', escapeLike(nickname))
+        .ilike('first_name', escapeLike(username))
         .maybeSingle();
       if (again) return { player: again, created: false };
+      const { data: again2 } = await sb.from('players')
+        .select('*')
+        .ilike('nickname', escapeLike(username))
+        .maybeSingle();
+      if (again2) return { player: again2, created: false };
       throw error;
     }
     cache.players.push(data);
@@ -808,9 +829,9 @@
     if (!box) return;
 
     const list = cache.players
-      .filter(p => !patreonSearch || String(p.nickname).toLowerCase().includes(patreonSearch))
+      .filter(p => !patreonSearch || displayName(p).toLowerCase().includes(patreonSearch))
       .slice()
-      .sort((a, b) => String(a.nickname).localeCompare(String(b.nickname), 'el'));
+      .sort((a, b) => displayName(a).localeCompare(displayName(b), 'el'));
 
     if (!list.length) {
       box.innerHTML = '<p class="empty">Κανένας παίκτης.</p>';
@@ -833,7 +854,7 @@
         '<div class="patron-card' + (isPatron ? ' is-patron' : '') + '">' +
           '<label class="patron-toggle">' +
             '<input type="checkbox" data-patreon="' + esc(p.id) + '"' + (isPatron ? ' checked' : '') + (schema.patreon ? '' : ' disabled') + '>' +
-            '<span>' + esc(upperName(p.nickname)) + '</span>' +
+            '<span>' + esc(upperName(displayName(p))) + '</span>' +
           '</label>' +
           (isPatron
             ? '<div class="patreon-weeks">' +
@@ -944,7 +965,7 @@
       const done = awards.length >= 2;
       const winners = awards.map(a => {
         const p = playerById(a.player_id);
-        return '<span class="holiday-winner">' + esc(p ? upperName(p.nickname) : '—') + '</span>';
+        return '<span class="holiday-winner">' + esc(p ? upperName(displayName(p)) : '—') + '</span>';
       }).join('');
 
       return '' +
@@ -984,7 +1005,7 @@
     }
 
     const picks = shuffle(candidates).slice(0, 2 - existing.length);
-    if (!confirm('Κλήρωση: ' + picks.map(p => p.nickname).join(' και ') + ';\nΤο Χ2 θα εφαρμοστεί στην αγωνιστική ' + week + '.')) {
+    if (!confirm('Κλήρωση: ' + picks.map(p => displayName(p)).join(' και ') + ';\nΤο Χ2 θα εφαρμοστεί στην αγωνιστική ' + week + '.')) {
       return;
     }
 
@@ -1028,7 +1049,7 @@
       ).join('');
 
       return '<tr>' +
-        '<td>' + esc(p ? upperName(p.nickname) : '—') + '</td>' +
+        '<td>' + esc(p ? upperName(displayName(p)) : '—') + '</td>' +
         '<td><span class="x2-source-chip x2-source-chip--' + esc(m.source) + '">' + esc(sourceLabel(m.source)) + '</span></td>' +
         '<td class="num">' + (m.awarded_week ? 'Αγ. ' + m.awarded_week : '—') + '</td>' +
         '<td><select data-x2-week="' + esc(m.id) + '" class="x2-select">' + options + '</select></td>' +
@@ -1093,7 +1114,7 @@
       const list = cache.multipliers.filter(m => num(m.used_week) === meta.week);
       const chips = list.map(m => {
         const p = playerById(m.player_id);
-        return '<span class="x2-chip">' + esc(p ? upperName(p.nickname) : '—') + '<em>' + esc(sourceShort(m.source)) + '</em></span>';
+        return '<span class="x2-chip">' + esc(p ? upperName(displayName(p)) : '—') + '<em>' + esc(sourceShort(m.source)) + '</em></span>';
       }).join('');
       return '' +
         '<div class="x2-week-card' + (list.length ? ' has-x2' : '') + '">' +
@@ -1122,7 +1143,7 @@
 
   function standingsNow() {
     return S.standings({
-      players: cache.players,
+      players: displayPlayers(),
       matches: cache.matches,
       results: cache.results,
       multipliers: cache.multipliers
@@ -1131,7 +1152,7 @@
 
   function phasePayload() {
     return {
-      players: cache.players,
+      players: displayPlayers(),
       matches: cache.matches,
       results: cache.results,
       multipliers: cache.multipliers,
@@ -1537,7 +1558,7 @@
 
       if (nickname.length < 2) {
         msg.className = 'form-msg err';
-        msg.textContent = 'Το username είναι υποχρεωτικό.';
+        msg.textContent = 'Το όνομα είναι υποχρεωτικό.';
         return;
       }
       if (!firstName) {
@@ -1587,9 +1608,9 @@
     if (!tbody) return;
 
     const list = cache.players
-      .filter(p => !playerSearch || String(p.nickname).toLowerCase().includes(playerSearch))
+      .filter(p => !playerSearch || (String(p.first_name || p.nickname || '') + ' ' + String(p.nickname || '')).toLowerCase().includes(playerSearch))
       .slice()
-      .sort((a, b) => String(a.nickname).localeCompare(String(b.nickname), 'el'));
+      .sort((a, b) => String(a.first_name || a.nickname || '').localeCompare(String(b.first_name || b.nickname || ''), 'el'));
 
     const count = $('playersCount');
     if (count) count.textContent = cache.players.length;
@@ -1604,8 +1625,8 @@
         ? '<label class="patron-toggle patron-toggle--inline"><input type="checkbox" data-player-patreon="' + esc(p.id) + '"' + (p.is_patreon ? ' checked' : '') + '><span>' + (p.is_patreon ? 'Ναι' : 'Όχι') + '</span></label>'
         : '<span class="empty">—</span>';
       return '<tr>' +
-        '<td>' + esc(upperName(p.nickname)) + '</td>' +
-        '<td>' + esc(p.first_name ? upperName(p.first_name) : '—') + '</td>' +
+        '<td>' + esc(p.first_name ? upperName(p.first_name) : upperName(p.nickname)) + '</td>' +
+        '<td>' + esc(p.nickname ? upperName(p.nickname) : '—') + '</td>' +
         '<td class="num">' + esc(p.birth_year || '—') + '</td>' +
         '<td>' + esc(p.city || '—') + '</td>' +
         '<td>' + patron + '</td>' +
@@ -1665,14 +1686,14 @@
       }
 
       box.innerHTML = cache.regs.map(r => {
-        const meta = [upperName(r.first_name), r.birth_year ? 'γεν. ' + r.birth_year : null, r.city]
+        const meta = [upperName(r.nickname), r.birth_year ? 'γεν. ' + r.birth_year : null, r.city]
           .filter(v => v !== null && v !== undefined && v !== '')
           .map(esc)
           .join(' · ') || '—';
         return '' +
         '<div class="reg-item" data-id="' + esc(r.id) + '">' +
           '<div>' +
-            '<p class="reg-name">' + esc(upperName(r.nickname)) + '</p>' +
+            '<p class="reg-name">' + esc(upperName(r.first_name || r.nickname)) + '</p>' +
             '<p class="reg-meta">' + meta + '</p>' +
           '</div>' +
           '<div class="reg-actions">' +
@@ -1697,19 +1718,21 @@
     if (!reg) return;
 
     const nickname = upperName(String(reg.nickname || '').trim());
-    const firstName = upperName(String(reg.first_name || '').trim()) || null;
+    const firstName = upperName(String(reg.first_name || reg.nickname || '').trim()) || null;
     const birthYear = reg.birth_year != null && reg.birth_year !== '' ? Number(reg.birth_year) : null;
     const city = String(reg.city || '').trim() || null;
 
     let createdPlayerId = null;
     try {
-      const lower = nickname.toLowerCase();
-      const existing = cache.players.find(p => String(p.nickname).toLowerCase() === lower);
+      const lower = (firstName || '').toLowerCase();
+      const existing = cache.players.find(p => String(p.first_name || '').toLowerCase() === lower) ||
+        cache.players.find(p => String(p.nickname).toLowerCase() === lower);
       if (existing) {
-        if (!confirm('Ο παίκτης "' + nickname + '" υπάρχει ήδη. Έγκριση της αίτησης χωρίς διπλοεγγραφή;')) return;
+        if (!confirm('Ο παίκτης "' + (firstName || nickname) + '" υπάρχει ήδη. Έγκριση της αίτησης χωρίς διπλοεγγραφή;')) return;
 
         const patch = {};
         if (!existing.first_name && firstName) patch.first_name = firstName;
+        if (nickname && (!existing.nickname || existing.nickname === existing.first_name)) patch.nickname = nickname;
         if (!existing.birth_year && birthYear) patch.birth_year = birthYear;
         if (!existing.city && city) patch.city = city;
         if (Object.keys(patch).length) {

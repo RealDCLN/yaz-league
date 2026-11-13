@@ -951,7 +951,7 @@
       }
 
       const problems = [];
-      if (nickname.length < 2) { problems.push('Το όνομα/username είναι υποχρεωτικό.'); form.nickname.classList.add('invalid'); }
+      if (nickname.length < 2) { problems.push('Το όνομα είναι υποχρεωτικό.'); form.nickname.classList.add('invalid'); }
       if (firstName.length < 2) { problems.push('Το username στο GeoGuessr είναι υποχρεωτικό.'); form.first_name.classList.add('invalid'); }
       if (!Number.isInteger(birthYear) || birthYear < 1900 || birthYear > currentYear) {
         problems.push('Συμπλήρωσε ένα έγκυρο έτος γέννησης.'); form.birth_year.classList.add('invalid');
@@ -978,7 +978,7 @@
 
         if (res.ok) {
           msg.className = 'form-msg ok';
-          msg.textContent = 'Ευχαριστούμε, ' + nickname.toUpperCase() + '! Η αίτησή σου καταχωρήθηκε και θα ελεγχθεί πριν την πρώτη αγωνιστική.';
+          msg.textContent = 'Ευχαριστούμε, ' + firstName.toUpperCase() + '! Η αίτησή σου καταχωρήθηκε και θα ελεγχθεί πριν την πρώτη αγωνιστική.';
           form.reset();
         } else {
           msg.className = 'form-msg err';
