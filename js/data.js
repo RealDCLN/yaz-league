@@ -1,17 +1,14 @@
 /* ============================================================
-   YAZ LEAGUE - Data layer
-   Reads from Supabase when configured, otherwise from the local
-   seed (demo mode).
+   YAZ LEAGUE · WINTER 2026-27
+   Data layer: Supabase όταν υπάρχει configuration, αλλιώς demo.
 
-   IMPORTANT: when Supabase IS configured but a request fails, we
-   deliberately do NOT fall back to the demo dataset. Showing 40
-   fake players to real users on a transient network error is a
-   worse outcome than showing an honest "couldn't load" state.
+   Το site διαβάζει προαιρετικά και τα νέα objects (multipliers,
+   group_members, phase_matches). Αν το migration 005 δεν έχει
+   τρέξει ακόμη, η δημόσια σελίδα δουλεύει κανονικά χωρίς Χ2/φάσεις
+   αντί να σπάσει.
 
-   SECURITY: the public leaderboard may only read the non-sensitive
-   columns of `players`. `first_name`, `birth_year` and `city` are
-   private and are blocked at the database privilege level (see
-   supabase/schema.sql). Never change PUBLIC_PLAYER_COLUMNS to `*`.
+   SECURITY: το δημόσιο leaderboard διαβάζει μόνο μη-ευαίσθητες
+   στήλες. Τα first_name / birth_year / city δεν εκτίθενται ποτέ.
    ============================================================ */
 
 window.YAZ = window.YAZ || {};
@@ -19,15 +16,20 @@ window.YAZ = window.YAZ || {};
 (function (YAZ) {
   'use strict';
 
-  const PUBLIC_PLAYER_COLUMNS = 'id,nickname,joined_at,is_active';
+  const PUBLIC_PLAYER_COLUMNS = 'id,nickname,joined_at,is_active,is_patreon';
+  const PUBLIC_PLAYER_COLUMNS_LEGACY = 'id,nickname,joined_at,is_active';
 
   let client = null;
   let mode = 'demo';
+  let schema = {
+    patreon: false,
+    multipliers: false,
+    groups: false,
+    phases: false
+  };
 
   function configured() {
-    const c = YAZ.config;
-    // Only check the keys. If the CDN script failed to load we still
-    // want the caller to show an error, NOT silently render demo data.
+    const c = YAZ.config || {};
     return !!(c.supabaseUrl && c.supabaseAnonKey);
   }
 
@@ -37,11 +39,6 @@ window.YAZ = window.YAZ || {};
       throw new Error('Το Supabase JS δεν φορτώθηκε. Έλεγξε τη σύνδεση και ξαναφόρτωσε τη σελίδα.');
     }
     if (!client) {
-      // Public pages must always talk to Supabase as `anon`, even if the
-      // same browser has an admin (or other) session in localStorage.
-      // Otherwise an authenticated non-admin gets zero rows from `players`
-      // (RLS allows only admins), and an admin session could change which
-      // policies apply. No session is needed for public reads/registration.
       client = window.supabase.createClient(YAZ.config.supabaseUrl, YAZ.config.supabaseAnonKey, {
         auth: {
           persistSession: false,
@@ -53,62 +50,122 @@ window.YAZ = window.YAZ || {};
     return client;
   }
 
+  function isMissingRelation(error) {
+    if (!error) return false;
+    const code = String(error.code || '');
+    const msg = String(error.message || '');
+    return code === '42P01' || code === 'PGRST205' || /does not exist|Could not find the table|relation .* does not exist/i.test(msg);
+  }
+
+  async function optionalRows(sb, table, select, order) {
+    try {
+      let q = sb.from(table).select(select).limit(10000);
+      if (order) q = q.order(order.column, { ascending: order.ascending !== false });
+      const { data, error } = await q;
+      if (error) {
+        return { rows: [], ok: false, error };
+      }
+      return { rows: data || [], ok: true };
+    } catch (err) {
+      return { rows: [], ok: false, error: err };
+    }
+  }
+
   async function fromSupabase() {
     const sb = getClient();
-    const [p, m, r] = await Promise.all([
+
+    const [playersRes, matchesRes, resultsRes] = await Promise.all([
       sb.from('players').select(PUBLIC_PLAYER_COLUMNS).order('nickname', { ascending: true }).limit(10000),
       sb.from('matches').select('*').order('week_number', { ascending: true }).limit(10000),
       sb.from('results').select('*').limit(10000)
     ]);
 
-    if (p.error) throw p.error;
-    if (m.error) throw m.error;
-    if (r.error) throw r.error;
+    let players = playersRes.data;
+    let patreonOk = !playersRes.error;
+
+    if (playersRes.error) {
+      // Πιθανότατα δεν έχει τρέξει το migration που προσθέτει το
+      // is_patreon. Ξαναδοκίμασε με τις παλιές δημόσιες στήλες.
+      const retry = await sb.from('players')
+        .select(PUBLIC_PLAYER_COLUMNS_LEGACY)
+        .order('nickname', { ascending: true })
+        .limit(10000);
+      if (retry.error) throw retry.error;
+      players = retry.data;
+      patreonOk = false;
+    }
+
+    if (matchesRes.error) throw matchesRes.error;
+    if (resultsRes.error) throw resultsRes.error;
+
+    const [multRes, groupRes, phaseRes] = await Promise.all([
+      optionalRows(sb, 'multipliers', 'id,player_id,source,awarded_week,used_week,created_at'),
+      optionalRows(sb, 'group_members', 'id,group_label,player_id,seed_rank,pot'),
+      optionalRows(sb, 'phase_matches', '*')
+    ]);
+
+    schema = {
+      patreon: patreonOk,
+      multipliers: multRes.ok,
+      groups: groupRes.ok,
+      phases: phaseRes.ok
+    };
 
     return {
-      players: p.data || [],
-      matches: m.data || [],
-      results: r.data || []
+      players: players || [],
+      matches: matchesRes.data || [],
+      results: resultsRes.data || [],
+      multipliers: multRes.rows,
+      groupMembers: groupRes.rows,
+      phaseMatches: phaseRes.rows,
+      schema
     };
   }
 
   async function load() {
     if (configured()) {
-      // Do NOT swallow Supabase errors here. If keys are set, the caller
-      // expects live data, so let errors bubble so app.js can show the
-      // error state instead of silently rendering 40 fake players.
       const data = await fromSupabase();
       mode = 'supabase';
       return data;
     }
+
     mode = 'demo';
-    return YAZ.seed.build();
+    const seed = YAZ.seed.build();
+    schema = { patreon: true, multipliers: true, groups: true, phases: true };
+    return Object.assign({ schema }, seed);
   }
 
   async function submitRegistration(payload) {
-    // Names/usernames are stored in ALL CAPS everywhere. Do it here so the
-    // public form and the admin panel produce identical values.
     const nickname = String(payload.nickname || '').trim().replace(/\s+/g, ' ').toUpperCase();
     const firstName = String(payload.first_name || '').trim().replace(/\s+/g, ' ').toUpperCase();
     const city = String(payload.city || '').trim().replace(/\s+/g, ' ');
-    const birthYear = Number(payload.birth_year);
     const currentYear = new Date().getFullYear();
 
+    let birthYear;
+    if (payload.age !== undefined && payload.age !== null && payload.age !== '') {
+      const age = Number(payload.age);
+      if (!Number.isInteger(age) || age < 1 || age > 120) {
+        return { ok: false, error: 'Συμπλήρωσε μια έγκυρη ηλικία.' };
+      }
+      birthYear = currentYear - age;
+    } else {
+      birthYear = Number(payload.birth_year);
+    }
+
     if (nickname.length < 2 || nickname.length > 40) {
-      return { ok: false, error: 'Το username (GeoGuessr) πρέπει να έχει 2-40 χαρακτήρες.' };
+      return { ok: false, error: 'Το username πρέπει να έχει 2-40 χαρακτήρες.' };
     }
     if (firstName.length < 2 || firstName.length > 40) {
-      return { ok: false, error: 'Το πραγματικό όνομα πρέπει να έχει 2-40 χαρακτήρες.' };
+      return { ok: false, error: 'Το username στο GeoGuessr πρέπει να έχει 2-40 χαρακτήρες.' };
     }
     if (!Number.isInteger(birthYear) || birthYear < 1900 || birthYear > currentYear) {
-      return { ok: false, error: 'Συμπλήρωσε ένα έγκυρο έτος γέννησης.' };
+      return { ok: false, error: 'Συμπλήρωσε μια έγκυρη ηλικία.' };
     }
     if (city.length < 1 || city.length > 60) {
-      return { ok: false, error: 'Η πόλη ή περιφερειακή ενότητα είναι υποχρεωτική (έως 60 χαρακτήρες).' };
+      return { ok: false, error: 'Η περιοχή εκπροσώπησης είναι υποχρεωτική (έως 60 χαρακτήρες).' };
     }
 
     if (!configured()) {
-      // No Supabase configured → pretend success (demo mode).
       await new Promise(res => setTimeout(res, 600));
       return { ok: true, demo: true };
     }
@@ -120,10 +177,8 @@ window.YAZ = window.YAZ || {};
       return { ok: false, error: err.message };
     }
 
-    // The registration form collects ONLY nickname + first_name +
-    // birth_year + city. Never send email/discord/geoguessr_url/status
-    // here: the database only grants INSERT on these four columns, and
-    // `status` is forced to 'pending' by a trigger.
+    // Το `first_name` είναι το ιστορικό όνομα της στήλης στη βάση· η
+    // φόρμα το χρησιμοποιεί για το ιδιωτικό username του GeoGuessr.
     try {
       const { error } = await sb.from('registrations').insert({
         nickname: nickname,
@@ -143,6 +198,7 @@ window.YAZ = window.YAZ || {};
     submitRegistration,
     getClient,
     isConfigured: configured,
-    getMode: () => mode
+    getMode: () => mode,
+    getSchema: () => schema
   };
 })(window.YAZ);

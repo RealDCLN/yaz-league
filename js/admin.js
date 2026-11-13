@@ -1,7 +1,8 @@
 /* ============================================================
-   YAZ LEAGUE - Admin panel logic
-   Handles: login, match entry, registrations, players, history.
-   Requires: js/config.js (Supabase URL/key), admin.html DOM.
+   YAZ LEAGUE · WINTER 2026-27
+   Admin panel: matchday entry, X2/Patreon, groups & Final-8,
+   registrations, players, history.
+   Requires: js/config.js, js/stats.js, Supabase JS, admin.html.
    ============================================================ */
 
 (function () {
@@ -9,14 +10,36 @@
 
   const Y = window.YAZ || {};
   const cfg = Y.config || {};
+  const S = Y.stats || {};
   const PTS = cfg.points || [12, 9, 8, 7, 6, 5, 4, 3, 2, 1];
-  const CONCEPT_BONUS = cfg.conceptBonus || 3;
+  const BONUS = cfg.conceptBonus || 3;
+  const SCHEDULE = (cfg.schedule || []).slice().sort((a, b) => a.week - b.week);
+  const HOLIDAY_WEEKS = SCHEDULE.filter(m => m.holiday).map(m => m.week);
 
   let sb = null;
   let currentUser = null;
-  const cache = { players: [], matches: [], results: [], regs: [] };
-  let entries = [];
-  let league = 'map';
+
+  const cache = {
+    players: [],
+    matches: [],
+    results: [],
+    multipliers: [],
+    groupMembers: [],
+    phaseMatches: [],
+    regs: []
+  };
+
+  const schema = {
+    patreon: false,
+    multipliers: false,
+    groups: false,
+    phases: false
+  };
+
+  let currentWeek = 1;
+  let entries = { map: [], quiz: [] };
+  let patreonSearch = '';
+  let playerSearch = '';
 
   const $ = id => document.getElementById(id);
   const esc = str => String(str == null ? '' : str).replace(/[&<>"']/g, ch => ({
@@ -24,29 +47,79 @@
   }[ch]));
   const upperName = str => String(str == null ? '' : str).toUpperCase();
   const pad = n => String(n).padStart(2, '0');
+  const num = v => {
+    const n = Number(v);
+    return isFinite(n) ? n : 0;
+  };
 
   function pointsFor(place) {
-    return (place >= 1 && place <= PTS.length) ? PTS[place - 1] : 0;
+    return (place >= 1 && place <= PTS.length) ? num(PTS[place - 1]) : 0;
   }
 
-  // Escape SQL LIKE wildcards so "_", "%" and PostgREST's "*" in nicknames
-  // are matched literally.
+  function weekMeta(week) {
+    return SCHEDULE.find(m => Number(m.week) === Number(week)) || null;
+  }
+
+  function sourceLabel(source) {
+    return {
+      patreon_dec: 'Patreon · Δεκέμβριος',
+      patreon_jan: 'Patreon · Ιανουάριος',
+      holiday: 'Κλήρωση εορτών'
+    }[source] || source;
+  }
+
+  function sourceShort(source) {
+    return { patreon_dec: 'Patreon Δεκ', patreon_jan: 'Patreon Ιαν', holiday: 'Εορτών' }[source] || source;
+  }
+
+  function monthWeeks(month) {
+    return SCHEDULE.filter(m => String(m.date).slice(5, 7) === month);
+  }
+
+  function weeksForSource(source) {
+    if (source === 'patreon_dec') return monthWeeks('12');
+    if (source === 'patreon_jan') return monthWeeks('01');
+    return SCHEDULE;
+  }
+
+  function toLocalInput(date) {
+    if (!date || isNaN(date.getTime())) return '';
+    return date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate()) +
+      'T' + pad(date.getHours()) + ':' + pad(date.getMinutes());
+  }
+
+  function parseInputDate(value) {
+    if (!value) return null;
+    const d = new Date(value);
+    return isNaN(d.getTime()) ? null : d;
+  }
+
+  function formatDate(date) {
+    if (!date || isNaN(date.getTime())) return '—';
+    return date.toLocaleDateString('el-GR', { day: '2-digit', month: 'short', year: 'numeric' }) +
+      ' · ' + date.toLocaleTimeString('el-GR', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  function formatDay(date) {
+    if (!date || isNaN(date.getTime())) return '—';
+    return date.toLocaleDateString('el-GR', { day: '2-digit', month: '2-digit' });
+  }
+
   function escapeLike(s) {
     return String(s).replace(/[\\%_*]/g, '\\$&');
   }
 
-  function toLocalInput(d) {
-    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) +
-      'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+  function playerById(id) {
+    return cache.players.find(p => String(p.id) === String(id)) || null;
   }
 
-  function nextFriday19() {
-    const now = new Date();
-    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 19, 0, 0, 0);
-    let diff = (5 - d.getDay() + 7) % 7;
-    if (diff === 0 && now.getTime() >= d.getTime()) diff = 7;
-    d.setDate(d.getDate() + diff);
-    return d;
+  function playerByName(name) {
+    const lower = String(name || '').toLowerCase();
+    return cache.players.find(p => String(p.nickname).toLowerCase() === lower) || null;
+  }
+
+  function matchFor(week, league) {
+    return cache.matches.find(m => Number(m.week_number) === Number(week) && m.league === league) || null;
   }
 
   /* ==================== INIT ==================== */
@@ -55,12 +128,14 @@
 
   async function init() {
     wireTabs();
-    wireLeagueChange();
-    wireAddEntry();
-    wireSaveMatch();
+    wireMatchday();
+    wireX2();
+    wirePhases();
     wirePlayerForm();
     wireLoginForm();
     wireLogout();
+
+    renderWeekSelect();
 
     if (!cfg.supabaseUrl || !cfg.supabaseAnonKey) {
       $('supabaseWarn').hidden = false;
@@ -166,6 +241,7 @@
 
     try {
       await loadAll();
+      await probeSchema();
     } catch (err) {
       $('loginView').hidden = false;
       $('appView').hidden = true;
@@ -176,28 +252,24 @@
       return;
     }
 
-    $('mDate').value = toLocalInput(nextFriday19());
-    const info = nextWeekInfo();
-    $('mWeek').value = info.week;
-    if ($('mLeague')) {
-      $('mLeague').value = info.defaultLeague;
-      league = info.defaultLeague;
-    }
+    const week = nextWeekNumber();
+    currentWeek = week;
+    renderWeekSelect();
+    await loadWeek(week);
 
-    if (!entries.length) entries = [{ nickname: '', concept: false }];
-
-    renderEntries();
-    renderPreview();
     renderPlayersTable();
-    renderHistoryTable();
-    populateDatalist();
+    renderPlayerOptions();
+    renderHistory();
+    renderX2();
+    renderPhases();
     await loadRegs();
   }
 
   function onSignedOut() {
     currentUser = null;
-    cache.players = []; cache.matches = []; cache.results = []; cache.regs = [];
-    entries = [];
+    cache.players = []; cache.matches = []; cache.results = [];
+    cache.multipliers = []; cache.groupMembers = []; cache.phaseMatches = []; cache.regs = [];
+    entries = { map: [], quiz: [] };
     $('loginView').hidden = false;
     $('appView').hidden = true;
     $('adminUser').hidden = true;
@@ -208,30 +280,13 @@
 
   function wireTabs() {
     document.querySelectorAll('.admin-tab').forEach(tab => {
-      tab.addEventListener('click', () => {
-        const target = tab.getAttribute('data-tab');
-        document.querySelectorAll('.admin-tab').forEach(t => t.classList.toggle('is-active', t === tab));
-        document.querySelectorAll('.admin-panel').forEach(p =>
-          p.classList.toggle('is-active', p.id === 'tab-' + target)
-        );
-      });
+      tab.addEventListener('click', () => switchTab(tab.getAttribute('data-tab')));
     });
   }
 
-  function wireLeagueChange() {
-    const sel = $('mLeague');
-    if (!sel) return;
-    const update = () => {
-      league = sel.value;
-      // The concept bonus only applies to the map league (rules state quiz
-      // has no concept bonus). Clear stale flags so a checked box can't
-      // leak into a quiz result and silently award +3.
-      if (league !== 'map') entries.forEach(e => { e.concept = false; });
-      renderEntries();
-      renderPreview();
-    };
-    sel.addEventListener('change', update);
-    update();
+  function switchTab(target) {
+    document.querySelectorAll('.admin-tab').forEach(t => t.classList.toggle('is-active', t.getAttribute('data-tab') === target));
+    document.querySelectorAll('.admin-panel').forEach(p => p.classList.toggle('is-active', p.id === 'tab-' + target));
   }
 
   /* ==================== DATA ==================== */
@@ -245,64 +300,214 @@
     const err = p.error || m.error || r.error;
     if (err) {
       console.error('[admin] load failed:', err);
-      throw new Error('Σφάλμα φόρτωσης δεδομένων: ' + err.message + '. Έχεις τρέξει το supabase/schema.sql (ή το migrations/003_security_hardening.sql);');
+      throw new Error('Σφάλμα φόρτωσης δεδομένων: ' + err.message + '. Έλεγξε ότι έχεις τρέξει το supabase/schema.sql.');
     }
+
     cache.players = p.data || [];
     cache.matches = m.data || [];
     cache.results = r.data || [];
+
+    await Promise.all([loadMultipliers(true), loadPhaseData(true)]);
   }
 
-  function nextWeekInfo() {
-    if (!cache.matches.length) return { week: 1, defaultLeague: 'map' };
-    const max = cache.matches.reduce((acc, m) => Math.max(acc, Number(m.week_number) || 0), 0);
-    const hasMap = cache.matches.some(m => Number(m.week_number) === max && m.league === 'map');
-    const hasQuiz = cache.matches.some(m => Number(m.week_number) === max && m.league === 'quiz');
+  async function loadMultipliers(silent) {
+    if (!schema.multipliers && !silent) return;
+    try {
+      const { data, error } = await sb.from('multipliers')
+        .select('*')
+        .order('created_at', { ascending: true })
+        .limit(10000);
+      if (error) throw error;
+      cache.multipliers = data || [];
+    } catch (err) {
+      if (!silent) throw err;
+      cache.multipliers = [];
+    }
+  }
 
-    if (!hasMap) return { week: max, defaultLeague: 'map' };
-    if (!hasQuiz) return { week: max, defaultLeague: 'quiz' };
-    return { week: max + 1, defaultLeague: 'map' };
+  async function loadPhaseData(silent) {
+    if (!schema.groups && !silent) return;
+    const [g, p] = await Promise.all([
+      sb.from('group_members').select('*').limit(1000),
+      sb.from('phase_matches').select('*').limit(1000)
+    ]);
+    if (g.error || p.error) {
+      if (!silent) throw (g.error || p.error);
+      cache.groupMembers = [];
+      cache.phaseMatches = [];
+      return;
+    }
+    cache.groupMembers = g.data || [];
+    cache.phaseMatches = p.data || [];
+  }
+
+  async function probeSchema() {
+    const checks = await Promise.all([
+      sb.from('players').select('is_patreon').limit(1),
+      sb.from('multipliers').select('id').limit(1),
+      sb.from('group_members').select('id').limit(1),
+      sb.from('phase_matches').select('id').limit(1)
+    ]);
+
+    schema.patreon = !checks[0].error;
+    schema.multipliers = !checks[1].error;
+    schema.groups = !checks[2].error;
+    schema.phases = !checks[3].error;
+
+    const missing = !schema.patreon || !schema.multipliers || !schema.groups || !schema.phases;
+    $('schemaWarn').hidden = !missing;
+    $('x2Warn').hidden = schema.multipliers;
+    $('phaseWarn').hidden = schema.groups && schema.phases;
+
+    if (!schema.multipliers || !schema.groups || !schema.phases) {
+      $('drawGroupsBtn').disabled = true;
+      $('advanceBtn').disabled = true;
+      $('resetPhasesBtn').disabled = true;
+    }
+
+    if (!schema.patreon) {
+      // Χωρίς is_patreon δεν μπορούμε να αποθηκεύσουμε το toggle.
+      document.querySelectorAll('[data-patreon]').forEach(el => { el.disabled = true; });
+    }
   }
 
   function nextWeekNumber() {
-    return nextWeekInfo().week;
+    for (const meta of SCHEDULE) {
+      if (!matchFor(meta.week, 'map') || !matchFor(meta.week, 'quiz')) return meta.week;
+    }
+    return SCHEDULE.length ? SCHEDULE[SCHEDULE.length - 1].week : 1;
   }
 
-  function populateDatalist() {
+  function renderWeekSelect() {
+    const sel = $('mWeek');
+    if (!sel) return;
+    sel.innerHTML = SCHEDULE.map(meta => {
+      const d = new Date(meta.date);
+      const flag = meta.holiday ? ' · εορταστική' : (meta.label === 'Πέμπτη' ? ' · Πέμπτη' : '');
+      return '<option value="' + meta.week + '">Αγωνιστική ' + meta.week + ' · ' + formatDay(d) + flag + '</option>';
+    }).join('');
+    sel.value = String(currentWeek);
+  }
+
+  function renderPlayerOptions() {
     const dl = $('playerOptions');
     if (!dl) return;
-    dl.innerHTML = cache.players.map(p =>
-      '<option value="' + esc(p.nickname) + '"></option>'
-    ).join('');
+    dl.innerHTML = cache.players.map(p => '<option value="' + esc(p.nickname) + '"></option>').join('');
   }
 
-  /* ==================== ENTRY LIST ==================== */
+  /* ==================== MATCHDAY ==================== */
 
-  function wireAddEntry() {
-    const btn = $('addEntryBtn');
-    if (!btn) return;
-    btn.addEventListener('click', () => {
-      entries.push({ nickname: '', concept: false });
-      renderEntries();
+  function wireMatchday() {
+    const weekSel = $('mWeek');
+    if (weekSel) {
+      weekSel.addEventListener('change', () => {
+        currentWeek = Number(weekSel.value);
+        loadWeek(currentWeek);
+      });
+    }
+
+    if ($('mapAddBtn')) $('mapAddBtn').addEventListener('click', () => {
+      entries.map.push({ nickname: '', concept: false });
+      renderEntryList('map');
       renderPreview();
     });
+
+    if ($('quizAddBtn')) $('quizAddBtn').addEventListener('click', () => {
+      entries.quiz.push({ nickname: '', concept: false });
+      renderEntryList('quiz');
+      renderPreview();
+    });
+
+    if ($('saveMatchBtn')) $('saveMatchBtn').addEventListener('click', saveMatch);
+    if ($('clearWeekBtn')) $('clearWeekBtn').addEventListener('click', () => loadWeek(currentWeek, true));
   }
 
-  function renderEntries() {
-    const list = $('entryList');
-    if (!list) return;
+  async function loadWeek(week, forceReset) {
+    currentWeek = Number(week) || 1;
+    const meta = weekMeta(currentWeek);
+    const map = matchFor(currentWeek, 'map');
+    const quiz = matchFor(currentWeek, 'quiz');
 
-    const cols = league === 'map' ? '44px 1fr auto auto auto' : '44px 1fr auto auto';
+    const dateInput = $('mDate');
+    if (dateInput) {
+      if (map && map.match_date) dateInput.value = toLocalInput(new Date(map.match_date));
+      else if (meta) dateInput.value = toLocalInput(new Date(meta.date));
+    }
 
-    list.innerHTML = entries.map((e, i) => {
+    entries.map = forceReset ? [{ nickname: '', concept: false }] : existingEntries(map);
+    entries.quiz = forceReset ? [{ nickname: '', concept: false }] : existingEntries(quiz);
+
+    const status = $('matchStatus');
+    if (status) {
+      status.textContent = (map || quiz) ? 'Επεξεργασία · Αγ. ' + currentWeek : 'Νέα αγωνιστική';
+      status.classList.toggle('is-edit', !!(map || quiz));
+    }
+
+    renderEntryList('map');
+    renderEntryList('quiz');
+    renderPreview();
+    updateWeekInfo();
+    if ($('matchMsg')) {
+      $('matchMsg').className = 'form-msg';
+      $('matchMsg').textContent = '';
+    }
+  }
+
+  function existingEntries(match) {
+    if (!match) return [{ nickname: '', concept: false }];
+    const rows = cache.results
+      .filter(r => String(r.match_id) === String(match.id))
+      .sort((a, b) => num(a.placement) - num(b.placement))
+      .map(r => {
+        const p = playerById(r.player_id);
+        return {
+          nickname: p ? p.nickname : '',
+          concept: !!r.concept_bonus
+        };
+      })
+      .filter(r => r.nickname);
+    return rows.length ? rows : [{ nickname: '', concept: false }];
+  }
+
+  function updateWeekInfo() {
+    const box = $('mWeekInfo');
+    if (!box) return;
+    const meta = weekMeta(currentWeek);
+    if (!meta) { box.textContent = '—'; return; }
+
+    const map = matchFor(currentWeek, 'map');
+    const quiz = matchFor(currentWeek, 'quiz');
+    const x2 = cache.multipliers.filter(m => num(m.used_week) === currentWeek);
+    const flags = [];
+    if (meta.holiday) flags.push('<span class="mini-flag mini-flag--gold">Εορταστική · 2 κληρώσεις Χ2</span>');
+    if (meta.label === 'Πέμπτη') flags.push('<span class="mini-flag mini-flag--pin">Πέμπτη 3/12</span>');
+
+    box.innerHTML = '' +
+      '<span class="week-info-date">' + (meta.label === 'Πέμπτη' ? 'Πέμπτη' : 'Παρασκευή') + ' · ' + formatDay(new Date(meta.date)) + ' · ' + (cfg.season.time || '19:30') + '</span>' +
+      '<span class="week-info-flags">' + flags.join('') + '</span>' +
+      '<span class="week-info-state">' +
+        '<span class="mini-state ' + (map ? 'is-on' : '') + '">Χάρτης</span>' +
+        '<span class="mini-state ' + (quiz ? 'is-on' : '') + '">Quiz</span>' +
+        '<span class="mini-state mini-state--x2 ' + (x2.length ? 'is-on' : '') + '">Χ2: ' + x2.length + '</span>' +
+      '</span>';
+  }
+
+  function renderEntryList(kind) {
+    const box = $(kind === 'map' ? 'mapEntryList' : 'quizEntryList');
+    if (!box) return;
+    const rows = entries[kind];
+
+    box.innerHTML = rows.map((entry, i) => {
       const pts = pointsFor(i + 1);
+      const concept = kind === 'map'
+        ? '<label class="entry-bonus" title="Concept bonus +3"><input type="checkbox" data-role="concept"' + (entry.concept ? ' checked' : '') + '> +3</label>'
+        : '';
       return '' +
-        '<div class="entry-row" style="grid-template-columns:' + cols + '" data-i="' + i + '">' +
+        '<div class="entry-row" style="grid-template-columns:44px 1fr auto' + (kind === 'map' ? ' auto' : '') + ' auto" data-i="' + i + '">' +
           '<span class="entry-pos">' + (i + 1) + '</span>' +
-          '<input type="text" list="playerOptions" value="' + esc(e.nickname) + '" placeholder="Όνομα παίκτη" data-role="nick">' +
-          '<span class="entry-points">' + pts + ' πόντοι</span>' +
-          (league === 'map'
-            ? '<label class="entry-bonus"><input type="checkbox" data-role="concept"' + (e.concept ? ' checked' : '') + '> +3</label>'
-            : '') +
+          '<input type="text" list="playerOptions" value="' + esc(entry.nickname) + '" placeholder="Όνομα παίκτη" data-role="nick">' +
+          '<span class="entry-points">' + pts + 'π</span>' +
+          concept +
           '<div class="entry-tools">' +
             '<button class="icon-btn" type="button" data-act="up" title="Πάνω">↑</button>' +
             '<button class="icon-btn" type="button" data-act="down" title="Κάτω">↓</button>' +
@@ -311,49 +516,42 @@
         '</div>';
     }).join('');
 
-    list.querySelectorAll('.entry-row').forEach(row => {
+    box.querySelectorAll('.entry-row').forEach(row => {
       const i = Number(row.getAttribute('data-i'));
       const nickEl = row.querySelector('[data-role="nick"]');
       const conceptEl = row.querySelector('[data-role="concept"]');
 
       nickEl.addEventListener('input', () => {
-        entries[i].nickname = nickEl.value;
+        entries[kind][i].nickname = nickEl.value;
         renderPreview();
       });
 
-      // Τα ονόματα εμφανίζονται πάντα ΚΕΦΑΛΑΙΑ. Η μετατροπή γίνεται στο
-      // blur για να μην πηδάει ο κέρσορας όσο πληκτρολογεί ο admin.
       nickEl.addEventListener('change', () => {
-        nickEl.value = upperName(nickEl.value);
-        entries[i].nickname = nickEl.value;
+        nickEl.value = upperName(nickEl.value.trim());
+        entries[kind][i].nickname = nickEl.value;
         renderPreview();
       });
 
       nickEl.addEventListener('keydown', (ev) => {
-        if (ev.key === 'Enter') {
-          ev.preventDefault();
-          if (i === entries.length - 1 && nickEl.value.trim()) {
-            entries.push({ nickname: '', concept: false });
-            renderEntries();
-            renderPreview();
-            const rows = list.querySelectorAll('.entry-row');
-            const lastRow = rows[rows.length - 1];
-            if (lastRow) {
-              const nextInput = lastRow.querySelector('[data-role="nick"]');
-              if (nextInput) nextInput.focus();
-            }
-          }
-        }
+        if (ev.key !== 'Enter') return;
+        ev.preventDefault();
+        if (!nickEl.value.trim()) return;
+        entries[kind].push({ nickname: '', concept: false });
+        renderEntryList(kind);
+        renderPreview();
+        const rowsNow = box.querySelectorAll('.entry-row');
+        const last = rowsNow[rowsNow.length - 1];
+        if (last) last.querySelector('[data-role="nick"]').focus();
       });
 
       if (conceptEl) {
         conceptEl.addEventListener('change', () => {
           if (conceptEl.checked) {
-            list.querySelectorAll('[data-role="concept"]').forEach((cb, j) => {
-              if (j !== i) { cb.checked = false; entries[j].concept = false; }
+            box.querySelectorAll('[data-role="concept"]').forEach((cb, j) => {
+              if (j !== i) { cb.checked = false; entries[kind][j].concept = false; }
             });
           }
-          entries[i].concept = conceptEl.checked;
+          entries[kind][i].concept = conceptEl.checked;
           renderPreview();
         });
       }
@@ -361,79 +559,77 @@
       row.querySelectorAll('.icon-btn').forEach(btn => {
         btn.addEventListener('click', () => {
           const act = btn.getAttribute('data-act');
-          if (act === 'rm') entries.splice(i, 1);
-          else if (act === 'up' && i > 0) [entries[i - 1], entries[i]] = [entries[i], entries[i - 1]];
-          else if (act === 'down' && i < entries.length - 1) [entries[i + 1], entries[i]] = [entries[i], entries[i + 1]];
-          renderEntries();
+          if (act === 'rm') entries[kind].splice(i, 1);
+          else if (act === 'up' && i > 0) [entries[kind][i - 1], entries[kind][i]] = [entries[kind][i], entries[kind][i - 1]];
+          else if (act === 'down' && i < entries[kind].length - 1) [entries[kind][i + 1], entries[kind][i]] = [entries[kind][i], entries[kind][i + 1]];
+          if (!entries[kind].length) entries[kind].push({ nickname: '', concept: false });
+          renderEntryList(kind);
           renderPreview();
         });
       });
     });
   }
 
-  /* ==================== PREVIEW ==================== */
+  function cleanEntries(kind) {
+    return entries[kind]
+      .map(e => ({
+        nickname: upperName(String(e.nickname || '').trim()),
+        concept: !!(kind === 'map' && e.concept)
+      }))
+      .filter(e => e.nickname);
+  }
 
-  function currentTotals() {
-    const totals = new Map();
-    cache.results.forEach(r => {
-      const id = String(r.player_id);
-      totals.set(id, (totals.get(id) || 0) + Number(r.points || 0));
-    });
-    return totals;
+  function multiplierFor(playerId, week) {
+    return cache.multipliers.find(m => String(m.player_id) === String(playerId) && num(m.used_week) === Number(week)) || null;
   }
 
   function renderPreview() {
     const tbody = $('previewBody');
     if (!tbody) return;
 
-    const totals = currentTotals();
-    const playersByName = new Map(cache.players.map(p => [p.nickname.toLowerCase(), p]));
+    const mapEntries = cleanEntries('map');
+    const quizEntries = cleanEntries('quiz');
+    const mapPts = new Map(mapEntries.map((e, i) => [e.nickname.toLowerCase(), pointsFor(i + 1) + (e.concept ? BONUS : 0)]));
+    const quizPts = new Map(quizEntries.map((e, i) => [e.nickname.toLowerCase(), pointsFor(i + 1)]));
 
-    const validEntries = entries
-      .map(e => ({ nickname: upperName((e.nickname || '').trim()), concept: !!e.concept }))
-      .filter(e => e.nickname);
-
-    const rows = validEntries.map((e, i) => {
-      const name = e.nickname;
-      const player = playersByName.get(name.toLowerCase());
-      const current = player ? (totals.get(String(player.id)) || 0) : 0;
-      // Concept bonus is map-only. Guard the preview the same way the save
-      // path does so the projected totals don't mislead the admin.
-      const pts = pointsFor(i + 1) + ((league === 'map' && e.concept) ? CONCEPT_BONUS : 0);
-      return {
-        name,
-        matchPts: pts,
-        current,
-        after: current + pts,
-        isNew: !player
-      };
-    });
-
-    rows.sort((a, b) => b.after - a.after || a.name.localeCompare(b.name, 'el'));
-
-    if (!rows.length) {
-      tbody.innerHTML = '<tr><td colspan="5" class="loading-row">Δεν υπάρχουν καταχωρήσεις.</td></tr>';
+    const names = Array.from(new Set([...mapEntries, ...quizEntries].map(e => e.nickname)));
+    if (!names.length) {
+      tbody.innerHTML = '<tr><td colspan="7" class="loading-row">Δεν υπάρχουν καταχωρήσεις.</td></tr>';
       return;
     }
 
+    const rows = names.map(name => {
+      const player = playerByName(name);
+      const map = mapPts.get(name.toLowerCase()) || 0;
+      const quiz = quizPts.get(name.toLowerCase()) || 0;
+      const mult = player ? multiplierFor(player.id, currentWeek) : null;
+      const multiplier = mult ? 2 : 1;
+      return {
+        name,
+        player,
+        map,
+        quiz,
+        multiplier,
+        total: (map + quiz) * multiplier
+      };
+    }).sort((a, b) => b.total - a.total || a.name.localeCompare(b.name, 'el'));
+
+    const max = rows.length ? Math.max(...rows.map(r => r.total)) : 0;
+    const wildcardWinners = max > 0 ? rows.filter(r => r.total === max) : [];
+
     tbody.innerHTML = rows.map((r, i) => {
-      const marker = r.isNew ? ' <span class="badge-new">νέος</span>' : '';
-      return '<tr>' +
+      const isWild = wildcardWinners.includes(r);
+      const newTag = r.player ? '' : ' <span class="badge-new">νέος</span>';
+      return '<tr class="' + (isWild ? 'is-wild-preview' : '') + '">' +
         '<td class="num">' + (i + 1) + '</td>' +
-        '<td>' + esc(r.name) + marker + '</td>' +
-        '<td class="num">' + r.matchPts + '</td>' +
-        '<td class="num">' + r.current + '</td>' +
-        '<td class="num">' + r.after + '</td>' +
+        '<td>' + esc(r.name) + newTag + '</td>' +
+        '<td class="num">' + r.map + '</td>' +
+        '<td class="num">' + r.quiz + '</td>' +
+        '<td class="num">' + (r.multiplier > 1 ? '<span class="x2-badge is-on">×2</span>' : '—') + '</td>' +
+        '<td class="num"><strong>' + r.total + '</strong></td>' +
+        '<td class="num">' + (isWild ? '<span class="wild-badge is-on">W</span>' : '—') + '</td>' +
       '</tr>';
     }).join('');
-  }
-
-  /* ==================== SAVE MATCH ==================== */
-
-  function wireSaveMatch() {
-    const btn = $('saveMatchBtn');
-    if (!btn) return;
-    btn.addEventListener('click', saveMatch);
   }
 
   async function saveMatch() {
@@ -442,33 +638,24 @@
     msg.className = 'form-msg';
     msg.textContent = '';
 
-    const week = Number($('mWeek').value);
-    const dateStr = $('mDate').value;
-    const leagueSel = $('mLeague').value;
+    const week = Number(currentWeek);
+    const date = parseInputDate($('mDate').value);
+    const mapEntries = cleanEntries('map');
+    const quizEntries = cleanEntries('quiz');
 
     const problems = [];
     if (!Number.isInteger(week) || week < 1) problems.push('Συμπλήρωσε έγκυρη αγωνιστική.');
-    const matchDate = dateStr ? new Date(dateStr) : null;
-    if (!matchDate || isNaN(matchDate.getTime())) problems.push('Συμπλήρωσε έγκυρη ημερομηνία.');
+    if (!date) problems.push('Συμπλήρωσε έγκυρη ημερομηνία.');
+    if (!mapEntries.length && !quizEntries.length) problems.push('Πρόσθεσε τουλάχιστον έναν παίκτη.');
 
-    const clean = entries
-      .map(e => ({
-        nickname: upperName((e.nickname || '').trim()),
-        concept: !!e.concept
-      }))
-      .filter(e => e.nickname)
-      .map((e, idx) => ({
-        ...e,
-        place: idx + 1
-      }));
+    ['map', 'quiz'].forEach(kind => {
+      const list = kind === 'map' ? mapEntries : quizEntries;
+      const lowers = list.map(e => e.nickname.toLowerCase());
+      const dups = Array.from(new Set(lowers.filter((n, i) => lowers.indexOf(n) !== i)));
+      if (dups.length) problems.push('Διπλό όνομα στο ' + (kind === 'map' ? 'Concept Map' : 'Quiz') + ': ' + dups.join(', '));
+    });
 
-    if (!clean.length) problems.push('Πρόσθεσε τουλάχιστον έναν παίκτη.');
-
-    const lowers = clean.map(e => e.nickname.toLowerCase());
-    const dups = Array.from(new Set(lowers.filter((n, i) => lowers.indexOf(n) !== i)));
-    if (dups.length) problems.push('Διπλό όνομα: ' + dups.join(', '));
-
-    if (leagueSel === 'map' && clean.filter(e => e.concept).length > 1) {
+    if (mapEntries.filter(e => e.concept).length > 1) {
       problems.push('Μόνο ένας παίκτης μπορεί να πάρει το concept bonus.');
     }
 
@@ -478,83 +665,92 @@
       return;
     }
 
-    if (cache.matches.some(m => Number(m.week_number) === week && m.league === leagueSel)) {
-      msg.className = 'form-msg err';
-      msg.textContent = 'Υπάρχει ήδη αγωνιστική ' + week + ' (' + leagueSel + '). Διάγραψέ την από το ιστορικό πρώτα.';
-      return;
-    }
-
     btn.disabled = true;
     const orig = btn.textContent;
     btn.textContent = 'Αποθήκευση…';
 
-    let matchId = null;
     const createdPlayerIds = [];
-    try {
-      const { data: matchRow, error: mErr } = await sb.from('matches').insert({
-        week_number: week,
-        match_date: matchDate.toISOString(),
-        league: leagueSel
-      }).select().single();
-      if (mErr) throw mErr;
-      matchId = matchRow.id;
+    const createdMatchIds = [];
 
-      const resolved = [];
-      for (const e of clean) {
-        const { player, created } = await resolveOrCreatePlayer(e.nickname);
+    try {
+      const allNames = Array.from(new Set([...mapEntries, ...quizEntries].map(e => e.nickname)));
+      const resolved = new Map();
+
+      for (const name of allNames) {
+        const { player, created } = await resolveOrCreatePlayer(name);
         if (created) createdPlayerIds.push(player.id);
-        resolved.push({ player, entry: e });
+        resolved.set(name.toLowerCase(), player);
       }
 
-      // Defense-in-depth: enforce that the concept bonus only applies to
-      // the map league. Even if stale state or a crafted request sneaks a
-      // concept:true into a quiz entry, it can't corrupt the results here.
-      const applyConcept = leagueSel === 'map';
+      const applyLeague = async (league, list) => {
+        const existing = matchFor(week, league);
+        let matchId;
 
-      const resultRows = resolved.map(r => ({
-        match_id: matchId,
-        player_id: r.player.id,
-        placement: r.entry.place,
-        points: pointsFor(r.entry.place) + (applyConcept && r.entry.concept ? CONCEPT_BONUS : 0),
-        raw_score: null,
-        concept_bonus: !!(applyConcept && r.entry.concept)
-      }));
+        if (existing) {
+          const { error: uErr } = await sb.from('matches')
+            .update({ match_date: date.toISOString() })
+            .eq('id', existing.id);
+          if (uErr) throw uErr;
+          matchId = existing.id;
 
-      const { error: rErr } = await sb.from('results').insert(resultRows);
-      if (rErr) throw rErr;
+          const { error: dErr } = await sb.from('results').delete().eq('match_id', matchId);
+          if (dErr) throw dErr;
+        } else {
+          const { data: matchRow, error: mErr } = await sb.from('matches').insert({
+            week_number: week,
+            match_date: date.toISOString(),
+            league
+          }).select().single();
+          if (mErr) throw mErr;
+          matchId = matchRow.id;
+          createdMatchIds.push(matchId);
+        }
 
-      entries = [{ nickname: '', concept: false }];
+        const rows = list.map((e, i) => {
+          const player = resolved.get(e.nickname.toLowerCase());
+          const pts = pointsFor(i + 1) + (league === 'map' && e.concept ? BONUS : 0);
+          return {
+            match_id: matchId,
+            player_id: player.id,
+            placement: i + 1,
+            points: pts,
+            raw_score: null,
+            concept_bonus: !!(league === 'map' && e.concept)
+          };
+        });
+
+        if (rows.length) {
+          const { error: rErr } = await sb.from('results').insert(rows);
+          if (rErr) throw rErr;
+        }
+      };
+
+      if (mapEntries.length) await applyLeague('map', mapEntries);
+      else await removeLeague(week, 'map');
+
+      if (quizEntries.length) await applyLeague('quiz', quizEntries);
+      else await removeLeague(week, 'quiz');
 
       await loadAll();
-
-      const nextInfo = nextWeekInfo();
-      $('mWeek').value = nextInfo.week;
-      $('mLeague').value = nextInfo.defaultLeague;
-      league = nextInfo.defaultLeague;
-
-      renderEntries();
-      renderPreview();
+      renderPlayerOptions();
       renderPlayersTable();
-      renderHistoryTable();
-      populateDatalist();
+      renderHistory();
+      await loadWeek(week);
 
       msg.className = 'form-msg ok';
-      if (nextInfo.week === week) {
-        msg.textContent = 'Αποθηκεύτηκε η αγωνιστική ' + week + ' (' + (leagueSel === 'map' ? 'Χάρτης' : 'Quiz') + ') με ' + resultRows.length + ' αποτελέσματα. ' +
-          'Τώρα μπορείς να καταχωρίσεις το ' + (nextInfo.defaultLeague === 'quiz' ? 'Quiz' : 'Χάρτη') + ' για την αγωνιστική ' + week + '.';
-      } else {
-        msg.textContent = 'Αποθηκεύτηκε η αγωνιστική ' + week + ' (' + (leagueSel === 'map' ? 'Χάρτης' : 'Quiz') + ') με ' + resultRows.length + ' αποτελέσματα. ' +
-          'Ολοκληρώθηκε η αγωνιστική ' + week + '!';
-      }
+      msg.textContent = 'Αποθηκεύτηκε η αγωνιστική ' + week + ' · Concept Map ' + mapEntries.length + ' παίκτες · Quiz ' + quizEntries.length + ' παίκτες.';
+      renderX2();
+      renderPhases();
     } catch (err) {
-      console.error('[admin] save failed:', err);
-      if (matchId) { try { await sb.from('matches').delete().eq('id', matchId); } catch (_) {} }
-      // Roll back any players we auto-created for this failed attempt so a retry
-      // doesn't try to insert results for player IDs that no longer exist.
+      console.error('[admin] save matchday failed:', err);
+
+      for (const id of createdMatchIds) {
+        try { await sb.from('matches').delete().eq('id', id); } catch (_) {}
+      }
       if (createdPlayerIds.length) {
         try { await sb.from('players').delete().in('id', createdPlayerIds); } catch (_) {}
-        cache.players = cache.players.filter(p => !createdPlayerIds.includes(p.id));
       }
+
       msg.className = 'form-msg err';
       msg.textContent = 'Αποτυχία: ' + (err.message || 'άγνωστο σφάλμα');
     } finally {
@@ -563,16 +759,21 @@
     }
   }
 
+  async function removeLeague(week, league) {
+    const existing = matchFor(week, league);
+    if (!existing) return;
+    const { error } = await sb.from('matches').delete().eq('id', existing.id);
+    if (error) throw error;
+  }
+
   async function resolveOrCreatePlayer(rawNickname) {
     const nickname = upperName(String(rawNickname || '').trim());
     const lower = nickname.toLowerCase();
-    const existing = cache.players.find(p => p.nickname.toLowerCase() === lower);
+    const existing = cache.players.find(p => String(p.nickname).toLowerCase() === lower);
     if (existing) return { player: existing, created: false };
 
     const { data, error } = await sb.from('players').insert({ nickname }).select().single();
     if (error) {
-      // Race: nickname may have been created between our cache read and insert.
-      // Escape LIKE wildcards so "_" and "%" in nicknames are matched literally.
       const { data: again } = await sb.from('players')
         .select('*')
         .ilike('nickname', escapeLike(nickname))
@@ -584,13 +785,744 @@
     return { player: data, created: true };
   }
 
-  /* ==================== PLAYERS TAB ==================== */
+  /* ==================== X2 / PATREON ==================== */
+
+  function wireX2() {
+    const search = $('patreonSearch');
+    if (search) search.addEventListener('input', () => {
+      patreonSearch = search.value.trim().toLowerCase();
+      renderPatreonGrid();
+    });
+  }
+
+  function renderX2() {
+    renderPatreonGrid();
+    renderHolidayGrid();
+    renderX2Table();
+    renderX2WeekGrid();
+    updateWeekInfo();
+  }
+
+  function renderPatreonGrid() {
+    const box = $('patreonGrid');
+    if (!box) return;
+
+    const list = cache.players
+      .filter(p => !patreonSearch || String(p.nickname).toLowerCase().includes(patreonSearch))
+      .slice()
+      .sort((a, b) => String(a.nickname).localeCompare(String(b.nickname), 'el'));
+
+    if (!list.length) {
+      box.innerHTML = '<p class="empty">Κανένας παίκτης.</p>';
+      return;
+    }
+
+    box.innerHTML = list.map(p => {
+      const dec = cache.multipliers.find(m => String(m.player_id) === String(p.id) && m.source === 'patreon_dec');
+      const jan = cache.multipliers.find(m => String(m.player_id) === String(p.id) && m.source === 'patreon_jan');
+      const isPatron = !!p.is_patreon;
+      const decValue = dec && dec.used_week ? String(dec.used_week) : '';
+      const janValue = jan && jan.used_week ? String(jan.used_week) : '';
+
+      const weekOptions = (source, selected) => '<option value="">—</option>' +
+        weeksForSource(source).map(m =>
+          '<option value="' + m.week + '"' + (String(selected) === String(m.week) ? ' selected' : '') + '>Αγ. ' + m.week + ' · ' + formatDay(new Date(m.date)) + '</option>'
+        ).join('');
+
+      return '' +
+        '<div class="patron-card' + (isPatron ? ' is-patron' : '') + '">' +
+          '<label class="patron-toggle">' +
+            '<input type="checkbox" data-patreon="' + esc(p.id) + '"' + (isPatron ? ' checked' : '') + (schema.patreon ? '' : ' disabled') + '>' +
+            '<span>' + esc(upperName(p.nickname)) + '</span>' +
+          '</label>' +
+          (isPatron
+            ? '<div class="patreon-weeks">' +
+                '<label>Δεκ <select data-patreon-week="' + esc(p.id) + '" data-source="patreon_dec">' + weekOptions('patreon_dec', decValue) + '</select></label>' +
+                '<label>Ιαν <select data-patreon-week="' + esc(p.id) + '" data-source="patreon_jan">' + weekOptions('patreon_jan', janValue) + '</select></label>' +
+              '</div>'
+            : '<span class="patron-off">Μη συνδρομητής</span>') +
+        '</div>';
+    }).join('');
+
+    box.querySelectorAll('[data-patreon]').forEach(cb => {
+      cb.addEventListener('change', async () => {
+        const id = cb.getAttribute('data-patreon');
+        if (!schema.patreon) return alert('Τρέξε πρώτα το migration 005.');
+        const value = cb.checked;
+        cb.disabled = true;
+        try {
+          const { error } = await sb.from('players').update({ is_patreon: value }).eq('id', id);
+          if (error) throw error;
+          const p = playerById(id);
+          if (p) p.is_patreon = value;
+          if (!value && schema.multipliers) {
+            const del = await sb.from('multipliers').delete().eq('player_id', id)
+              .in('source', ['patreon_dec', 'patreon_jan']);
+            if (del.error) throw del.error;
+            await loadMultipliers();
+          }
+          renderPatreonGrid();
+          renderX2Table();
+          renderX2WeekGrid();
+          renderPreview();
+        } catch (err) {
+          alert('Αποτυχία: ' + (err.message || ''));
+          cb.checked = !value;
+        } finally {
+          cb.disabled = false;
+        }
+      });
+    });
+
+    box.querySelectorAll('[data-patreon-week]').forEach(sel => {
+      sel.addEventListener('change', async () => {
+        const id = sel.getAttribute('data-patreon-week');
+        const source = sel.getAttribute('data-source');
+        const week = sel.value ? Number(sel.value) : null;
+        await setPatreonWeek(id, source, week, sel);
+      });
+    });
+  }
+
+  async function setPatreonWeek(playerId, source, week, selectEl) {
+    if (!schema.multipliers) return alert('Τρέξε πρώτα το migration 005.');
+    if (week != null) {
+      const conflict = cache.multipliers.find(m =>
+        String(m.player_id) === String(playerId) &&
+        num(m.used_week) === week &&
+        !(m.source === source)
+      );
+      if (conflict) {
+        alert('Ο παίκτης έχει ήδη Χ2 στην αγωνιστική ' + week + '.');
+        renderX2();
+        return;
+      }
+    }
+
+    if (selectEl) selectEl.disabled = true;
+    try {
+      const existing = cache.multipliers.find(m =>
+        String(m.player_id) === String(playerId) && m.source === source
+      );
+
+      if (existing) {
+        const { error } = await sb.from('multipliers').update({ used_week: week }).eq('id', existing.id);
+        if (error) throw error;
+      } else if (week != null) {
+        const { error } = await sb.from('multipliers').insert({
+          player_id: playerId,
+          source,
+          awarded_week: null,
+          used_week: week
+        });
+        if (error) throw error;
+      }
+
+      await loadMultipliers();
+      renderX2();
+      renderPreview();
+    } catch (err) {
+      alert('Αποτυχία: ' + (err.message || ''));
+      renderX2();
+    } finally {
+      if (selectEl) selectEl.disabled = false;
+    }
+  }
+
+  function renderHolidayGrid() {
+    const box = $('holidayGrid');
+    if (!box) return;
+
+    if (!HOLIDAY_WEEKS.length) {
+      box.innerHTML = '<p class="empty">Δεν υπάρχουν εορταστικές αγωνιστικές στο πρόγραμμα.</p>';
+      return;
+    }
+
+    box.innerHTML = HOLIDAY_WEEKS.map(week => {
+      const meta = weekMeta(week);
+      const awards = cache.multipliers.filter(m => m.source === 'holiday' && num(m.awarded_week) === week);
+      const done = awards.length >= 2;
+      const winners = awards.map(a => {
+        const p = playerById(a.player_id);
+        return '<span class="holiday-winner">' + esc(p ? upperName(p.nickname) : '—') + '</span>';
+      }).join('');
+
+      return '' +
+        '<div class="holiday-card' + (done ? ' is-done' : '') + '">' +
+          '<div class="holiday-card-head">' +
+            '<strong>Αγ. ' + week + ' · ' + formatDay(new Date(meta.date)) + '</strong>' +
+            '<span>' + awards.length + ' / 2</span>' +
+          '</div>' +
+          '<div class="holiday-winners">' + (winners || '<span class="empty">Δεν έχει γίνει κλήρωση.</span>') + '</div>' +
+          '<button class="btn ' + (done ? 'btn-outline' : 'btn-primary') + ' btn-sm" data-draw="' + week + '" type="button"' +
+            (done || !schema.multipliers ? ' disabled' : '') + '>' + (done ? 'Ολοκληρώθηκε' : 'Κλήρωση 2 παικτών') + '</button>' +
+        '</div>';
+    }).join('');
+
+    box.querySelectorAll('[data-draw]').forEach(btn => {
+      btn.addEventListener('click', () => drawHoliday(Number(btn.getAttribute('data-draw'))));
+    });
+  }
+
+  async function drawHoliday(week) {
+    if (!schema.multipliers) return alert('Τρέξε πρώτα το migration 005.');
+    const existing = cache.multipliers.filter(m => m.source === 'holiday' && num(m.awarded_week) === week);
+    if (existing.length >= 2) return;
+
+    const taken = new Set(existing.map(m => String(m.player_id)));
+    const usedThisWeek = new Set(cache.multipliers.filter(m => num(m.used_week) === week).map(m => String(m.player_id)));
+
+    const candidates = cache.players.filter(p =>
+      p.is_active !== false &&
+      !taken.has(String(p.id)) &&
+      !usedThisWeek.has(String(p.id))
+    );
+
+    if (candidates.length < (2 - existing.length)) {
+      alert('Δεν υπάρχουν αρκετοί διαθέσιμοι παίκτες για κλήρωση αυτή την εβδομάδα.');
+      return;
+    }
+
+    const picks = shuffle(candidates).slice(0, 2 - existing.length);
+    if (!confirm('Κλήρωση: ' + picks.map(p => p.nickname).join(' και ') + ';\nΤο Χ2 θα εφαρμοστεί στην αγωνιστική ' + week + '.')) {
+      return;
+    }
+
+    try {
+      const rows = picks.map(p => ({
+        player_id: p.id,
+        source: 'holiday',
+        awarded_week: week,
+        used_week: week
+      }));
+      const { error } = await sb.from('multipliers').insert(rows);
+      if (error) throw error;
+      await loadMultipliers();
+      renderX2();
+      renderPreview();
+    } catch (err) {
+      alert('Αποτυχία κλήρωσης: ' + (err.message || ''));
+    }
+  }
+
+  function renderX2Table() {
+    const tbody = $('x2Table');
+    if (!tbody) return;
+
+    if (!cache.multipliers.length) {
+      tbody.innerHTML = '<tr><td colspan="5" class="loading-row">Δεν υπάρχουν καταγεγραμμένα Χ2.</td></tr>';
+      return;
+    }
+
+    const sorted = cache.multipliers.slice().sort((a, b) => {
+      const wa = num(a.used_week) || 99;
+      const wb = num(b.used_week) || 99;
+      if (wa !== wb) return wa - wb;
+      return String(a.source).localeCompare(String(b.source));
+    });
+
+    tbody.innerHTML = sorted.map(m => {
+      const p = playerById(m.player_id);
+      const options = '<option value="">—</option>' + weeksForSource(m.source).map(meta =>
+        '<option value="' + meta.week + '"' + (num(m.used_week) === meta.week ? ' selected' : '') + '>Αγ. ' + meta.week + ' · ' + formatDay(new Date(meta.date)) + '</option>'
+      ).join('');
+
+      return '<tr>' +
+        '<td>' + esc(p ? upperName(p.nickname) : '—') + '</td>' +
+        '<td><span class="x2-source-chip x2-source-chip--' + esc(m.source) + '">' + esc(sourceLabel(m.source)) + '</span></td>' +
+        '<td class="num">' + (m.awarded_week ? 'Αγ. ' + m.awarded_week : '—') + '</td>' +
+        '<td><select data-x2-week="' + esc(m.id) + '" class="x2-select">' + options + '</select></td>' +
+        '<td><button class="icon-btn danger" data-x2-del="' + esc(m.id) + '" title="Διαγραφή">×</button></td>' +
+      '</tr>';
+    }).join('');
+
+    tbody.querySelectorAll('[data-x2-week]').forEach(sel => {
+      sel.addEventListener('change', () => setUsedWeek(sel.getAttribute('data-x2-week'), sel.value ? Number(sel.value) : null));
+    });
+
+    tbody.querySelectorAll('[data-x2-del]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Διαγραφή αυτού του Χ2;')) return;
+        try {
+          const { error } = await sb.from('multipliers').delete().eq('id', btn.getAttribute('data-x2-del'));
+          if (error) throw error;
+          await loadMultipliers();
+          renderX2();
+          renderPreview();
+        } catch (err) {
+          alert('Αποτυχία: ' + (err.message || ''));
+        }
+      });
+    });
+  }
+
+  async function setUsedWeek(id, week) {
+    const row = cache.multipliers.find(m => String(m.id) === String(id));
+    if (!row) return;
+
+    if (week != null) {
+      const conflict = cache.multipliers.find(m =>
+        String(m.player_id) === String(row.player_id) &&
+        num(m.used_week) === week &&
+        String(m.id) !== String(id)
+      );
+      if (conflict) {
+        alert('Ο παίκτης έχει ήδη Χ2 στην αγωνιστική ' + week + '.');
+        renderX2();
+        return;
+      }
+    }
+
+    try {
+      const { error } = await sb.from('multipliers').update({ used_week: week }).eq('id', id);
+      if (error) throw error;
+      await loadMultipliers();
+      renderX2();
+      renderPreview();
+    } catch (err) {
+      alert('Αποτυχία: ' + (err.message || ''));
+      renderX2();
+    }
+  }
+
+  function renderX2WeekGrid() {
+    const box = $('x2WeekGrid');
+    if (!box) return;
+
+    box.innerHTML = SCHEDULE.map(meta => {
+      const list = cache.multipliers.filter(m => num(m.used_week) === meta.week);
+      const chips = list.map(m => {
+        const p = playerById(m.player_id);
+        return '<span class="x2-chip">' + esc(p ? upperName(p.nickname) : '—') + '<em>' + esc(sourceShort(m.source)) + '</em></span>';
+      }).join('');
+      return '' +
+        '<div class="x2-week-card' + (list.length ? ' has-x2' : '') + '">' +
+          '<span class="x2-week-label">Αγ. ' + meta.week + '<em>' + formatDay(new Date(meta.date)) + '</em></span>' +
+          '<div class="x2-week-chips">' + (chips || '<span class="empty">—</span>') + '</div>' +
+        '</div>';
+    }).join('');
+  }
+
+  function shuffle(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  /* ==================== PHASES ==================== */
+
+  function wirePhases() {
+    if ($('drawGroupsBtn')) $('drawGroupsBtn').addEventListener('click', drawGroups);
+    if ($('advanceBtn')) $('advanceBtn').addEventListener('click', advancePhase);
+    if ($('resetPhasesBtn')) $('resetPhasesBtn').addEventListener('click', resetPhases);
+  }
+
+  function standingsNow() {
+    return S.standings({
+      players: cache.players,
+      matches: cache.matches,
+      results: cache.results,
+      multipliers: cache.multipliers
+    });
+  }
+
+  function phasePayload() {
+    return {
+      players: cache.players,
+      matches: cache.matches,
+      results: cache.results,
+      multipliers: cache.multipliers,
+      groupMembers: cache.groupMembers,
+      phaseMatches: cache.phaseMatches
+    };
+  }
+
+  function renderPhases() {
+    const rows = standingsNow();
+    const b = S.bracket(phasePayload());
+    const status = $('phaseStatus');
+
+    if (status) {
+      if (b.championName) status.textContent = 'Ολοκληρώθηκε';
+      else if (cache.groupMembers.length) status.textContent = 'Φάση ομίλων';
+      else if (rows.length >= 16) status.textContent = 'Έτοιμο για κλήρωση';
+      else status.textContent = 'Προκριματικά';
+    }
+
+    renderPotsAdmin(rows);
+    renderGroupsAdmin();
+    renderBracketAdmin(b);
+  }
+
+  function renderPotsAdmin(rows) {
+    const box = $('potsAdmin');
+    if (!box) return;
+
+    if (!rows.length) {
+      box.innerHTML = '<p class="empty">Δεν υπάρχουν ακόμη αποτελέσματα.</p>';
+      return;
+    }
+
+    const pots = S.pots(rows.slice(0, 16));
+    box.innerHTML = pots.map(pot => {
+      const items = pot.rows.map(r =>
+        '<div class="pot-admin-row"><span>#' + r.rank + '</span><strong>' + esc(upperName(r.nickname)) + '</strong><em>' + r.points + 'π</em></div>'
+      ).join('');
+      return '<div class="pot-admin-card"><div class="pot-admin-head"><strong>Pot ' + pot.pot + '</strong><span>' + pot.range + '</span></div>' + (items || '<p class="empty">—</p>') + '</div>';
+    }).join('');
+  }
+
+  function renderGroupsAdmin() {
+    const box = $('groupsAdmin');
+    if (!box) return;
+
+    if (!cache.groupMembers.length) {
+      box.innerHTML = '<p class="empty">Δεν έχει γίνει κλήρωση. Πάτησε «Κλήρωση ομίλων» όταν ολοκληρωθούν οι 12 αγωνιστικές.</p>';
+      return;
+    }
+
+    const groups = S.groupTables(phasePayload());
+
+    box.innerHTML = groups.map(g => {
+      const table = g.table.map((r, i) =>
+        '<tr class="' + (r.qualified ? 'is-qualified' : '') + '">' +
+          '<td class="num">' + (i + 1) + '</td>' +
+          '<td>' + esc(upperName(r.nickname)) + '</td>' +
+          '<td class="num">' + r.played + '</td>' +
+          '<td class="num">' + r.wins + '</td>' +
+          '<td class="num">' + r.losses + '</td>' +
+          '<td class="num">' + r.points + '</td>' +
+        '</tr>'
+      ).join('');
+
+      const fixtures = g.fixtures.map(f =>
+        '<div class="fixture-row" data-match="' + esc(f.id) + '">' +
+          '<span class="fixture-team">' + esc(upperName(f.playerAName)) + '</span>' +
+          '<input type="number" min="0" max="99" value="' + (f.score_a != null ? f.score_a : '') + '" data-score="a" aria-label="Σκορ πρώτου">' +
+          '<span class="fixture-dash">–</span>' +
+          '<input type="number" min="0" max="99" value="' + (f.score_b != null ? f.score_b : '') + '" data-score="b" aria-label="Σκορ δεύτερου">' +
+          '<span class="fixture-team fixture-team--b">' + esc(upperName(f.playerBName)) + '</span>' +
+          '<button class="btn btn-outline btn-sm fixture-save" type="button">Αποθήκευση</button>' +
+        '</div>'
+      ).join('');
+
+      return '' +
+        '<div class="group-admin-card">' +
+          '<div class="group-admin-head"><span class="group-letter">' + g.label + '</span><strong>Όμιλος ' + g.label + '</strong><em>' + (g.complete ? 'Ολοκληρώθηκε' : 'Σε εξέλιξη') + '</em></div>' +
+          '<table class="group-table">' +
+            '<thead><tr><th>#</th><th>Παίκτης</th><th class="num">Α</th><th class="num">Ν</th><th class="num">Η</th><th class="num">Β</th></tr></thead>' +
+            '<tbody>' + table + '</tbody>' +
+          '</table>' +
+          '<div class="fixture-list">' + fixtures + '</div>' +
+        '</div>';
+    }).join('');
+
+    box.querySelectorAll('.fixture-row').forEach(row => {
+      const btn = row.querySelector('.fixture-save');
+      btn.addEventListener('click', () => {
+        const a = row.querySelector('[data-score="a"]').value;
+        const b = row.querySelector('[data-score="b"]').value;
+        savePhaseScore(row.getAttribute('data-match'), a, b, 'group');
+      });
+    });
+  }
+
+  function renderBracketAdmin(b) {
+    const box = $('bracketAdmin');
+    if (!box) return;
+
+    const hasAny = b.qf.length || b.sf.length || b.final || b.third;
+    if (!hasAny) {
+      box.innerHTML = '<p class="empty">Το bracket θα εμφανιστεί όταν ολοκληρωθούν οι όμιλοι και πατήσεις «Προχώρησε στην επόμενη φάση».</p>';
+      return;
+    }
+
+    const block = (title, matches) => {
+      const list = matches.filter(Boolean);
+      if (!list.length) return '';
+      return '<div class="bracket-admin-round"><h4>' + title + '</h4>' + list.map(m => {
+        const complete = !!m.winner;
+        return '' +
+          '<div class="bracket-admin-match' + (complete ? ' is-complete' : '') + '" data-match="' + esc(m.id) + '">' +
+            '<div class="ba-top"><span>' + esc(m.playerAName ? upperName(m.playerAName) : '—') + '</span>' +
+              '<input type="number" min="0" max="99" value="' + (m.score_a != null ? m.score_a : '') + '" data-score="a" aria-label="Σκορ πρώτου">' +
+            '</div>' +
+            '<div class="ba-top"><span>' + esc(m.playerBName ? upperName(m.playerBName) : '—') + '</span>' +
+              '<input type="number" min="0" max="99" value="' + (m.score_b != null ? m.score_b : '') + '" data-score="b" aria-label="Σκορ δεύτερου">' +
+            '</div>' +
+            '<div class="ba-bottom">' +
+              '<span class="ba-phase">' + esc({ qf: 'Προημιτελικός', sf: 'Ημιτελικός', final: 'Τελικός', third: 'Μικρός τελικός' }[m.phase] || m.phase) + '</span>' +
+              '<span class="ba-winner">' + (m.winner ? 'Νικητής: ' + esc(upperName(m.winner === m.player_a ? m.playerAName : m.playerBName)) : 'Εκκρεμεί') + '</span>' +
+              '<button class="btn btn-outline btn-sm fixture-save" type="button">Αποθήκευση</button>' +
+            '</div>' +
+          '</div>';
+      }).join('') + '</div>';
+    };
+
+    box.innerHTML = '' +
+      block('Προημιτελικά', b.qf) +
+      block('Ημιτελικά', b.sf) +
+      block('Τελικός', b.final ? [b.final] : []) +
+      block('Χάλκινο', b.third ? [b.third] : []) +
+      (b.championName ? '<div class="bracket-champion"><span>Πρωταθλητής</span><strong>' + esc(upperName(b.championName)) + '</strong></div>' : '');
+
+    box.querySelectorAll('.bracket-admin-match').forEach(row => {
+      const id = row.getAttribute('data-match');
+      const match = cache.phaseMatches.find(m => String(m.id) === String(id));
+      row.querySelector('.fixture-save').addEventListener('click', () => {
+        const a = row.querySelector('[data-score="a"]').value;
+        const bScore = row.querySelector('[data-score="b"]').value;
+        savePhaseScore(id, a, bScore, match ? match.phase : 'qf');
+      });
+    });
+  }
+
+  async function savePhaseScore(id, a, b, phase) {
+    const na = Number(a);
+    const nb = Number(b);
+    if (!Number.isInteger(na) || !Number.isInteger(nb) || na < 0 || nb < 0) {
+      alert('Συμπλήρωσε έγκυρα σκορ (0 ή μεγαλύτερο).');
+      return;
+    }
+    if (na === nb) {
+      alert('Στο 1v1 GeoQuiz δεν επιτρέπεται ισοπαλία. Άλλαξε ένα σκορ.');
+      return;
+    }
+
+    const match = cache.phaseMatches.find(m => String(m.id) === String(id));
+    if (!match) return;
+
+    const downstream = {
+      group: ['qf', 'sf', 'final', 'third'],
+      qf: ['sf', 'final', 'third'],
+      sf: ['final', 'third'],
+      final: [],
+      third: []
+    }[phase] || [];
+
+    const hasDownstream = cache.phaseMatches.some(m => downstream.includes(m.phase));
+    if (hasDownstream) {
+      if (!confirm('Έχουν ήδη δημιουργηθεί επόμενες φάσεις. Αν αλλάξεις αυτό το σκορ, θα διαγραφούν. Συνέχεια;')) return;
+    }
+
+    try {
+      const { error } = await sb.from('phase_matches').update({
+        score_a: na,
+        score_b: nb,
+        winner_id: na > nb ? match.player_a : match.player_b
+      }).eq('id', id);
+      if (error) throw error;
+
+      if (hasDownstream) {
+        const { error: dErr } = await sb.from('phase_matches').delete().in('phase', downstream);
+        if (dErr) throw dErr;
+      }
+
+      await loadPhaseData();
+      renderPhases();
+      $('phaseMsg').className = 'form-msg ok';
+      $('phaseMsg').textContent = 'Το σκορ αποθηκεύτηκε.';
+    } catch (err) {
+      alert('Αποτυχία: ' + (err.message || ''));
+    }
+  }
+
+  async function drawGroups() {
+    if (!schema.groups || !schema.phases) return alert('Τρέξε πρώτα το migration 005.');
+
+    const rows = standingsNow();
+    if (rows.length < 16) {
+      alert('Χρειάζονται τουλάχιστον 16 παίκτες με αποτελέσματα για την κλήρωση.');
+      return;
+    }
+
+    const played = S.playedWeeks(cache.matches, cache.results).length;
+    if (played < SCHEDULE.length) {
+      if (!confirm('Δεν έχουν ολοκληρωθεί και οι 12 αγωνιστικές (' + played + '/' + SCHEDULE.length + '). Η κλήρωση θα γίνει με την τρέχουσα κατάταξη. Συνέχεια;')) return;
+    }
+
+    if (cache.groupMembers.length && !confirm('Υπάρχει ήδη κλήρωση. Θα διαγραφούν οι όμιλοι και όλο το bracket. Συνέχεια;')) return;
+
+    const labels = (cfg.format && cfg.format.groupLabels) || ['A', 'B', 'C', 'D'];
+    const top16 = rows.slice(0, 16);
+    const members = [];
+
+    for (let pot = 1; pot <= 4; pot++) {
+      const potRows = shuffle(top16.slice((pot - 1) * 4, pot * 4));
+      potRows.forEach((row, i) => {
+        members.push({
+          group_label: labels[i],
+          player_id: row.id,
+          seed_rank: row.rank,
+          pot
+        });
+      });
+    }
+
+    try {
+      await deleteAllPhaseData();
+
+      const { data: inserted, error: mErr } = await sb.from('group_members').insert(members).select();
+      if (mErr) throw mErr;
+
+      const byGroup = {};
+      (inserted || []).forEach(m => {
+        byGroup[m.group_label] = byGroup[m.group_label] || [];
+        byGroup[m.group_label].push(m);
+      });
+
+      const fixtures = [];
+      const rounds = [
+        [[0, 1], [2, 3]],
+        [[0, 2], [3, 1]],
+        [[3, 0], [1, 2]]
+      ];
+
+      labels.forEach(label => {
+        const group = byGroup[label] || [];
+        let slot = 0;
+        rounds.forEach((round, ri) => {
+          round.forEach(pair => {
+            if (!group[pair[0]] || !group[pair[1]]) return;
+            slot += 1;
+            fixtures.push({
+              phase: 'group',
+              group_label: label,
+              round: ri + 1,
+              slot,
+              player_a: group[pair[0]].player_id,
+              player_b: group[pair[1]].player_id
+            });
+          });
+        });
+      });
+
+      if (fixtures.length) {
+        const { error: fErr } = await sb.from('phase_matches').insert(fixtures);
+        if (fErr) throw fErr;
+      }
+
+      await loadPhaseData();
+      renderPhases();
+
+      $('phaseMsg').className = 'form-msg ok';
+      $('phaseMsg').textContent = 'Η κλήρωση ολοκληρώθηκε. Οι όμιλοι και οι 24 αγώνες είναι έτοιμοι.';
+    } catch (err) {
+      alert('Αποτυχία κλήρωσης: ' + (err.message || ''));
+    }
+  }
+
+  async function advancePhase() {
+    if (!schema.groups || !schema.phases) return alert('Τρέξε πρώτα το migration 005.');
+    if (!cache.groupMembers.length) return alert('Πρώτα κάνε την κλήρωση των ομίλων.');
+
+    const groups = S.groupTables(phasePayload());
+    const allGroupsComplete = groups.every(g => g.fixtures.length && g.complete);
+    if (!allGroupsComplete) return alert('Ολοκλήρωσε πρώτα όλους τους αγώνες των ομίλων.');
+
+    const b = S.bracket(phasePayload());
+
+    try {
+      if (!b.qf.length) {
+        const g = {};
+        groups.forEach(x => { g[x.label] = x.table; });
+        const pairs = [
+          [g.A[0], g.B[1]],
+          [g.B[0], g.A[1]],
+          [g.C[0], g.D[1]],
+          [g.D[0], g.C[1]]
+        ];
+        const rows = pairs.map((p, i) => ({
+          phase: 'qf',
+          group_label: null,
+          round: 1,
+          slot: i + 1,
+          player_a: p[0].playerId,
+          player_b: p[1].playerId
+        }));
+        const { error } = await sb.from('phase_matches').insert(rows);
+        if (error) throw error;
+        $('phaseMsg').className = 'form-msg ok';
+        $('phaseMsg').textContent = 'Τα προημιτελικά δημιουργήθηκαν. Καταχώρισε τα σκορ.';
+      } else if (!b.qf.every(m => m.complete)) {
+        return alert('Ολοκλήρωσε πρώτα όλους τους προημιτελικούς.');
+      } else if (!b.sf.length) {
+        const w = b.qf.slice().sort((x, y) => num(x.slot) - num(y.slot)).map(m => m.winner);
+        const rows = [
+          { phase: 'sf', group_label: null, round: 1, slot: 1, player_a: w[0], player_b: w[1] },
+          { phase: 'sf', group_label: null, round: 1, slot: 2, player_a: w[2], player_b: w[3] }
+        ];
+        const { error } = await sb.from('phase_matches').insert(rows);
+        if (error) throw error;
+        $('phaseMsg').className = 'form-msg ok';
+        $('phaseMsg').textContent = 'Οι ημιτελικοί δημιουργήθηκαν.';
+      } else if (!b.sf.every(m => m.complete)) {
+        return alert('Ολοκλήρωσε πρώτα και τους δύο ημιτελικούς.');
+      } else if (!b.final) {
+        const sf = b.sf.slice().sort((x, y) => num(x.slot) - num(y.slot));
+        const winners = sf.map(m => m.winner);
+        const losers = sf.map(m => m.winner === String(m.player_a) ? m.player_b : m.player_a);
+        const rows = [
+          { phase: 'final', group_label: null, round: 1, slot: 1, player_a: winners[0], player_b: winners[1] },
+          { phase: 'third', group_label: null, round: 1, slot: 1, player_a: losers[0], player_b: losers[1] }
+        ];
+        const { error } = await sb.from('phase_matches').insert(rows);
+        if (error) throw error;
+        $('phaseMsg').className = 'form-msg ok';
+        $('phaseMsg').textContent = 'Ο τελικός και ο μικρός τελικός δημιουργήθηκαν.';
+      } else {
+        return alert('Το bracket έχει ήδη ολοκληρωθεί.');
+      }
+
+      await loadPhaseData();
+      renderPhases();
+    } catch (err) {
+      alert('Αποτυχία: ' + (err.message || ''));
+    }
+  }
+
+  async function resetPhases() {
+    if (!schema.groups || !schema.phases) return alert('Τρέξε πρώτα το migration 005.');
+    if (!confirm('Να διαγραφούν ΟΛΟΙ οι όμιλοι και το bracket; Τα αποτελέσματα των προκριματικών δεν αγγίζονται.')) return;
+
+    try {
+      await deleteAllPhaseData();
+      await loadPhaseData();
+      renderPhases();
+      $('phaseMsg').className = 'form-msg ok';
+      $('phaseMsg').textContent = 'Οι φάσεις επαναφέρθηκαν.';
+    } catch (err) {
+      alert('Αποτυχία: ' + (err.message || ''));
+    }
+  }
+
+  async function deleteAllPhaseData() {
+    const zero = '00000000-0000-0000-0000-000000000000';
+    const [a, b] = await Promise.all([
+      sb.from('phase_matches').delete().neq('id', zero),
+      sb.from('group_members').delete().neq('id', zero)
+    ]);
+    if (a.error) throw a.error;
+    if (b.error) throw b.error;
+  }
+
+  /* ==================== PLAYERS ==================== */
 
   function wirePlayerForm() {
     const form = $('playerForm');
     if (!form) return;
-    const yearInput = $('pYear');
-    if (yearInput) yearInput.max = String(new Date().getFullYear());
+    const ageInput = $('pAge');
+    if (ageInput) { ageInput.max = '120'; }
+
+    const search = $('playerSearch');
+    if (search) search.addEventListener('input', () => {
+      playerSearch = search.value.trim().toLowerCase();
+      renderPlayersTable();
+    });
+
     form.addEventListener('submit', async (ev) => {
       ev.preventDefault();
       const msg = $('playerMsg');
@@ -599,45 +1531,50 @@
 
       const nickname = upperName($('pNick').value.trim());
       const firstName = upperName($('pFirst').value.trim()) || null;
-      const birthYear = Number($('pYear').value);
+      const age = Number($('pAge').value);
       const city = $('pCity').value.trim() || null;
       const currentYear = new Date().getFullYear();
 
       if (nickname.length < 2) {
         msg.className = 'form-msg err';
-        msg.textContent = 'Το username (GeoGuessr) είναι υποχρεωτικό.';
+        msg.textContent = 'Το username είναι υποχρεωτικό.';
         return;
       }
       if (!firstName) {
         msg.className = 'form-msg err';
-        msg.textContent = 'Το πραγματικό όνομα είναι υποχρεωτικό.';
+        msg.textContent = 'Το username στο GeoGuessr είναι υποχρεωτικό.';
         return;
       }
-      if (!Number.isInteger(birthYear) || birthYear < 1900 || birthYear > currentYear) {
+      if (!Number.isInteger(age) || age < 1 || age > 120) {
         msg.className = 'form-msg err';
-        msg.textContent = 'Συμπλήρωσε ένα έγκυρο έτος γέννησης.';
+        msg.textContent = 'Συμπλήρωσε έγκυρη ηλικία.';
         return;
       }
       if (!city) {
         msg.className = 'form-msg err';
-        msg.textContent = 'Η πόλη ή περιφερειακή ενότητα είναι υποχρεωτική.';
+        msg.textContent = 'Η περιοχή εκπροσώπησης είναι υποχρεωτική.';
         return;
       }
 
       try {
-        const { error } = await sb.from('players').insert({
+        const payload = {
           nickname,
           first_name: firstName,
-          birth_year: birthYear,
+          birth_year: currentYear - age,
           city
-        });
+        };
+        if (schema.patreon) payload.is_patreon = false;
+
+        const { error } = await sb.from('players').insert(payload);
         if (error) throw error;
         msg.className = 'form-msg ok';
         msg.textContent = 'Ο παίκτης προστέθηκε.';
         form.reset();
         await loadAll();
         renderPlayersTable();
-        populateDatalist();
+        renderPlayerOptions();
+        renderX2();
+        renderPhases();
       } catch (err) {
         msg.className = 'form-msg err';
         msg.textContent = 'Αποτυχία: ' + (err.message || 'άγνωστο');
@@ -648,22 +1585,63 @@
   function renderPlayersTable() {
     const tbody = $('playersBody');
     if (!tbody) return;
+
+    const currentYear = new Date().getFullYear();
+    const list = cache.players
+      .filter(p => !playerSearch || String(p.nickname).toLowerCase().includes(playerSearch))
+      .slice()
+      .sort((a, b) => String(a.nickname).localeCompare(String(b.nickname), 'el'));
+
     const count = $('playersCount');
     if (count) count.textContent = cache.players.length;
 
-    if (!cache.players.length) {
-      tbody.innerHTML = '<tr><td colspan="4" class="loading-row">Κανένας παίκτης ακόμη.</td></tr>';
+    if (!list.length) {
+      tbody.innerHTML = '<tr><td colspan="5" class="loading-row">Κανένας παίκτης.</td></tr>';
       return;
     }
 
-    tbody.innerHTML = cache.players.map(p =>
-      '<tr>' +
+    tbody.innerHTML = list.map(p => {
+      const age = p.birth_year ? currentYear - Number(p.birth_year) : '—';
+      const patron = schema.patreon
+        ? '<label class="patron-toggle patron-toggle--inline"><input type="checkbox" data-player-patreon="' + esc(p.id) + '"' + (p.is_patreon ? ' checked' : '') + '><span>' + (p.is_patreon ? 'Ναι' : 'Όχι') + '</span></label>'
+        : '<span class="empty">—</span>';
+      return '<tr>' +
         '<td>' + esc(upperName(p.nickname)) + '</td>' +
-        '<td>' + esc(p.first_name ? upperName(p.first_name) : '-') + '</td>' +
-        '<td>' + esc(p.birth_year || '-') + '</td>' +
-        '<td>' + esc(p.city || '-') + '</td>' +
-      '</tr>'
-    ).join('');
+        '<td>' + esc(p.first_name ? upperName(p.first_name) : '—') + '</td>' +
+        '<td class="num">' + esc(age) + '</td>' +
+        '<td>' + esc(p.city || '—') + '</td>' +
+        '<td>' + patron + '</td>' +
+      '</tr>';
+    }).join('');
+
+    tbody.querySelectorAll('[data-player-patreon]').forEach(cb => {
+      cb.addEventListener('change', async () => {
+        const id = cb.getAttribute('data-player-patreon');
+        const value = cb.checked;
+        cb.disabled = true;
+        try {
+          const { error } = await sb.from('players').update({ is_patreon: value }).eq('id', id);
+          if (error) throw error;
+          const p = playerById(id);
+          if (p) p.is_patreon = value;
+          if (!value && schema.multipliers) {
+            const del = await sb.from('multipliers').delete().eq('player_id', id)
+              .in('source', ['patreon_dec', 'patreon_jan']);
+            if (del.error) throw del.error;
+            await loadMultipliers();
+          }
+          renderPlayersTable();
+          renderPatreonGrid();
+          renderX2Table();
+          renderX2WeekGrid();
+        } catch (err) {
+          alert('Αποτυχία: ' + (err.message || ''));
+          cb.checked = !value;
+        } finally {
+          cb.disabled = false;
+        }
+      });
+    });
   }
 
   /* ==================== REGISTRATIONS ==================== */
@@ -688,11 +1666,13 @@
         return;
       }
 
+      const currentYear = new Date().getFullYear();
       box.innerHTML = cache.regs.map(r => {
-        const meta = [upperName(r.first_name), r.birth_year, r.city]
+        const age = r.birth_year ? (currentYear - Number(r.birth_year)) : '—';
+        const meta = [upperName(r.first_name), age !== '—' ? age + ' ετών' : null, r.city]
           .filter(v => v !== null && v !== undefined && v !== '')
           .map(esc)
-          .join(' · ') || '-';
+          .join(' · ') || '—';
         return '' +
         '<div class="reg-item" data-id="' + esc(r.id) + '">' +
           '<div>' +
@@ -728,13 +1708,10 @@
     let createdPlayerId = null;
     try {
       const lower = nickname.toLowerCase();
-      const existing = cache.players.find(p => p.nickname.toLowerCase() === lower);
+      const existing = cache.players.find(p => String(p.nickname).toLowerCase() === lower);
       if (existing) {
-        if (!confirm('Ο παίκτης "' + nickname + '" υπάρχει ήδη στους ενεργούς παίκτες. Έγκριση της αίτησης χωρίς διπλοεγγραφή;')) {
-          return;
-        }
+        if (!confirm('Ο παίκτης "' + nickname + '" υπάρχει ήδη. Έγκριση της αίτησης χωρίς διπλοεγγραφή;')) return;
 
-        // Συμπλήρωσε τυχόν κενά στοιχεία του υπάρχοντος παίκτη από την αίτηση.
         const patch = {};
         if (!existing.first_name && firstName) patch.first_name = firstName;
         if (!existing.birth_year && birthYear) patch.birth_year = birthYear;
@@ -744,7 +1721,7 @@
           if (patchErr) throw patchErr;
           await loadAll();
           renderPlayersTable();
-          populateDatalist();
+          renderPlayerOptions();
         }
 
         const { error: uErr } = await sb.from('registrations').update({ status: 'approved' }).eq('id', id);
@@ -753,12 +1730,9 @@
         return;
       }
 
-      const { data: playerRow, error: pErr } = await sb.from('players').insert({
-        nickname: nickname,
-        first_name: firstName,
-        birth_year: birthYear,
-        city: city
-      }).select('id').single();
+      const payload = { nickname, first_name: firstName, birth_year: birthYear, city };
+      if (schema.patreon) payload.is_patreon = false;
+      const { data: playerRow, error: pErr } = await sb.from('players').insert(payload).select('id').single();
       if (pErr) throw pErr;
       createdPlayerId = playerRow.id;
 
@@ -767,11 +1741,10 @@
 
       await loadAll();
       renderPlayersTable();
-      populateDatalist();
+      renderPlayerOptions();
+      renderX2();
       await loadRegs();
     } catch (err) {
-      // If the player was created but marking the registration failed,
-      // remove the player so the admin can safely retry.
       if (createdPlayerId) {
         try { await sb.from('players').delete().eq('id', createdPlayerId); } catch (_) {}
       }
@@ -791,53 +1764,62 @@
 
   /* ==================== HISTORY ==================== */
 
-  function renderHistoryTable() {
+  function renderHistory() {
     const tbody = $('historyBody');
     if (!tbody) return;
 
-    if (!cache.matches.length) {
-      tbody.innerHTML = '<tr><td colspan="4" class="loading-row">Καμία αγωνιστική ακόμη.</td></tr>';
-      return;
-    }
+    const rows = SCHEDULE.map(meta => {
+      const map = matchFor(meta.week, 'map');
+      const quiz = matchFor(meta.week, 'quiz');
+      const date = map && map.match_date ? new Date(map.match_date)
+        : (quiz && quiz.match_date ? new Date(quiz.match_date) : new Date(meta.date));
+      const hasAny = !!(map || quiz);
 
-    const sorted = cache.matches.slice().sort((a, b) => {
-      if (Number(a.week_number) !== Number(b.week_number)) return Number(a.week_number) - Number(b.week_number);
-      return String(a.league).localeCompare(String(b.league));
-    });
-
-    tbody.innerHTML = sorted.map(m => {
-      const date = m.match_date ? new Date(m.match_date) : null;
-      const dateStr = date
-        ? date.toLocaleDateString('el-GR', { day: '2-digit', month: 'short', year: 'numeric' }) +
-          ' · ' + date.toLocaleTimeString('el-GR', { hour: '2-digit', minute: '2-digit' })
-        : '-';
       return '<tr>' +
-        '<td><strong>' + m.week_number + '</strong></td>' +
-        '<td>' + esc(m.league) + '</td>' +
-        '<td>' + esc(dateStr) + '</td>' +
-        '<td><button class="icon-btn danger" data-del="' + esc(m.id) + '" title="Διαγραφή">×</button></td>' +
+        '<td><strong>Αγ. ' + meta.week + '</strong>' + (meta.holiday ? ' <span class="mini-flag mini-flag--gold">εορταστική</span>' : '') + '</td>' +
+        '<td>' + esc(formatDate(date)) + '</td>' +
+        '<td class="num">' + (map ? '<span class="mini-state is-on">✓</span>' : '<span class="mini-state">—</span>') + '</td>' +
+        '<td class="num">' + (quiz ? '<span class="mini-state is-on">✓</span>' : '<span class="mini-state">—</span>') + '</td>' +
+        '<td class="admin-row-actions">' +
+          '<button class="btn btn-outline btn-sm" data-edit-week="' + meta.week + '" type="button">Άνοιγμα</button>' +
+          (hasAny ? '<button class="icon-btn danger" data-del-week="' + meta.week + '" type="button" title="Διαγραφή αγωνιστικής">×</button>' : '') +
+        '</td>' +
       '</tr>';
     }).join('');
 
-    tbody.querySelectorAll('[data-del]').forEach(btn => {
-      btn.addEventListener('click', () => deleteMatch(btn.getAttribute('data-del')));
+    tbody.innerHTML = rows;
+
+    tbody.querySelectorAll('[data-edit-week]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const week = Number(btn.getAttribute('data-edit-week'));
+        currentWeek = week;
+        renderWeekSelect();
+        switchTab('match');
+        loadWeek(week);
+      });
+    });
+
+    tbody.querySelectorAll('[data-del-week]').forEach(btn => {
+      btn.addEventListener('click', () => deleteWeek(Number(btn.getAttribute('data-del-week'))));
     });
   }
 
-  async function deleteMatch(id) {
-    const m = cache.matches.find(x => String(x.id) === String(id));
-    if (!m) return;
-    if (!confirm('Διαγραφή αγωνιστικής ' + m.week_number + ' (' + m.league + '); Τα αποτελέσματα θα χαθούν.')) return;
+  async function deleteWeek(week) {
+    const matches = cache.matches.filter(m => Number(m.week_number) === week);
+    if (!matches.length) return;
+    if (!confirm('Διαγραφή ολόκληρης της αγωνιστικής ' + week + ' (χάρτης + quiz); Τα αποτελέσματά της θα χαθούν.')) return;
+
     try {
-      const { error } = await sb.from('matches').delete().eq('id', id);
+      const { error } = await sb.from('matches').delete().in('id', matches.map(m => m.id));
       if (error) throw error;
       await loadAll();
-      renderHistoryTable();
-      renderPreview();
-      const nextInfo = nextWeekInfo();
-      $('mWeek').value = nextInfo.week;
-      $('mLeague').value = nextInfo.defaultLeague;
-      league = nextInfo.defaultLeague;
+      renderHistory();
+      renderX2();
+      renderPhases();
+      if (currentWeek === week) await loadWeek(week, true);
+      const msg = $('matchMsg');
+      msg.className = 'form-msg ok';
+      msg.textContent = 'Η αγωνιστική ' + week + ' διαγράφηκε.';
     } catch (err) {
       alert('Αποτυχία διαγραφής: ' + (err.message || ''));
     }

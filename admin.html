@@ -27,7 +27,7 @@
       </svg>
       <span class="brand-text">
         <span class="brand-title">YAZ LEAGUE</span>
-        <span class="brand-sub">Πίνακας διαχείρισης</span>
+        <span class="brand-sub">Πίνακας διαχείρισης · Winter 2026-27</span>
       </span>
     </a>
     <div class="admin-user" id="adminUser" hidden>
@@ -42,7 +42,7 @@
     <div class="admin-login panel-light">
       <p class="eyebrow">Περιορισμένη πρόσβαση</p>
       <h1 class="admin-h1">Σύνδεση διαχειριστή</h1>
-      <p class="admin-lead">Μόνο ο διοργανωτής μπορεί να προσθέσει αποτελέσματα και να εγκρίνει εγγραφές.</p>
+      <p class="admin-lead">Μόνο ο διοργανωτής μπορεί να καταχωρήσει αποτελέσματα, να διαχειριστεί Χ2 και να τρέξει τις φάσεις.</p>
       <div class="alert alert-warn" id="supabaseWarn" hidden>
         Δεν έχουν ρυθμιστεί τα keys του Supabase στο <code>js/config.js</code>.
         Η διαχείριση απαιτεί ενεργή σύνδεση με τη βάση.
@@ -63,96 +63,199 @@
   </section>
 
   <section id="appView" class="admin-view" hidden>
+    <div class="admin-banner alert alert-warn" id="schemaWarn" hidden>
+      <strong>Λείπει το migration 005.</strong>
+      Τα αποτελέσματα αγωνιστικών δουλεύουν κανονικά. Για Χ2, Patreon, ομίλους και Final-8 τρέξε
+      <code>supabase/migrations/005_winter_2026_27.sql</code> στο Supabase SQL Editor.
+    </div>
+
     <nav class="admin-tabs" aria-label="Ενότητες διαχείρισης">
-      <button class="admin-tab is-active" data-tab="match" type="button">Νέα αγωνιστική</button>
+      <button class="admin-tab is-active" data-tab="match" type="button">Αγωνιστική</button>
+      <button class="admin-tab" data-tab="x2" type="button">Χ2 &amp; Patreon</button>
+      <button class="admin-tab" data-tab="phases" type="button">Φάσεις</button>
       <button class="admin-tab" data-tab="regs" type="button">Εγγραφές <span class="tab-count" id="regCount">0</span></button>
       <button class="admin-tab" data-tab="players" type="button">Παίκτες</button>
-      <button class="admin-tab" data-tab="history" type="button">Αγωνιστικές</button>
+      <button class="admin-tab" data-tab="history" type="button">Ιστορικό</button>
     </nav>
 
+    <!-- ================= MATCHDAY ================= -->
     <div class="admin-panel is-active" id="tab-match">
       <div class="admin-card">
-        <h2 class="admin-h2">Καταχώριση αποτελεσμάτων</h2>
-        <p class="admin-lead">Διάλεξε αγωνιστική και league, βάλε τους παίκτες με σειρά κατάταξης και πάτησε αποθήκευση.</p>
-        <div class="admin-row">
+        <div class="admin-card-head">
+          <div>
+            <h2 class="admin-h2">Καταχώριση αγωνιστικής</h2>
+            <p class="admin-lead">Μία εβδομάδα, δύο δοκιμασίες. Βάλε τους παίκτες με σειρά κατάταξης. Οι πόντοι υπολογίζονται αυτόματα.</p>
+          </div>
+          <span class="admin-status-chip" id="matchStatus">Νέα αγωνιστική</span>
+        </div>
+
+        <div class="admin-row admin-row--top">
           <div class="field">
-            <label for="mWeek">Αγωνιστική (νούμερο)</label>
-            <input id="mWeek" type="number" min="1" step="1" value="1">
+            <label for="mWeek">Αγωνιστική</label>
+            <select id="mWeek"></select>
           </div>
           <div class="field">
             <label for="mDate">Ημερομηνία &amp; ώρα</label>
             <input id="mDate" type="datetime-local">
           </div>
-          <div class="field">
-            <label for="mLeague">League</label>
-            <select id="mLeague">
-              <option value="map">Χάρτης (Concept Map)</option>
-              <option value="quiz">Quiz</option>
-            </select>
+          <div class="field field--info">
+            <label>Στοιχεία εβδομάδας</label>
+            <div class="admin-week-info" id="mWeekInfo">—</div>
           </div>
         </div>
 
-        <h3 class="admin-h3">Σειρά κατάταξης</h3>
-        <p class="admin-hint">Ο πρώτος παίκτης παίρνει 12 πόντους, ο δεύτερος 9 κ.ο.κ. (ανά league). Οι πόντοι υπολογίζονται αυτόματα. Ο πρώτος κάθε league κερδίζει 1 wildcard. Υπολογίζεται αυτόματα από την κατάταξη.</p>
+        <div class="entry-columns">
+          <div class="entry-block entry-block--map">
+            <div class="entry-block-head">
+              <div>
+                <h3 class="admin-h3">Concept Map</h3>
+                <p class="admin-hint">Σειρά κατάταξης. Ο πρώτος παίρνει 12, ο δεύτερος 9 κ.ο.κ. Τσέκαρε έναν μόνο παίκτη για το concept bonus (+3).</p>
+              </div>
+            </div>
+            <div class="entry-list" id="mapEntryList"></div>
+            <div class="admin-actions">
+              <button class="btn btn-outline btn-sm" id="mapAddBtn" type="button">+ Παίκτης στον χάρτη</button>
+            </div>
+          </div>
 
-        <div class="entry-list" id="entryList"></div>
-        <div class="admin-actions">
-          <button class="btn btn-outline btn-sm" id="addEntryBtn" type="button">+ Πρόσθεσε παίκτη</button>
+          <div class="entry-block entry-block--quiz">
+            <div class="entry-block-head">
+              <div>
+                <h3 class="admin-h3">Γεωγραφικό Quiz</h3>
+                <p class="admin-hint">Ίδια κλίμακα πόντων. Δεν υπάρχει concept bonus στο quiz.</p>
+              </div>
+            </div>
+            <div class="entry-list" id="quizEntryList"></div>
+            <div class="admin-actions">
+              <button class="btn btn-outline btn-sm" id="quizAddBtn" type="button">+ Παίκτης στο quiz</button>
+            </div>
+          </div>
         </div>
 
         <datalist id="playerOptions"></datalist>
 
-        <h3 class="admin-h3">Προεπισκόπηση κατάταξης</h3>
+        <h3 class="admin-h3">Προεπισκόπηση αγωνιστικής</h3>
+        <p class="admin-hint">Οι πόντοι χάρτη + quiz προστίθενται. Αν κάποιος έχει ενεργό Χ2 αυτή την εβδομάδα, το σύνολο διπλασιάζεται. Το wild card πάει στον πρώτο.</p>
         <div class="table-scroll admin-preview">
           <table class="board-table">
             <thead>
               <tr>
-                <th>Θέση</th><th>Παίκτης</th><th class="num">Πόντοι</th>
-                <th class="num">Σύνολο τώρα</th><th class="num">Σύνολο μετά</th>
+                <th>#</th><th>Παίκτης</th><th class="num">Χάρτης</th><th class="num">Quiz</th>
+                <th class="num">Χ2</th><th class="num">Σύνολο</th><th class="num">Wild</th>
               </tr>
             </thead>
             <tbody id="previewBody">
-              <tr><td colspan="5" class="loading-row">Φόρτωση…</td></tr>
+              <tr><td colspan="7" class="loading-row">Φόρτωση…</td></tr>
             </tbody>
           </table>
         </div>
 
-        <div class="admin-actions">
+        <div class="admin-actions admin-actions--save">
           <button class="btn btn-primary" id="saveMatchBtn" type="button">Αποθήκευση αγωνιστικής</button>
+          <button class="btn btn-outline btn-sm" id="clearWeekBtn" type="button">Καθαρισμός φόρμας</button>
         </div>
         <p class="form-msg" id="matchMsg" role="status" aria-live="polite"></p>
       </div>
     </div>
 
+    <!-- ================= X2 ================= -->
+    <div class="admin-panel" id="tab-x2">
+      <div class="admin-card">
+        <h2 class="admin-h2">Χ2 &amp; Patreon</h2>
+        <p class="admin-lead">Οι συνδρομητές VIVRE CARD έχουν ένα Χ2 για τον Δεκέμβριο και ένα για τον Ιανουάριο. Στις εορταστικές αγωνιστικές κληρώνονται δύο ακόμη Χ2. Το Χ2 διπλασιάζει τους πόντους της αγωνιστικής.</p>
+        <div class="alert alert-warn" id="x2Warn" hidden>Το migration 005 δεν έχει τρέξει. Οι λειτουργίες Χ2 είναι προσωρινά ανενεργές.</div>
+
+        <div class="x2-layout">
+          <section class="x2-section">
+            <h3 class="admin-h3">Συνδρομητές Patreon</h3>
+            <p class="admin-hint">Ενεργοποίησε όσους έχουν ενεργή μηνιαία συνδρομή. Αμέσως μετά μπορείς να δηλώσεις σε ποια εβδομάδα χρησιμοποιούν το Χ2 του Δεκεμβρίου και του Ιανουαρίου.</p>
+            <div class="admin-search">
+              <input id="patreonSearch" type="search" placeholder="Αναζήτηση παίκτη…" autocomplete="off">
+            </div>
+            <div class="patreon-grid" id="patreonGrid"><p class="loading-row">Φόρτωση…</p></div>
+          </section>
+
+          <section class="x2-section">
+            <h3 class="admin-h3">Εορταστικές κληρώσεις</h3>
+            <p class="admin-hint">25/12 και 01/01: δύο τυχαίοι παίκτες κερδίζουν από ένα Χ2. Η κλήρωση γίνεται μία φορά ανά εορταστική αγωνιστική.</p>
+            <div class="holiday-grid" id="holidayGrid"></div>
+          </section>
+        </div>
+
+        <h3 class="admin-h3">Καταγεγραμμένα Χ2</h3>
+        <div class="table-scroll">
+          <table class="board-table">
+            <thead><tr><th>Παίκτης</th><th>Πηγή</th><th>Κληρώθηκε</th><th>Εβδομάδα χρήσης</th><th></th></tr></thead>
+            <tbody id="x2Table"><tr><td colspan="5" class="loading-row">Φόρτωση…</td></tr></tbody>
+          </table>
+        </div>
+
+        <h3 class="admin-h3">Χ2 ανά αγωνιστική</h3>
+        <div class="x2-week-grid" id="x2WeekGrid"></div>
+      </div>
+    </div>
+
+    <!-- ================= PHASES ================= -->
+    <div class="admin-panel" id="tab-phases">
+      <div class="admin-card">
+        <div class="admin-card-head">
+          <div>
+            <h2 class="admin-h2">Φάσεις &amp; Final-8</h2>
+            <p class="admin-lead">Μετά τις 12 αγωνιστικές: Top 16 → pots → κλήρωση ομίλων → νοκ-άουτ 1v1 GeoQuiz.</p>
+          </div>
+          <span class="admin-status-chip" id="phaseStatus">Προκριματικά</span>
+        </div>
+        <div class="alert alert-warn" id="phaseWarn" hidden>Το migration 005 δεν έχει τρέξει. Οι φάσεις είναι προσωρινά ανενεργές.</div>
+
+        <div class="phase-actions">
+          <button class="btn btn-primary btn-sm" id="drawGroupsBtn" type="button">Κλήρωση ομίλων</button>
+          <button class="btn btn-outline btn-sm" id="advanceBtn" type="button">Προχώρησε στην επόμενη φάση</button>
+          <button class="btn btn-outline btn-sm btn-danger-outline" id="resetPhasesBtn" type="button">Επαναφορά φάσεων</button>
+        </div>
+        <p class="form-msg" id="phaseMsg" role="status" aria-live="polite"></p>
+
+        <h3 class="admin-h3">Γκρουπ δυναμικότητας (Top 16)</h3>
+        <div class="pots-admin" id="potsAdmin"><p class="loading-row">Φόρτωση…</p></div>
+
+        <h3 class="admin-h3">Φάση ομίλων</h3>
+        <div class="groups-admin" id="groupsAdmin"><p class="loading-row">Δεν έχει γίνει κλήρωση.</p></div>
+
+        <h3 class="admin-h3">Bracket</h3>
+        <div class="bracket-admin" id="bracketAdmin"><p class="loading-row">Το bracket θα εμφανιστεί μετά τους ομίλους.</p></div>
+      </div>
+    </div>
+
+    <!-- ================= REGISTRATIONS ================= -->
     <div class="admin-panel" id="tab-regs">
       <div class="admin-card">
         <h2 class="admin-h2">Αιτήσεις εγγραφής</h2>
-        <p class="admin-lead">Έγκρινε ή απέρριψε τις εκκρεμείς αιτήσεις. Η έγκριση δημιουργεί αυτόματα παίκτη. Το πραγματικό όνομα, το έτος γέννησης και η πόλη αποθηκεύονται ιδιωτικά και δεν εμφανίζονται ποτέ δημόσια.</p>
+        <p class="admin-lead">Έγκρινε ή απέρριψε τις εκκρεμείς αιτήσεις. Η έγκριση δημιουργεί αυτόματα παίκτη. Το username GeoGuessr, η ηλικία και η περιοχή αποθηκεύονται ιδιωτικά και δεν εμφανίζονται δημόσια.</p>
         <div id="regsList" class="reg-list"><p class="loading-row">Φόρτωση…</p></div>
       </div>
     </div>
 
+    <!-- ================= PLAYERS ================= -->
     <div class="admin-panel" id="tab-players">
       <div class="admin-card">
         <h2 class="admin-h2">Χειροκίνητη προσθήκη παίκτη</h2>
         <form id="playerForm" class="admin-form">
           <div class="admin-row">
             <div class="field">
-              <label for="pNick">Username (GeoGuessr)</label>
+              <label for="pNick">Όνομα / Username</label>
               <input id="pNick" type="text" required maxlength="40">
             </div>
             <div class="field">
-              <label for="pFirst">Πραγματικό όνομα (ιδιωτικό)</label>
+              <label for="pFirst">Username στο GeoGuessr (ιδιωτικό)</label>
               <input id="pFirst" type="text" required maxlength="40">
             </div>
           </div>
           <div class="admin-row">
             <div class="field">
-              <label for="pYear">Έτος γέννησης</label>
-              <input id="pYear" type="number" required min="1900" step="1" inputmode="numeric">
+              <label for="pAge">Ηλικία</label>
+              <input id="pAge" type="number" required min="1" max="120" step="1" inputmode="numeric">
             </div>
             <div class="field">
-              <label for="pCity">Πόλη ή Περιφερειακή Ενότητα</label>
+              <label for="pCity">Περιοχή εκπροσώπησης</label>
               <input id="pCity" type="text" required maxlength="60">
             </div>
           </div>
@@ -164,24 +267,30 @@
       </div>
 
       <div class="admin-card">
-        <h2 class="admin-h2">Ενεργοί παίκτες <span class="tab-count" id="playersCount">0</span></h2>
+        <div class="admin-card-head">
+          <h2 class="admin-h2">Ενεργοί παίκτες <span class="tab-count" id="playersCount">0</span></h2>
+          <div class="admin-search admin-search--inline">
+            <input id="playerSearch" type="search" placeholder="Αναζήτηση…" autocomplete="off">
+          </div>
+        </div>
         <div class="table-scroll">
           <table class="board-table">
-            <thead><tr><th>Username</th><th>Πραγματικό όνομα</th><th>Έτος γέννησης</th><th>Πόλη / Περιφ. ενότητα</th></tr></thead>
+            <thead><tr><th>Username</th><th>GeoGuessr</th><th>Ηλικία</th><th>Περιοχή</th><th>Patreon</th></tr></thead>
             <tbody id="playersBody"></tbody>
           </table>
         </div>
       </div>
     </div>
 
+    <!-- ================= HISTORY ================= -->
     <div class="admin-panel" id="tab-history">
       <div class="admin-card">
         <h2 class="admin-h2">Καταγεγραμμένες αγωνιστικές</h2>
-        <p class="admin-lead">Μπορείς να διαγράψεις μια αγωνιστική. Τα αποτελέσματά της διαγράφονται μαζί της.</p>
+        <p class="admin-lead">Άνοιξε μια αγωνιστική για επεξεργασία ή διάγραψέ την. Η διαγραφή σβήνει και τα δύο σκέλη (χάρτη + quiz) μαζί με τα αποτελέσματά τους.</p>
         <div class="table-scroll">
           <table class="board-table">
-            <thead><tr><th>Αγωνιστική</th><th>League</th><th>Ημερομηνία</th><th></th></tr></thead>
-            <tbody id="historyBody"></tbody>
+            <thead><tr><th>Αγωνιστική</th><th>Ημερομηνία</th><th>Χάρτης</th><th>Quiz</th><th></th></tr></thead>
+            <tbody id="historyBody"><tr><td colspan="5" class="loading-row">Φόρτωση…</td></tr></tbody>
           </table>
         </div>
       </div>
@@ -194,6 +303,7 @@
         integrity="sha384-uteMfOloLDGt042uDz+xHGF3ym63/WQ6rFq7murQRG8Ih7QrXGEGNtWd8688sb4O"
         crossorigin="anonymous"></script>
 <script src="/js/config.js"></script>
+<script src="/js/stats.js"></script>
 <script src="/js/admin.js"></script>
 </body>
 </html>

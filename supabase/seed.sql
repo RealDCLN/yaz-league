@@ -1,109 +1,83 @@
 -- ============================================================
---  YAZ LEAGUE - Seed data
---  40 παίκτες, 8 αγωνιστικές (Χάρτης + Quiz), πλήρη αποτελέσματα.
---  Τρέξε το ΜΕΤΑ το schema.sql, στο ίδιο SQL Editor.
+--  YAZ LEAGUE · WINTER 2026-27 · Seed data
+--  24 παίκτες, 12 αγωνιστικές × 2 δοκιμασίες, Χ2.
+--  Τρέξε το ΜΕΤΑ το schema.sql (ή μετά το migration 005).
 --
---  ⚠️  DEVELOPMENT ONLY. The TRUNCATE below is intentionally commented
---      out so this file can't wipe a live database by accident. On a
---      fresh / dev project, uncomment it to reset state first.
+--  ⚠️  DEVELOPMENT / DEMO ONLY.
+--  Το TRUNCATE είναι σχολιασμένο για να μην σβήσει ζωντανή βάση.
+--  Σε καθαρό project, ενεργοποίησέ το για reset:
 --
---  Reset (opt-in):
---  truncate public.results, public.matches, public.players cascade;
+--  truncate public.phase_matches, public.group_members,
+--           public.multipliers, public.results, public.matches,
+--           public.players cascade;
 --
---  The seed uses random() for skill jitter. setseed() makes the run
---  reproducible-ish within a single session; results still won't be
---  byte-identical to the front-end demo seed, but match-by-match they
---  will be consistent across reruns on the same Postgres instance.
+--  Οι όμιλοι και το Final-8 ΔΕΝ σπέρνονται εδώ: γίνονται από το
+--  admin panel («Φάσεις → Κλήρωση ομίλων») μετά τα προκριματικά.
 -- ============================================================
 
-select setseed(0.20260918);
+select setseed(0.20261120);
 
-insert into public.players (nickname) values
-  ('MR. LAG'),
-  ('VISIT KASTORIA'),
-  ('KARIPIDIS'),
-  ('DCLN'),
-  ('AEGEAN_FOX'),
-  ('MAPMAKER_GR'),
-  ('THESSALONIKI_DRIFT'),
-  ('PINDUS_WALKER'),
-  ('KYRA_VASILIKI'),
-  ('GEOMANIS'),
-  ('SARONIC_SAILOR'),
-  ('CRETAN_ARROW'),
-  ('NORTH_WIND'),
-  ('ATHENS_NOCTURNE'),
-  ('OLIVE_BRANCH'),
-  ('CYCLADES_7'),
-  ('EPIRUS_ECHO'),
-  ('SPORADES_SALT'),
-  ('KASTORIA_BLUE'),
-  ('PELOPONNESE_KID'),
-  ('GRAMMOS_GHOST'),
-  ('LEMNOS_LIGHT'),
-  ('ZAGORI_ZOI'),
-  ('MERCHANT_OF_MAPS'),
-  ('CHIOS_MASTIC'),
-  ('RODOS_RIDER'),
-  ('ARTA_BRIDGE'),
-  ('MYTILENE_MOON'),
-  ('KALAMATA_EYE'),
-  ('VOYAGEUR_JR'),
-  ('SANTORINI_STEP'),
-  ('DRAMA_DUSK'),
-  ('PRESPA_PELICAN'),
-  ('KERKYRA_RAIN'),
-  ('NAXOS_NORTH'),
-  ('TRIKALA_TRACK'),
-  ('SKYROS_SHADE'),
-  ('PATRAS_PIER'),
-  ('ITHACA_ITH'),
-  ('LAST_PORT');
+insert into public.players (nickname, is_patreon) values
+  ('MR. LAG', false),
+  ('VISIT KASTORIA', true),
+  ('KARIPIDIS', false),
+  ('DCLN', false),
+  ('AEGEAN_FOX', true),
+  ('MAPMAKER_GR', false),
+  ('THESSALONIKI_DRIFT', false),
+  ('PINDUS_WALKER', false),
+  ('KYRA_VASILIKI', true),
+  ('GEOMANIS', false),
+  ('SARONIC_SAILOR', false),
+  ('CRETAN_ARROW', false),
+  ('NORTH_WIND', false),
+  ('ATHENS_NOCTURNE', true),
+  ('OLIVE_BRANCH', false),
+  ('CYCLADES_7', false),
+  ('EPIRUS_ECHO', false),
+  ('SPORADES_SALT', false),
+  ('KASTORIA_BLUE', false),
+  ('PELOPONNESE_KID', false),
+  ('GRAMMOS_GHOST', false),
+  ('LEMNOS_LIGHT', false),
+  ('ZAGORI_ZOI', false),
+  ('MERCHANT_OF_MAPS', false);
 
 insert into public.matches (week_number, match_date, league) values
-  (1, '2026-09-18T19:00:00+03:00', 'map'),
-  (1, '2026-09-18T19:00:00+03:00', 'quiz'),
-  (2, '2026-09-25T19:00:00+03:00', 'map'),
-  (2, '2026-09-25T19:00:00+03:00', 'quiz'),
-  (3, '2026-10-02T19:00:00+03:00', 'map'),
-  (3, '2026-10-02T19:00:00+03:00', 'quiz'),
-  (4, '2026-10-09T19:00:00+03:00', 'map'),
-  (4, '2026-10-09T19:00:00+03:00', 'quiz'),
-  (5, '2026-10-16T19:00:00+03:00', 'map'),
-  (5, '2026-10-16T19:00:00+03:00', 'quiz'),
-  (6, '2026-10-23T19:00:00+03:00', 'map'),
-  (6, '2026-10-23T19:00:00+03:00', 'quiz'),
-  (7, '2026-10-30T19:00:00+02:00', 'map'),
-  (7, '2026-10-30T19:00:00+02:00', 'quiz'),
-  (8, '2026-11-06T19:00:00+02:00', 'map'),
-  (8, '2026-11-06T19:00:00+02:00', 'quiz');
+  (1,  '2026-11-20T19:30:00+02:00', 'map'), (1,  '2026-11-20T19:30:00+02:00', 'quiz'),
+  (2,  '2026-11-27T19:30:00+02:00', 'map'), (2,  '2026-11-27T19:30:00+02:00', 'quiz'),
+  (3,  '2026-12-03T19:30:00+02:00', 'map'), (3,  '2026-12-03T19:30:00+02:00', 'quiz'),
+  (4,  '2026-12-11T19:30:00+02:00', 'map'), (4,  '2026-12-11T19:30:00+02:00', 'quiz'),
+  (5,  '2026-12-18T19:30:00+02:00', 'map'), (5,  '2026-12-18T19:30:00+02:00', 'quiz'),
+  (6,  '2026-12-25T19:30:00+02:00', 'map'), (6,  '2026-12-25T19:30:00+02:00', 'quiz'),
+  (7,  '2027-01-01T19:30:00+02:00', 'map'), (7,  '2027-01-01T19:30:00+02:00', 'quiz'),
+  (8,  '2027-01-08T19:30:00+02:00', 'map'), (8,  '2027-01-08T19:30:00+02:00', 'quiz'),
+  (9,  '2027-01-15T19:30:00+02:00', 'map'), (9,  '2027-01-15T19:30:00+02:00', 'quiz'),
+  (10, '2027-01-22T19:30:00+02:00', 'map'), (10, '2027-01-22T19:30:00+02:00', 'quiz'),
+  (11, '2027-01-29T19:30:00+02:00', 'map'), (11, '2027-01-29T19:30:00+02:00', 'quiz'),
+  (12, '2027-02-05T19:30:00+02:00', 'map'), (12, '2027-02-05T19:30:00+02:00', 'quiz');
 
--- Drop first so the seed can be re-run in the same SQL Editor session.
+-- Σταθερό skill ανά παίκτη, ίδιο με το front-end demo.
 drop table if exists _skill;
 create temp table _skill (nickname text primary key, skill numeric);
 
 insert into _skill (nickname, skill) values
-  ('MR. LAG', 100), ('VISIT KASTORIA', 99.15), ('KARIPIDIS', 98.3), ('DCLN', 97.45),
-  ('AEGEAN_FOX', 96.6), ('MAPMAKER_GR', 95.75), ('THESSALONIKI_DRIFT', 94.9),
-  ('PINDUS_WALKER', 94.05), ('KYRA_VASILIKI', 93.2), ('GEOMANIS', 92.35),
-  ('SARONIC_SAILOR', 91.5), ('CRETAN_ARROW', 90.65), ('NORTH_WIND', 89.8),
-  ('ATHENS_NOCTURNE', 88.95), ('OLIVE_BRANCH', 88.1), ('CYCLADES_7', 87.25),
-  ('EPIRUS_ECHO', 86.4), ('SPORADES_SALT', 85.55), ('KASTORIA_BLUE', 84.7),
-  ('PELOPONNESE_KID', 83.85), ('GRAMMOS_GHOST', 83), ('LEMNOS_LIGHT', 82.15),
-  ('ZAGORI_ZOI', 81.3), ('MERCHANT_OF_MAPS', 80.45), ('CHIOS_MASTIC', 79.6),
-  ('RODOS_RIDER', 78.75), ('ARTA_BRIDGE', 77.9), ('MYTILENE_MOON', 77.05),
-  ('KALAMATA_EYE', 76.2), ('VOYAGEUR_JR', 75.35), ('SANTORINI_STEP', 74.5),
-  ('DRAMA_DUSK', 73.65), ('PRESPA_PELICAN', 72.8), ('KERKYRA_RAIN', 71.95),
-  ('NAXOS_NORTH', 71.1), ('TRIKALA_TRACK', 70.25), ('SKYROS_SHADE', 69.4),
-  ('PATRAS_PIER', 68.55), ('ITHACA_ITH', 67.7), ('LAST_PORT', 66.85);
+  ('MR. LAG', 100), ('VISIT KASTORIA', 98.85), ('KARIPIDIS', 97.7), ('DCLN', 96.55),
+  ('AEGEAN_FOX', 95.4), ('MAPMAKER_GR', 94.25), ('THESSALONIKI_DRIFT', 93.1),
+  ('PINDUS_WALKER', 91.95), ('KYRA_VASILIKI', 90.8), ('GEOMANIS', 89.65),
+  ('SARONIC_SAILOR', 88.5), ('CRETAN_ARROW', 87.35), ('NORTH_WIND', 86.2),
+  ('ATHENS_NOCTURNE', 85.05), ('OLIVE_BRANCH', 83.9), ('CYCLADES_7', 82.75),
+  ('EPIRUS_ECHO', 81.6), ('SPORADES_SALT', 80.45), ('KASTORIA_BLUE', 79.3),
+  ('PELOPONNESE_KID', 78.15), ('GRAMMOS_GHOST', 77), ('LEMNOS_LIGHT', 75.85),
+  ('ZAGORI_ZOI', 74.7), ('MERCHANT_OF_MAPS', 73.55);
 
 do $$
 declare
-  m           record;
-  r           record;
-  i           int;
-  pts         int[] := array[12, 9, 8, 7, 6, 5, 4, 3, 2, 1];
-  bonus_id    uuid;
+  m        record;
+  r        record;
+  i        int;
+  pts      int[] := array[12, 9, 8, 7, 6, 5, 4, 3, 2, 1];
+  bonus_id uuid;
 begin
   for m in select id, league from public.matches order by week_number, league loop
     i := 0;
@@ -112,7 +86,7 @@ begin
       select p.id
       from public.players p
       join _skill s on s.nickname = p.nickname
-      order by s.skill + (random() * 70 - 15) desc
+      order by s.skill + (random() * 62 - 13) desc
     loop
       i := i + 1;
 
@@ -121,8 +95,8 @@ begin
         m.id, r.id, i,
         case when i <= 10 then pts[i] else 0 end,
         case when m.league = 'map'
-             then round((25500 - (i - 1) * 380 + random() * 400)::numeric, 0)
-             else round((1000  - (i - 1) * 12  + random() * 30)::numeric, 0)
+             then round((25000 - (i - 1) * 300 + random() * 380)::numeric, 0)
+             else round((1000  - (i - 1) * 9   + random() * 26)::numeric, 0)
         end,
         false
       );
@@ -131,7 +105,7 @@ begin
     if m.league = 'map' then
       select player_id into bonus_id
       from public.results
-      where match_id = m.id and placement <= 6
+      where match_id = m.id and placement <= 8
       order by random() limit 1;
 
       if bonus_id is not null then
@@ -144,3 +118,20 @@ begin
 end $$;
 
 drop table if exists _skill;
+
+-- ------------------------------------------------------------
+--  Χ2: Patreon Δεκέμβριος (Αγ. 5) & Ιανουάριος (Αγ. 8)
+--  Οι εορταστικές κληρώσεις (Αγ. 6 & 7) γίνονται από το admin
+--  panel ώστε να είναι πραγματικά τυχαίες.
+-- ------------------------------------------------------------
+insert into public.multipliers (player_id, source, used_week)
+select p.id, 'patreon_dec', 5
+from public.players p
+where p.is_patreon = true
+on conflict do nothing;
+
+insert into public.multipliers (player_id, source, used_week)
+select p.id, 'patreon_jan', 8
+from public.players p
+where p.is_patreon = true
+on conflict do nothing;

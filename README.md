@@ -1,412 +1,262 @@
-Site: https://yaz-league.netlify.app
-https://github.com/RealDCLN/yaz-league
-Stack: static HTML/CSS/JS  GitHub  Netlify auto-deploy
-Supabase backend (project: bgjprkmpyraflesqovos)
-Admin at /admin, logged in with admin@example.com.
+# YAZ LEAGUE · WINTER 2026-27
 
+**«Το απόλυτο πρωτάθλημα γεωγραφίας»** — η επίσημη ιστοσελίδα της YAZ LEAGUE, της διοργάνωσης γεωγραφίας του **DE.VOYAGEUR**.
 
+Static site (HTML / CSS / JS, χωρίς build step) με προαιρετικό backend στο **Supabase**.
 
+- Site: https://yaz-league.netlify.app
+- Repo: https://github.com/RealDCLN/yaz-league
+- Admin: `/admin` (σύνδεση με τον λογαριασμό διαχειριστή του Supabase)
 
-# YAZ LEAGUE
+---
 
-**«Το απόλυτο πρωτάθλημα γεωγραφίας»** - επίσημη ιστοσελίδα της YAZ LEAGUE, της εβδομαδιαίας διοργάνωσης γεωγραφίας του **DE.VOYAGEUR**.
+## Η διοργάνωση
 
-Static site (HTML/CSS/JS, χωρίς build step) με προαιρετικό backend στο **Supabase**.
+| | |
+|---|---|
+| **Σεζόν** | Winter 2026-27 |
+| **Ημέρα & ώρα** | Κάθε Παρασκευή **19:30** (εξαίρεση: Πέμπτη **3/12**) |
+| **Πλατφόρμα** | GeoGuessr **Party Mode** + ζωντανή μετάδοση στο YouTube |
+| **Προκριματικά** | **12 αγωνιστικές** |
+| **Πρόκριση** | Top **16** → 4 pots → 4 όμιλοι → **Final-8** |
+| **Τελικός** | 1v1 GeoQuiz (προημιτελικά, ημιτελικά, τελικός + μικρός τελικός) |
+
+### Αγωνιστική
+
+1. **Concept Map** — χάρτης με ~25 τοποθεσίες που μοιράζονται ένα κοινό concept. Οι 10 πρώτοι παίρνουν **12, 9, 8, 7, 6, 5, 4, 3, 2, 1** πόντους. Ο πρώτος που βρίσκει το concept παίρνει **+3**.
+2. **Γεωγραφικό Quiz** — 25 ερωτήσεων, ίδια κλίμακα πόντων.
+3. **Wild Card** — ο παίκτης με τους περισσότερους συνολικούς πόντους (χάρτης + quiz) της αγωνιστικής κερδίζει **1 wild card**. Σε ισοπαλία το παίρνουν όλοι οι ισόπαλοι πρώτοι.
+
+Μέγιστο ανά αγωνιστική: **12 + 12 + 3 = 27 πόντοι**.
+
+### Χ2
+
+- **Patreon VIVRE CARD (5€/μήνα):** ένα Χ2 τον **Δεκέμβριο** και ένα τον **Ιανουάριο** για όσους έχουν ενεργή μηνιαία συνδρομή.
+- **Εορταστικές αγωνιστικές 25/12 & 01/01:** δύο τυχαίοι παίκτες κερδίζουν από ένα Χ2.
+- Το Χ2 διπλασιάζει τους πόντους **ολόκληρης της αγωνιστικής** (χάρτης + quiz + concept bonus).
+- Κάθε παίκτης μπορεί να έχει **ένα μόνο Χ2 ανά αγωνιστική**.
+
+### Φάσεις
+
+- Μετά τις 12 εβδομάδες, οι **16 πρώτοι** χωρίζονται σε 4 γκρουπ δυναμικότητας: **1–4, 5–8, 9–12, 13–16**.
+- Κλήρωση: ένας παίκτης από κάθε pot σε κάθε όμιλο (A–D).
+- Φάση ομίλων: 4 όμιλοι × 4 παίκτες, round robin. Οι **2 πρώτοι** κάθε ομίλου προκρίνονται.
+- Final-8: προημιτελικά → ημιτελικά → τελικός, όλα σε **1v1 GeoQuiz**. Ο μικρός τελικός κρίνει το χάλκινο.
+
+### Βραβεία
+
+- Μετάλλια στους **3 πρώτους**.
+- Κεντρικό βραβείο στον πρωταθλητή (ανακοινώνεται στην πορεία).
 
 ---
 
 ## Σχεδιαστική κατεύθυνση
 
-Νυχτερινός χαρτογραφικός πίνακας: βαθύ ωκεάνιο navy, dot-matrix παγκόσμιος χάρτης,
-πλέγμα συντεταγμένων, κόκκινο pin τύπου GeoGuessr και περγαμηνή για το εγχειρίδιο κανόνων.
-Η αίσθηση είναι «χάρτης αποστολής» με HUD στοιχεία, όχι απλό dark theme.
+Νυχτερινός χαρτογραφικός πίνακας: βαθύ ωκεάνιο navy, dot-matrix παγκόσμιος χάρτης, πλέγμα συντεταγμένων, κόκκινο pin τύπου GeoGuessr και περγαμηνή για το ημερολόγιο αγωνιστικών.
 
-- Γραμματοσειρές: **Cinzel** / **Cinzel Decorative** (τίτλοι), **Inter** (κείμενο), **JetBrains Mono** (νούμερα, HUD)
+- Γραμματοσειρές: **Cinzel / Cinzel Decorative** (τίτλοι), **Inter** (κείμενο), **JetBrains Mono** (νούμερα, HUD)
 - Χρώματα: `#071523` ocean · `#F1E6CC` parchment · `#E8B94A` gold · `#E8402E` pin red · `#57C7BC` map teal
-- Χάρτης: `assets/world-dots.svg` (dot-matrix ήπειροι + graticule) και `assets/topo-lines.svg` (contour lines στην περγαμηνή)
-- Χαρτογραφικά δεδομένα: Natural Earth 1:110m land (public domain)
-- Κίνηση: pin-drop στο hero, αργό dashed route, διακριτικά reveals, live badge κάτω από 1 ώρα
-
----
-
-## Τι περιλαμβάνει
-
-| Σελίδα | Περιεχόμενο |
-|---|---|
-| `index.html` | Hero + countdown, κατάταξη με οπτική ομαδοποίηση ανά 4, κανόνες, εγγραφή |
-| `admin.html` | Κρυφό portal διαχείρισης (`/admin`) |
-| `404.html` | Σελίδα σφάλματος |
-
-**Λειτουργίες**
-
-- Countdown στην επόμενη Παρασκευή 19:00 με LIVE badge στο τελευταίο 60λεπτο
-- Κατάταξη με ταξινομήσιμες στήλες, μετακίνηση θέσης (▲▼), και **οπτική ομαδοποίηση ανά 4 θέσεις**
-  (εναλλασσόμενη λωρίδα + διαχωριστικό κάθε 4), χρυσά/ασημένια/χάλκινα top-3
-- Modal προφίλ: Group badge, XP bar προς τον πρωτοπόρο, στατιστικά, γράφημα πορείας θέσης (Chart.js)
-- Φόρμα εγγραφής (username GeoGuessr, όνομα, έτος γέννησης, πόλη/περιφερειακή ενότητα) με honeypot
-- Admin: αυτόματοι πόντοι, concept bonus, live preview, εγκρίσεις, ιστορικό
+- Assets: `assets/world-dots.svg`, `assets/topo-lines.svg`
 
 ---
 
 ## Δομή αρχείων
 
 ```
-
 yaz-league/
-├── index.html
-├── admin.html
+├── index.html                  Δημόσια σελίδα
+├── admin.html                  Admin portal (/admin)
 ├── 404.html
 ├── robots.txt
-├── netlify.toml
-├── .env.example
-├── README.md
-├── assets/
-│   ├── favicon.svg
-│   ├── world-dots.svg ← dot-matrix παγκόσμιος χάρτης
-│   ├── topo-lines.svg  ← contour lines για την περγαμηνή
-│   ├── og-image.svg
-│   └── og-image.png   ← χρησιμοποιείται στα social previews
+├── netlify.toml                Build, redirects, security headers
+├── js/
+│   ├── config.js               ⚙️ Ημερομηνίες, links, βαθμολογία, format
+│   ├── seed.js                 Demo δεδομένα (24 παίκτες, 12 αγωνιστικές, φάσεις)
+│   ├── stats.js                Κατάταξη, wild cards, Χ2, όμιλοι, bracket
+│   ├── data.js                 Supabase ή demo, εγγραφές
+│   ├── app.js                  Δημόσια σελίδα
+│   └── admin.js                Admin panel
 ├── css/
 │   ├── styles.css
 │   └── admin.css
-├── js/
-│   ├── config.js      ← ⚙️ ρυθμίσεις, links, groupSize
-│   ├── seed.js        ← demo δεδομένα (40 παίκτες, 8 εβδομάδες)
-│   ├── stats.js       ← στατιστικά + ομαδοποίηση + μετακίνηση θέσης
-│   ├── data.js        ← Supabase ή demo
-│   ├── app.js         ← αρχική σελίδα
-│   └── admin.js       ← διαχείριση
+├── assets/
 └── supabase/
-    ├── schema.sql
-    ├── seed.sql
+    ├── schema.sql              Πλήρες schema (source of truth)
+    ├── seed.sql                Demo δεδομένα
     └── migrations/
         ├── 002_first_name_only.sql
         ├── 003_security_hardening.sql
-        └── 004_username_birth_year_city.sql
-
+        ├── 004_username_birth_year_city.sql
+        └── 005_winter_2026_27.sql   ← Χ2, Patreon, όμιλοι, bracket
 ```
 
 ---
 
-## Γρήγορη εκκίνηση (demo mode)
+## Demo mode
 
-Το site τρέχει **αμέσως**, χωρίς καμία ρύθμιση, με 40 demo παίκτες και 8 αγωνιστικές.
+Το site τρέχει αμέσως χωρίς καμία ρύθμιση:
 
 1. Κατέβασε τον φάκελο.
 2. Άνοιξε το `index.html`.
 
-> Στο demo mode η φόρμα εγγραφής δείχνει επιτυχία αλλά **δεν αποθηκεύει** πουθενά.
+Αν `supabaseUrl` / `supabaseAnonKey` είναι κενά, φορτώνεται το `js/seed.js`: 24 παίκτες, πλήρης σεζόν 12 αγωνιστικών, Χ2, όμιλοι και ολοκληρωμένο Final-8. Η φόρμα εγγραφής δείχνει επιτυχία αλλά **δεν αποθηκεύει** πουθενά.
 
 ---
 
-## Ρύθμιση Supabase (βήμα-βήμα)
+## Supabase setup
 
-### Βήμα 1 - Δημιουργία project
-1. [supabase.com](https://supabase.com) → **New project**
-2. Όνομα (π.χ. `yaz-league`), password βάσης, region Frankfurt.
-3. Περίμενε ~2 λεπτά.
+### 1. Project
 
-### Βήμα 2 - Εκτέλεση του schema
-1. **SQL Editor** → **New query**.
-2. Άνοιξε το `supabase/schema.sql`.
-3. Πριν το τρέξεις, άλλαξε μέσα στη συνάρτηση `public.is_admin()` τη γραμμή:
-   ```sql
-   admin_email constant text := 'admin@example.com';
-   ```
+[supabase.com](https://supabase.com) → New project.
 
-βάζοντας **το δικό σου email** (το ίδιο με τον λογαριασμό admin στο Supabase Auth).
+### 2. Schema
 
-4. Επικόλλησε και πάτησε **Run**. Πρέπει να δεις `Success`.
+SQL Editor → New query → επικόλλησε **ολόκληρο** το `supabase/schema.sql` → Run.
 
-### Βήμα 3 - (Προαιρετικά) Seed
+Το schema είναι idempotent. Περιλαμβάνει:
 
-1. **SQL Editor** → **New query**.
-2. Επικόλλησε το `supabase/seed.sql` → **Run**.
+- `players`, `matches`, `results`, `registrations`
+- `multipliers` (Χ2), `group_members`, `phase_matches`
+- RLS, column-level grants, anti-spam trigger
+- `public.is_admin()` — γύρνα το `admin_email` στο δικό σου email
 
-### Βήμα 4 - Λογαριασμός διαχειριστή
+### 3. Migration σε υπάρχουσα βάση
 
-1. **Authentication** → **Users** → **Add user** → **Create new user**.
-2. Email: αυτό που έβαλες στο schema.
-3. Password: δικό σου.
-4. Επιβεβαίωσε τον χρήστη (Auto Confirm).
-
-### Βήμα 5 - Αντιγραφή keys
-
-**Project Settings** → **API**:
-
-- **Project URL** → `https://abcdefghijk.supabase.co`
-- **Publishable key** → `sb_publishable_...` (ή το παλιό **anon public** `eyJ...`)
-
-> ⚠️ **Ποτέ** `service_role` / secret key στο front-end. Το publishable/anon
-> key είναι ασφαλές **μόνο** όταν τα RLS + grants είναι σωστά (όπως στο `schema.sql`).
-
-### Βήμα 6 - Επεξεργασία του `js/config.js`
+Αν η βάση έχει ήδη τα παλιά tables, τρέξε μόνο:
 
 ```
-supabaseUrl: 'https://abcdefghijk.supabase.co',
-supabaseAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+supabase/migrations/005_winter_2026_27.sql
 ```
 
-Και οι σύνδεσμοι:
+Αυτό προσθέτει `players.is_patreon`, `multipliers`, `group_members`, `phase_matches`, policies και grants. **Δεν** πειράζει παίκτες, αγωνιστικές ή αποτελέσματα.
 
+Χωρίς το migration 005:
+
+- Η κατάταξη και η καταχώριση αγωνιστικών δουλεύουν κανονικά.
+- Το admin εμφανίζει προειδοποίηση και τα tabs **Χ2 & Patreon** / **Φάσεις** δεν μπορούν να γράψουν.
+
+### 4. Admin user
+
+Authentication → Users → Add user → email ίδιο με το `admin_email` του `is_admin()`.
+
+### 5. Keys
+
+Project Settings → API:
+
+- Project URL → `js/config.js` → `supabaseUrl`
+- Publishable / anon key → `js/config.js` → `supabaseAnonKey`
+
+> Ποτέ `service_role` / secret key στο front-end.
+
+### 6. Demo seed (προαιρετικό)
+
+SQL Editor → `supabase/seed.sql` → Run. Σπέρνει 24 παίκτες, 12 αγωνιστικές και τα Patreon Χ2. Τους ομίλους τους κάνεις από το admin.
+
+---
+
+## Admin panel
+
+`https://yaz-league.netlify.app/admin`
+
+### Αγωνιστική
+
+1. Διάλεξε αγωνιστική — η ημερομηνία συμπληρώνεται από το πρόγραμμα.
+2. Συμπλήρωσε δύο λίστες: **Concept Map** και **Quiz**, με σειρά κατάταξης.
+3. Οι πόντοι υπολογίζονται αυτόματα. Τσέκαρε **+3** σε **έναν** παίκτη του χάρτη.
+4. Η προεπισκόπηση δείχνει σύνολο, Χ2 και wild card.
+5. **Αποθήκευση αγωνιστικής** — γράφει και τα δύο σκέλη της εβδομάδας.
+
+Η ίδια οθόνη ανοίγει υπάρχουσα αγωνιστική για διόρθωση. Η αποθήκευση αντικαθιστά τα αποτελέσματα της εβδομάδας.
+
+### Χ2 & Patreon
+
+- Ενεργοποίησε/απενεργοποίησε **Patreon** ανά παίκτη.
+- Για κάθε συνδρομητή διάλεξε σε ποια εβδομάδα του **Δεκεμβρίου** και του **Ιανουαρίου** χρησιμοποιεί το Χ2.
+- Στις εορταστικές αγωνιστικές πάτησε **Κλήρωση 2 παικτών**. Το Χ2 εφαρμόζεται αυτόματα στην ίδια αγωνιστική (μπορείς να το αλλάξεις).
+- Ο πίνακας **Χ2 ανά αγωνιστική** δείχνει όλους τους πολλαπλασιαστές και προειδοποιεί για διπλοεγγραφές.
+
+### Φάσεις
+
+1. Όταν ολοκληρωθούν οι 12 αγωνιστικές, πάτησε **Κλήρωση ομίλων**. Γίνεται τυχαία κλήρωση μέσα σε κάθε pot και δημιουργούνται οι 24 αγώνες.
+2. Καταχώρισε τα σκορ των ομίλων. Δεν επιτρέπεται ισοπαλία στο 1v1.
+3. **Προχώρησε στην επόμενη φάση**:
+   - όμιλοι → προημιτελικά
+   - προημιτελικά → ημιτελικά
+   - ημιτελικά → τελικός + μικρός τελικός
+4. Αν αλλάξεις σκορ προηγούμενης φάσης, το panel ζητά επιβεβαίωση και καθαρίζει τις επόμενες φάσεις ώστε να μη μείνει stale bracket.
+5. **Επαναφορά φάσεων** διαγράφει όμιλοι + bracket, όχι τα προκριματικά.
+
+### Εγγραφές
+
+Έγκριση → δημιουργεί παίκτη. Απόρριψη → κλείνει την αίτηση. Το username του GeoGuessr, η ηλικία και η περιοχή μένουν ιδιωτικά (δεν εκδίδονται στο δημόσιο API).
+
+### Ιστορικό
+
+Άνοιγμα αγωνιστικής για επεξεργασία ή διαγραφή και των δύο σκελών.
+
+---
+
+## Ρυθμίσεις
+
+Όλα στο `js/config.js`:
+
+```js
+schedule: [
+  { week: 1, date: '2026-11-20T19:30:00+02:00' },
+  ...
+  { week: 3, date: '2026-12-03T19:30:00+02:00', label: 'Πέμπτη' },
+  { week: 6, date: '2026-12-25T19:30:00+02:00', holiday: true },
+  { week: 7, date: '2027-01-01T19:30:00+02:00', holiday: true }
+]
 ```
-links: {
-  discord:   'https://discord.gg/ΤΟ-ΠΡΑΓΜΑΤΙΚΟ-INVITE',
-  tiktok:    'https://www.tiktok.com/@de.voyageur',
-  youtube:   'https://www.youtube.com/@de.voyageur',
-  instagram: 'https://www.instagram.com/de.voyageur/'
-}
-```
+
+- Άλλαξε την πρώτη ημερομηνία για μετακίνηση ολόκληρης της σεζόν.
+- `points`, `conceptBonus`, `multiplier`, `format` ελέγχουν βαθμολογία και δομή.
+- `links.patreon` μπορεί να μείνει κενό· το site δείχνει «Ρώτα στο Discord».
+- Τα ονόματα εμφανίζονται πάντα ΚΕΦΑΛΑΙΑ (client + DB trigger).
 
 ---
 
 ## Deployment
 
-### Netlify (συνδεδεμένο GitHub repo - προτεινόμενο)
+### Netlify (συνδεδεμένο GitHub repo)
 
-1. **Add new site** → **Import an existing project** → διάλεξε το repo.
-2. Άφησε τις default ρυθμίσεις· το `netlify.toml` ορίζει build + publish.
-3. Το build αντιγράφει **μόνο** τα αρχεία του site σε έναν φάκελο `dist/`.
-   `README.md`, `supabase/`, `*.sql`, `*.bat`, `.env*` και `.git/` **δεν
-   δημοσιεύονται καθόλου** - άρα δεν υπάρχουν ούτε με άλλα κεφαλαία/πεζά.
-4. **Site settings** → **Change site name** → `yaz-league`.
+Το `netlify.toml` ορίζει:
 
-Το `/admin` δουλεύει αυτόματα χάρη στο `netlify.toml`.
-
-### Netlify (drag & drop)
-
-Το drag & drop του **root** φακέλου δεν δουλεύει πλέον, γιατί το publish
-είναι το `dist/`. Τρέξε πρώτα το build command του `netlify.toml` (ή απλά
-σύνδεσε το GitHub repo) και σύρε μόνο τον φάκελο `dist/`.
-
-> **GitHub Pages:** μην το χρησιμοποιείς για αυτό το project. Δημοσιεύει
-> όλο το repo (README, SQL, scripts) και δεν έχει τα security headers του
-> Netlify. Αν το κρατήσεις, μπες χειροκίνητα στο `/admin.html`.
-
----
-
-## Πώς καταχωρείς τα αποτελέσματα
-
-1. `https://το-site-σου/admin` → σύνδεση.
-2. **«Νέα αγωνιστική»**:
-
-- Νούμερο αγωνιστικής.
-- Ημερομηνία (αυτόματη: επόμενη Παρασκευή 19:00).
-- **Χάρτης** ή **Quiz**.
-
-3. **«+ Πρόσθεσε παίκτη»** - με σειρά κατάταξης (πρώτος ο νικητής).
-
-- Πόντοι αυτόματοι (12-9-8-…-1).
-- Στον χάρτη τσέκαρε **«+3»** σε όποιον βρήκε το concept.
-- Βελάκια ↑↓ αλλάζουν σειρά.
-
-4. Δες την **προεπισκόπηση**.
-5. **«Αποθήκευση αγωνιστικής»** - η κατάταξη ενημερώνεται αμέσως.
-
-Επαναλαμβάνεις δύο φορές: μία για Χάρτη, μία για Quiz.
-
-### Εγκρίσεις εγγραφών
-
-**«Εγγραφές»** → **Έγκριση** (δημιουργεί παίκτη) ή **Απόρριψη**.
-
-### Διόρθωση λάθους
-
-**«Αγωνιστικές»** → **×** για διαγραφή → ξανακαταχώριση.
-
----
-
-## Αλλαγή ημερομηνίας / ομαδοποίησης
-
-`js/config.js`:
-
-```
-nextMatch: { weekNumber: 12, isoDate: '2026-12-04T20:00:00+02:00' }
+```toml
+command = "rm -rf dist && mkdir -p dist && cp index.html admin.html 404.html robots.txt dist/ && cp -R assets css js dist/"
+publish = "dist"
 ```
 
-Άφησέ τα `null` για αυτόματο υπολογισμό.
+Δηλαδή δημοσιεύονται μόνο τα αρχεία του site — όχι README, SQL, `.env`, `.bat` ή `.git`.
 
-Η ομαδοποίηση της κατάταξης:
+Κάθε push στο `main` κάνει auto-deploy. Το `/admin` δουλεύει μέσω redirect.
 
+### Τοπικά
+
+Άνοιξε το `index.html`, ή σήκωσε έναν static server:
+
+```bash
+python -m http.server 8080
 ```
-groupSize: 4
-```
-
-Κάθε N θέσεις σχηματίζουν μία οπτική ομάδα (εναλλασσόμενη λωρίδα + διαχωριστικό). Χωρίς ονόματα.
 
 ---
 
 ## Ασφάλεια
 
-Ο πραγματικός έλεγχος γίνεται **στη βάση (RLS + grants)**, όχι στον browser.
-Το front-end δεν είναι μυστικό: ο anon/publishable key είναι δημόσιος by design.
-
-| Πίνακας | `anon` (δημόσιος επισκέπτης) | `authenticated` (admin) |
-|---|---|---|
-| `players` | SELECT μόνο `id, nickname, joined_at, is_active` | ALL (RLS: μόνο admin) |
-| `matches` | SELECT | ALL (RLS: μόνο admin) |
-| `results` | SELECT | ALL (RLS: μόνο admin) |
-| `registrations` | INSERT μόνο `nickname, first_name, birth_year, city` (`pending`) | SELECT / UPDATE(status) / DELETE (RLS: μόνο admin) |
-
-**Σημαντικό για τα προσωπικά πεδία:** η κατάταξη δείχνει μόνο το username, αλλά
-παλιότερα το `players.first_name` ήταν αναγνώσιμο από τον δημόσιο REST API
-(`/rest/v1/players?select=first_name`). Το migration 003 το κλείνει σε επίπεδο
-column privileges. Το ίδιο ισχύει για τα `birth_year` και `city` του migration
-004: δεν δίνονται ποτέ στον `anon`. Αν δεν τα τρέξεις, οποιοσδήποτε έχει τον
-δημόσιο key μπορεί να διαβάσει τα προσωπικά στοιχεία των παικτών - ακόμα κι αν
-δεν φαίνονται στο site.
-
-Επιπλέον:
-- Server-side constraints για μήκος/control chars σε nickname, first_name και city, καθώς και εύρος για birth_year.
-- Case-insensitive uniqueness στα nicknames (`DCLN` = `dcln`).
-- Μία μόνο εκκρεμής αίτηση ανά nickname.
-- Rate limit στη φόρμα εγγραφής: max 5 αιτήσεις / 15 λεπτά ανά IP (η IP
-  αποθηκεύεται μόνο ως md5 hash).
-- Το `status` της εγγραφής αναγκάζεται σε `pending` από trigger - ο client δεν
-  μπορεί να αυτοεγκριθεί.
-- CSP, HSTS, `X-Frame-Options: DENY`, `Permissions-Policy`, `noindex` στο admin.
-- Τα CDN scripts είναι pinned + έχουν SRI hashes (αν αλλάξει το αρχείο στο CDN,
-  ο browser δεν το εκτελεί).
-- Το Netlify **δεν σερβίρει** `README.md`, `supabase/*`, `*.sql`, `*.md`,
-  `*.bat`, `netlify.toml`, `.env*` ή `.git/*` (επιστρέφουν 404). Αν όμως το
-  αποθετήριο στο GitHub είναι δημόσιο, αυτά φαίνονται στο GitHub· κάνε το repo
-  **private** αν θέλεις να μη βλέπει κανείς τον κώδικα/το schema.
-
-### Αν έχεις ήδη βάση - τρέξε τα migration
-
-Στο **Supabase → SQL Editor**, τρέξε ολόκληρα τα:
-
-```
-supabase/migrations/003_security_hardening.sql
-supabase/migrations/004_username_birth_year_city.sql
-```
-
-Είναι idempotent. Το 004 προσθέτει `birth_year` + `city`, κάνει όλα τα
-ονόματα/usernames ΚΕΦΑΛΑΙΑ (και στα υπάρχοντα δεδομένα) και δίνει στη φόρμα
-δικαίωμα εγγραφής στα νέα πεδία. Πριν το τρέξεις, έλεγξε για διπλά ονόματα:
-
-```sql
-select lower(btrim(nickname)), count(*) from public.players
-group by 1 having count(*) > 1;
-
-select lower(btrim(nickname)), count(*) from public.registrations
-where status = 'pending' group by 1 having count(*) > 1;
-```
-
-Αν βρεις διπλά, διόρθωσε/διάγραψε τα πρώτα, αλλιώς το unique index θα αποτύχει.
-
-### Ρυθμίσεις στο dashboard του Supabase (χειροκίνητα)
-
-Αυτές δεν γίνονται από κώδικα - κάν' τες μία φορά:
-
-1. **Authentication → Sign In / Providers → Email**: κλείσε το **Enable sign ups**.
-   Δεν χρειάζονται δημόσιοι λογαριασμοί· μόνο ο admin συνδέεται. Έτσι κανείς
-   δεν μπορεί να δημιουργήσει `authenticated` χρήστη.
-2. **Authentication → URL Configuration**: βάλε ως Site URL
-   `https://yaz-league.netlify.app` και καθάρισε τα υπόλοιπα redirect URLs.
-3. **Authentication → Rate Limits / CAPTCHA**: άφησε τα default rate limits
-   (ή σφίξε τα) και, αν θέλεις, ενεργοποίησε CAPTCHA στο login.
-4. **Project Settings → API**: χρησιμοποίησε μόνο το publishable/anon key στο
-   front-end. Το `service_role`/secret key **ποτέ** σε HTML/JS/repo.
-5. **Project Settings → API → Data API**: αν δεν χρησιμοποιείς GraphQL, κλείσε
-   το `pg_graphql` για μικρότερη επιφάνεια επίθεσης.
-6. **Database → Backups**: ενεργοποίησε backups/PITR αν είναι διαθέσιμο.
-
-### Γιατί δεν φοβόμαστε SQL injection / XSS / CSRF
-
-- **SQL injection**: το site δεν γράφει raw SQL. Το `supabase-js` στέλνει
-  parameterized filters στο PostgREST. Δεν υπάρχει `eval` ή dynamic SQL.
-- **XSS**: όλα τα DB πεδία περνούν από `escapeHtml`/`textContent` πριν μπουν στο
-  DOM, και το CSP μπλοκάρει inline scripts.
-- **CSRF**: η αυθεντικοποίηση γίνεται με bearer token (localStorage), όχι cookies,
-  οπότε δεν υπάρχει cross-site request με αυτόματο cookie. Το ρίσκο είναι XSS
-  (κλοπή session) - γι' αυτό υπάρχει CSP + SRI.
-- **Clickjacking**: `frame-ancestors 'none'` + `X-Frame-Options: DENY`.
-- **Δημόσια δεδομένα**: η βαθμολογία είναι δημόσια by design. Οποιοσδήποτε μπορεί
-  να τη scrape-άρει· αυτό δεν είναι breach. Τα προσωπικά πεδία είναι το ζήτημα.
-
-### Έλεγχος μετά το migration
-
-Τρέξε στο SQL Editor:
-
-```sql
--- Πρέπει να βλέπεις μόνο τα policies που περιγράφονται παραπάνω
-select tablename, policyname, roles, cmd, qual, with_check
-from pg_policies where schemaname = 'public' order by tablename, policyname;
-
--- Πρέπει το anon να έχει μόνο SELECT στα public tables και στενό INSERT
--- στα registrations - όχι UPDATE/DELETE.
-select table_name, grantee, privilege_type
-from information_schema.role_table_grants
-where table_schema = 'public' and grantee in ('anon','authenticated')
-order by table_name, grantee, privilege_type;
-
--- Πρέπει να μη βλέπεις first_name για το anon.
-select table_name, column_name, grantee, privilege_type
-from information_schema.column_privileges
-where table_schema = 'public' and grantee = 'anon'
-order by table_name, column_name;
-```
-
-Και από τη console του browser (ή curl) με τον δημόσιο key:
-
-```js
-// Πρέπει να επιστρέψει permission denied - ΟΧΙ τα ονόματα.
-fetch('https://bgjprkmpyraflesqovos.supabase.co/rest/v1/players?select=first_name', {
-  headers: { apikey: 'sb_publishable_...' }
-}).then(r => r.status).then(console.log);
-```
-
-Αν επιστρέφει `200` με ονόματα, το migration δεν έχει εφαρμοστεί.
+- Το δημόσιο API εκδίδει μόνο `id, nickname, joined_at, is_active, is_patreon` από τους παίκτες.
+- `first_name` (το ιδιωτικό username του GeoGuessr), `birth_year`, `city` είναι διαθέσιμα **μόνο** στον admin.
+- RLS παντού + column-level grants.
+- Ο έλεγχος admin γίνεται server-side με `public.is_admin()` από το JWT.
+- Anti-spam: 5 αιτήσεις / 15 λεπτά ανά IP hash.
+- CSP, SRI στα CDN scripts, security headers στο `netlify.toml`.
 
 ---
 
-## Προσαρμογή εμφάνισης
+## Τεχνικές σημειώσεις
 
-Στην κορυφή του `css/styles.css`:
-
-```
-:root{
-  --night:#071523;
-  --parchment:#F1E6CC;
-  --gold:#E8B94A;
-  --pin:#E8402E;
-  --terracotta:#E8402E;
-  --teal:#57C7BC;
-}
-```
-
----
-
-## Αντιμετώπιση προβλημάτων
-
-**Demo δεδομένα στην κατάταξη** → Κενά/λάθος keys στο `js/config.js`. Δες console (F12) για `[YAZ] Supabase δεν απάντησε`.
-
-**Κενή κατάταξη / σφάλμα φόρτωσης** → Αν τα keys είναι σωστά αλλά το Supabase δεν απαντήσει, το site δείχνει error state αντί να πέσει σε demo. Έλεγξε το console (F12).
-
-**«Ο λογαριασμός δεν έχει δικαιώματα διαχειριστή»** → Το email στη συνάρτηση `is_admin()` (μέσα στο `schema.sql`) δεν ταιριάζει με το email του λογαριασμού admin στο Supabase Auth. Διόρθωσε το `admin_email` και ξανατρέξε το schema ή το migration.
-
-**«Υπάρχει ήδη καταχώριση»** → Διάγραψε την παλιά από **«Αγωνιστικές»**.
-
-**Σφάλμα εγγραφής: `PGRST204 - Could not find the 'first_name' / 'birth_year' / 'city' column of 'registrations'`** → Ο πίνακας `registrations` στη βάση δημιουργήθηκε με παλαιότερο schema. Το deployment της σελίδας είναι καινούργιο, αλλά η βάση όχι. Τρέξε τα `supabase/migrations/002_first_name_only.sql` και `supabase/migrations/004_username_birth_year_city.sql` στο **SQL Editor** (ή ξανατρέξε όλο το `schema.sql`, που τώρα περιέχει τα αντίστοιχα `alter table ... add/drop column if exists`). Μετά περίμενε λίγα δευτερόλεπτα ή κάνε refresh - το `notify pgrst, 'reload schema';` ανανεώνει το cache αμέσως. Σημείωση: η φόρμα και η βάση κρατούν πλέον ΜΟΝΟ `nickname` + `first_name` + `birth_year` + `city` - οι παλιές στήλες `email`, `geoguessr_url`, `discord` διαγράφονται από τη μετακίνηση.
-
-**Ο δημόσιος API επιστρέφει τα προσωπικά πεδία (`players.first_name`, `birth_year`, `city`)** → Δεν έχει τρέξει το `supabase/migrations/003_security_hardening.sql` / `004_username_birth_year_city.sql`. Δες την ενότητα **Ασφάλεια** παραπάνω.
-
-**Η φόρμα εγγραφής λέει «Πολλές αιτήσεις»** → Το anti-spam trigger επιτρέπει 5 αιτήσεις / 15 λεπτά ανά IP. Περίμενε λίγα λεπτά ή δοκίμασε από άλλο δίκτυο. Για μαζικό seed, τρέξε SQL από το SQL Editor (εκεί το rate limit παραλείπεται).
-
-**Το admin panel λέει «permission denied for table ...»** → Τρέξε το `003_security_hardening.sql`. Βεβαιώσου επίσης ότι συνδέεσαι με το ίδιο email που είναι δηλωμένο στο `is_admin()` μέσα στο `schema.sql`.
-
----
-
-## Τεχνολογίες
-
-HTML5 · CSS3 · Vanilla JS · [Supabase](https://supabase.com/) · [Chart.js](https://www.chartjs.org/) · Google Fonts
-
----
-
-## Άδεια
-
-Το design και ο κώδικας ανήκουν στην YAZ LEAGUE / DE.VOYAGEUR.
-Τα demo δεδομένα είναι εικονικά.
-
----
-<p align="center"><em>Made by DCLN</em></p>
+- **Χ2 και κατάταξη:** τα `results.points` αποθηκεύουν τους base πόντους. Το διπλασιασμό τον εφαρμόζει το `stats.js` διαβάζοντας το `multipliers.used_week`. Έτσι διορθώνεται/αφαιρείται Χ2 χωρίς να ξαναγραφτούν αποτελέσματα.
+- **Wild cards:** υπολογίζονται από τα συνολικά effective points κάθε εβδομάδας (χάρτης + quiz). Δεν αποθηκεύονται σε ξεχωριστό table.
+- **Ισοπαλία κατάταξης:** πόντοι → wild cards → concept → καλύτερη εβδομάδα → όνομα.
+- **1v1:** δεν επιτρέπεται ισοπαλία. Το admin ζητά διαφορετικά σκορ.
+- **Migration 005 είναι απαραίτητο** για Χ2/φάσεις. Χωρίς αυτό, το site δουλεύει με graceful degradation.

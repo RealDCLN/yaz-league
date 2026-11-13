@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630" role="img" aria-label="YAZ LEAGUE · Το απόλυτο πρωτάθλημα γεωγραφίας">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630" role="img" aria-label="YAZ LEAGUE · Winter 2026-27 · Το απόλυτο πρωτάθλημα γεωγραφίας">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0%" stop-color="#0A2132"/>
@@ -30,11 +30,11 @@
     <circle cx="0" cy="38" r="6" fill="#FFD577"/>
   </g>
   <g font-family="Georgia, 'Times New Roman', serif">
-    <text x="80" y="208" font-size="28" fill="#57C7BC" letter-spacing="12" font-weight="600">ΣΕΖΟΝ 2 · ΓΕΩΓΡΑΦΙΑ</text>
+    <text x="80" y="208" font-size="25" fill="#57C7BC" letter-spacing="8" font-weight="600">WINTER 2026-27 · ΓΕΩΓΡΑΦΙΑ</text>
     <text x="80" y="352" font-size="128" fill="#F1E6CC" letter-spacing="6" font-weight="900">YAZ</text>
     <text x="80" y="472" font-size="128" fill="#E8B94A" letter-spacing="6" font-weight="900">LEAGUE</text>
     <text x="82" y="536" font-size="25" fill="#A9BAC7" font-style="italic">«Το απόλυτο πρωτάθλημα γεωγραφίας»</text>
-    <text x="82" y="584" font-size="16" fill="#72899A" letter-spacing="6">ΔΙΟΡΓΑΝΩΣΗ DE.VOYAGEUR · ONLINE · WEEKLY</text>
+    <text x="82" y="584" font-size="15" fill="#72899A" letter-spacing="4">ΔΙΟΡΓΑΝΩΣΗ DE.VOYAGEUR · ΚΑΘΕ ΠΑΡΑΣΚΕΥΗ 19:30</text>
   </g>
   <rect x="24" y="24" width="56" height="56" fill="none" stroke="#E8B94A" stroke-width="1.5" opacity=".5"/>
   <path d="M24 48h56M48 24v56" stroke="#E8B94A" stroke-width=".8" opacity=".35"/>

@@ -12,6 +12,8 @@
 
 create extension if not exists "pgcrypto";
 
+-- ΣΗΜΕΙΩΣΗ: Η στήλη first_name διατηρεί το ιστορικό όνομά της. Στο
+-- WINTER 2026-27 αποθηκεύει το ΙΔΙΩΤΙΚΟ username του GeoGuessr.
 create table if not exists public.players (
   id            uuid primary key default gen_random_uuid(),
   nickname      text not null unique,
@@ -19,7 +21,8 @@ create table if not exists public.players (
   birth_year    int,
   city          text,
   joined_at     timestamptz not null default now(),
-  is_active     boolean not null default true
+  is_active     boolean not null default true,
+  is_patreon    boolean not null default false
 );
 
 create table if not exists public.matches (
@@ -53,6 +56,46 @@ create table if not exists public.registrations (
                 check (status in ('pending', 'approved', 'rejected'))
 );
 
+-- ------------------------------------------------------------
+--  WINTER 2026-27: Χ2, όμιλοι και Final-8
+-- ------------------------------------------------------------
+create table if not exists public.multipliers (
+  id            uuid primary key default gen_random_uuid(),
+  player_id     uuid not null references public.players(id) on delete cascade,
+  source        text not null check (source in ('patreon_dec', 'patreon_jan', 'holiday')),
+  awarded_week  int,
+  used_week     int,
+  created_at    timestamptz not null default now(),
+  constraint multipliers_awarded_week_pos check (awarded_week is null or awarded_week > 0),
+  constraint multipliers_used_week_pos    check (used_week    is null or used_week    > 0)
+);
+
+create table if not exists public.group_members (
+  id           uuid primary key default gen_random_uuid(),
+  group_label  text not null check (group_label in ('A', 'B', 'C', 'D')),
+  player_id    uuid not null unique references public.players(id) on delete cascade,
+  seed_rank    int  not null check (seed_rank > 0),
+  pot          int  not null check (pot between 1 and 4),
+  created_at   timestamptz not null default now()
+);
+
+create table if not exists public.phase_matches (
+  id           uuid primary key default gen_random_uuid(),
+  phase        text not null check (phase in ('group', 'qf', 'sf', 'final', 'third')),
+  group_label  text check (group_label is null or group_label in ('A', 'B', 'C', 'D')),
+  round        int  not null default 1 check (round > 0),
+  slot         int  not null default 1 check (slot > 0),
+  player_a     uuid references public.players(id) on delete cascade,
+  player_b     uuid references public.players(id) on delete cascade,
+  score_a      int check (score_a is null or score_a >= 0),
+  score_b      int check (score_b is null or score_b >= 0),
+  winner_id    uuid references public.players(id) on delete set null,
+  played_at    timestamptz,
+  created_at   timestamptz not null default now(),
+  constraint phase_matches_distinct_players
+    check (player_a is null or player_b is null or player_a <> player_b)
+);
+
 -- Αν οι πίνακες υπήρχαν ήδη από παλαιότερη έκδοση του schema, το
 -- `create table if not exists` παραπάνω ΔΕΝ πειράζει τις στήλες τους.
 alter table public.registrations add column if not exists first_name text;
@@ -61,6 +104,7 @@ alter table public.registrations add column if not exists city       text;
 alter table public.players       add column if not exists first_name text;
 alter table public.players       add column if not exists birth_year int;
 alter table public.players       add column if not exists city       text;
+alter table public.players       add column if not exists is_patreon boolean not null default false;
 
 -- Μόνο hash της IP για το anti-spam rate limit. Δεν αποθηκεύεται η IP.
 alter table public.registrations add column if not exists client_hash text;
@@ -153,6 +197,19 @@ begin
     alter table public.results add constraint results_raw_score_nonneg
       check (raw_score is null or raw_score >= 0) not valid;
   end if;
+
+  if not exists (select 1 from pg_constraint where conname = 'multipliers_awarded_week_pos') then
+    alter table public.multipliers add constraint multipliers_awarded_week_pos
+      check (awarded_week is null or awarded_week > 0) not valid;
+  end if;
+  if not exists (select 1 from pg_constraint where conname = 'multipliers_used_week_pos') then
+    alter table public.multipliers add constraint multipliers_used_week_pos
+      check (used_week is null or used_week > 0) not valid;
+  end if;
+  if not exists (select 1 from pg_constraint where conname = 'phase_matches_distinct_players') then
+    alter table public.phase_matches add constraint phase_matches_distinct_players
+      check (player_a is null or player_b is null or player_a <> player_b) not valid;
+  end if;
 end $$;
 
 -- ------------------------------------------------------------
@@ -208,6 +265,23 @@ create index if not exists idx_regs_status          on public.registrations (sta
 create index if not exists idx_regs_client_hash     on public.registrations (client_hash, created_at);
 create index if not exists idx_regs_created_at      on public.registrations (created_at);
 
+-- WINTER 2026-27
+create unique index if not exists multipliers_patreon_uniq
+  on public.multipliers (player_id, source)
+  where source in ('patreon_dec', 'patreon_jan');
+create unique index if not exists multipliers_holiday_uniq
+  on public.multipliers (player_id, awarded_week)
+  where source = 'holiday';
+create unique index if not exists multipliers_one_per_week
+  on public.multipliers (player_id, used_week)
+  where used_week is not null;
+create index if not exists idx_multipliers_week   on public.multipliers (used_week);
+create index if not exists idx_multipliers_player on public.multipliers (player_id);
+create index if not exists idx_group_members_group on public.group_members (group_label);
+create unique index if not exists phase_matches_slot_uniq
+  on public.phase_matches (phase, coalesce(group_label, '-'), slot);
+create index if not exists idx_phase_matches_phase on public.phase_matches (phase);
+
 -- ------------------------------------------------------------
 --  RLS
 -- ------------------------------------------------------------
@@ -215,6 +289,9 @@ alter table public.players       enable row level security;
 alter table public.matches       enable row level security;
 alter table public.results       enable row level security;
 alter table public.registrations enable row level security;
+alter table public.multipliers   enable row level security;
+alter table public.group_members enable row level security;
+alter table public.phase_matches enable row level security;
 
 -- Βοηθητική συνάρτηση: είναι ο συνδεδεμένος χρήστης ο διαχειριστής;
 -- >>> ΑΛΛΑΞΕ ΤΟ EMAIL ΕΔΩ <<<
@@ -288,6 +365,34 @@ drop policy if exists "registrations_admin_delete" on public.registrations;
 create policy "registrations_admin_delete"
   on public.registrations for delete to authenticated using (public.is_admin());
 
+-- WINTER 2026-27: Χ2, όμιλοι, bracket
+drop policy if exists "multipliers_public_read" on public.multipliers;
+create policy "multipliers_public_read"
+  on public.multipliers for select to anon, authenticated using (true);
+
+drop policy if exists "multipliers_admin_all" on public.multipliers;
+create policy "multipliers_admin_all"
+  on public.multipliers for all to authenticated
+  using (public.is_admin()) with check (public.is_admin());
+
+drop policy if exists "group_members_public_read" on public.group_members;
+create policy "group_members_public_read"
+  on public.group_members for select to anon, authenticated using (true);
+
+drop policy if exists "group_members_admin_all" on public.group_members;
+create policy "group_members_admin_all"
+  on public.group_members for all to authenticated
+  using (public.is_admin()) with check (public.is_admin());
+
+drop policy if exists "phase_matches_public_read" on public.phase_matches;
+create policy "phase_matches_public_read"
+  on public.phase_matches for select to anon, authenticated using (true);
+
+drop policy if exists "phase_matches_admin_all" on public.phase_matches;
+create policy "phase_matches_admin_all"
+  on public.phase_matches for all to authenticated
+  using (public.is_admin()) with check (public.is_admin());
+
 -- ------------------------------------------------------------
 --  Table / column privileges (defense in depth πάνω από τα RLS)
 --  Το Supabase δίνει από προεπιλογή πολλά δικαιώματα στο anon.
@@ -297,10 +402,13 @@ revoke all on public.players       from anon;
 revoke all on public.matches       from anon;
 revoke all on public.results       from anon;
 revoke all on public.registrations from anon;
+revoke all on public.multipliers   from anon;
+revoke all on public.group_members from anon;
+revoke all on public.phase_matches from anon;
 
 -- Το REVOKE ALL ON TABLE δεν πειράζει column-level grants. Καθάρισε
 -- ρητά και τυχόν παλιά column grant στο first_name.
-revoke all (id, nickname, first_name, birth_year, city, joined_at, is_active)
+revoke all (id, nickname, first_name, birth_year, city, joined_at, is_active, is_patreon)
   on public.players from anon;
 
 -- Defense in depth: τίποτα δεν πρέπει να κληρονομείται από το PUBLIC,
@@ -309,13 +417,19 @@ revoke all on public.players       from public;
 revoke all on public.matches       from public;
 revoke all on public.results       from public;
 revoke all on public.registrations from public;
+revoke all on public.multipliers   from public;
+revoke all on public.group_members from public;
+revoke all on public.phase_matches from public;
 revoke create on schema public from anon, authenticated;
 grant usage on schema public to anon, authenticated;
 
 -- Ο δημόσιος επισκέπτης βλέπει μόνο τα μη-ευαίσθητα πεδία των παικτών.
-grant select (id, nickname, joined_at, is_active) on public.players to anon;
+grant select (id, nickname, joined_at, is_active, is_patreon) on public.players to anon;
 grant select on public.matches to anon;
 grant select on public.results to anon;
+grant select on public.multipliers   to anon;
+grant select on public.group_members to anon;
+grant select on public.phase_matches to anon;
 
 -- Η φόρμα μπορεί να γράψει ΜΟΝΟ nickname + first_name + birth_year + city.
 -- Δεν μπορεί να ορίσει status/created_at/client_hash/id.
@@ -328,10 +442,16 @@ revoke all on public.players       from authenticated;
 revoke all on public.matches       from authenticated;
 revoke all on public.results       from authenticated;
 revoke all on public.registrations from authenticated;
+revoke all on public.multipliers   from authenticated;
+revoke all on public.group_members from authenticated;
+revoke all on public.phase_matches from authenticated;
 
 grant select, insert, update, delete on public.players to authenticated;
 grant select, insert, update, delete on public.matches to authenticated;
 grant select, insert, update, delete on public.results to authenticated;
+grant select, insert, update, delete on public.multipliers   to authenticated;
+grant select, insert, update, delete on public.group_members to authenticated;
+grant select, insert, update, delete on public.phase_matches to authenticated;
 
 grant select on public.registrations to authenticated;
 grant update (status) on public.registrations to authenticated;
