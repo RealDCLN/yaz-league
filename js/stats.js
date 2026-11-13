@@ -78,8 +78,15 @@ window.YAZ = window.YAZ || {};
       ? played
       : new Set((played || []).map(w => num(w)));
     const list = schedule();
+
+    // Μόνο όταν έχουν καταχωρηθεί ΟΛΕΣ οι αγωνιστικές θεωρούμε ότι
+    // τελείωσε η σεζόν. Αλλιώς ακολουθούμε τις ημερομηνίες, ώστε μια
+    // πρόωρη καταχώρηση αποτελέσματος να μη «πηδάει» αγωνιστικές.
+    if (list.length && list.every(meta => done.has(num(meta.week)))) {
+      return null;
+    }
+
     for (const meta of list) {
-      if (done.has(num(meta.week))) continue;
       const start = new Date(meta.date).getTime();
       if (isNaN(start)) continue;
       const end = start + MATCH_DURATION_MS;
