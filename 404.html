@@ -5,51 +5,32 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Σελίδα δεν βρέθηκε · YAZ LEAGUE</title>
 <meta name="robots" content="noindex, follow">
-<meta name="theme-color" content="#071523">
+<meta name="theme-color" content="#0B1117">
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Cinzel+Decorative:wght@700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600&family=IBM+Plex+Serif:wght@500&family=Inter:wght@400&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/styles.css">
 <style>
   .err-page{
-    position:relative;min-height:100vh;display:grid;place-items:center;text-align:center;padding:2rem 1rem;overflow:hidden;
+    min-height:100vh;display:grid;place-items:center;text-align:center;
+    padding:64px 20px;
   }
-  .err-page::before{
-    content:"";position:absolute;inset:-8% -10%;pointer-events:none;
-    background:url("/assets/world-dots.svg") center/contain no-repeat;
-    opacity:.16;
-    mask-image:radial-gradient(70% 70% at 50% 45%, #000, transparent 100%);
-    -webkit-mask-image:radial-gradient(70% 70% at 50% 45%, #000, transparent 100%);
-  }
-  .err-page .wrap{position:relative;z-index:1}
+  .err-pin{display:block;width:24px;height:32px;margin:0 auto 32px;color:var(--red)}
   .err-code{
-    font-family:var(--mono);font-size:clamp(4.5rem,18vw,9rem);line-height:.9;
-    color:var(--gold);margin:0;letter-spacing:.05em;
-    text-shadow:0 0 60px rgba(232,185,74,.4);
+    font-family:var(--mono);font-size:clamp(48px,12vw,88px);line-height:1;
+    color:var(--text-3);margin:0 0 12px;font-variant-numeric:tabular-nums;
   }
-  .err-title{font-size:clamp(1.4rem,4vw,2rem);margin:.6rem 0 .9rem;color:var(--parchment)}
-  .err-text{color:var(--text-2);max-width:44ch;margin:0 auto 1.8rem}
-  .err-pin{width:76px;height:104px;margin:0 auto 1.2rem;filter:drop-shadow(0 16px 22px rgba(0,0,0,.5)) drop-shadow(0 0 26px rgba(232,64,46,.4))}
-  .err-coords{font-family:var(--mono);font-size:.54rem;letter-spacing:.2em;color:var(--teal);text-transform:uppercase;margin:-1rem 0 1.6rem}
+  .err-title{font-size:clamp(22px,4vw,32px);color:var(--paper);margin:0 0 12px}
+  .err-text{color:var(--text-2);max-width:46ch;margin:0 auto 32px;font-size:14px;line-height:1.7}
 </style>
 </head>
 <body>
 <main class="err-page">
-  <div class="wrap">
-    <svg class="err-pin" viewBox="0 0 64 88" aria-hidden="true">
-      <defs>
-        <linearGradient id="errPinGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#FF7059"/>
-          <stop offset=".55" stop-color="#E8402E"/>
-          <stop offset="1" stop-color="#B92C1F"/>
-        </linearGradient>
-      </defs>
-      <ellipse cx="32" cy="82" rx="13" ry="4.3" fill="#000" opacity=".35"/>
-      <path d="M32 3C20.4 3 11 12.4 11 24c0 15.9 21 36 21 36s21-20.1 21-36C53 12.4 43.6 3 32 3z"
-            fill="url(#errPinGrad)" stroke="#FF9B86" stroke-width="1.2"/>
-      <circle cx="32" cy="23" r="8.2" fill="#071523"/>
-      <circle cx="32" cy="23" r="3.4" fill="#FFD577"/>
+  <div>
+    <svg class="err-pin" viewBox="0 0 24 32" aria-hidden="true">
+      <path d="M12 1C6.9 1 2.75 5.1 2.75 10.2 2.75 16.9 12 30 12 30s9.25-13.1 9.25-19.8C21.25 5.1 17.1 1 12 1z" fill="currentColor"/>
+      <circle cx="12" cy="10.2" r="3.6" fill="var(--ink-1)"/>
     </svg>
     <p class="err-code">404</p>
     <h1 class="err-title">Χαθήκαμε στον χάρτη</h1>
@@ -57,7 +38,6 @@
       Η σελίδα που ψάχνεις δεν υπάρχει ή μετακινήθηκε σε άλλη γωνιά του πλανήτη.
       Γύρνα στην αρχική και συνέχισε από εκεί.
     </p>
-    <p class="err-coords">OFF THE MAP</p>
     <a class="btn btn-primary" href="/">Επιστροφή στην αρχική</a>
   </div>
 </main>

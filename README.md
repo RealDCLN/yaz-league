@@ -52,11 +52,13 @@ Static site (HTML / CSS / JS, χωρίς build step) με προαιρετικό
 
 ## Σχεδιαστική κατεύθυνση
 
-Νυχτερινός χαρτογραφικός πίνακας: βαθύ ωκεάνιο navy, dot-matrix παγκόσμιος χάρτης, πλέγμα συντεταγμένων, κόκκινο pin τύπου GeoGuessr και περγαμηνή για το ημερολόγιο αγωνιστικών.
+Νυχτερινό πρόγραμμα αγώνων: χαρτί και μελάνι, ένα κόκκινο pin, αριθμοί σε στήλες και ένας χάρακας που διατρέχει τη σεζόν. Η πλοήγηση μένει ήσυχη και το χρώμα πηγαίνει σε δύο σημεία — την κάρτα της επόμενης αγωνιστικής και την κατάταξη.
 
-- Γραμματοσειρές: **Cinzel / Cinzel Decorative** (τίτλοι), **Inter** (κείμενο), **JetBrains Mono** (νούμερα, HUD)
-- Χρώματα: `#071523` ocean · `#F1E6CC` parchment · `#E8B94A` gold · `#E8402E` pin red · `#57C7BC` map teal
-- Assets: `assets/world-dots.svg`, `assets/topo-lines.svg`
+- Γραμματοσειρές: **IBM Plex Serif** (τίτλοι, ελληνικό κείμενο), **Inter** (κείμενο), **JetBrains Mono** (νούμερα, meta), **Cinzel** (μόνο το wordmark)
+- Χρώματα: `#0B1117` ink · `#101821` surface · `#EFE7D7` paper · `#E5432F` pin red
+- Ένα accent: το pin red. Καμία gradient, glow ή σκιά χρώματος.
+- Λεπτομέρειες: η γραμμή του Top 16 στην κατάταξη, ο κανόνας των 12 αγωνιστικών στο hero, τα 4 pots ως στήλες
+- Assets: `assets/favicon.svg`, `assets/og-image.png`
 
 ---
 
@@ -77,8 +79,9 @@ yaz-league/
 │   ├── app.js                  Δημόσια σελίδα
 │   └── admin.js                Admin panel
 ├── css/
-│   ├── styles.css
-│   └── admin.css
+│   ├── styles.css              Δημόσια σελίδα
+│   ├── admin-base.css          Tokens & primitives για το admin
+│   └── admin.css               Admin panel
 ├── assets/
 └── supabase/
     ├── schema.sql              Πλήρες schema (source of truth)

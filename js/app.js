@@ -35,7 +35,7 @@
     wireModal();
     wireForm();
     wireBoardSorting();
-    renderCalendarDots();
+    renderSeasonRail();
 
     const yearEl = $('year');
     if (yearEl) yearEl.textContent = new Date().getFullYear();
@@ -160,13 +160,39 @@
     els.forEach(el => io.observe(el));
   }
 
-  function renderCalendarDots() {
-    const box = $('calendarDots');
+  function renderSeasonRail() {
+    const box = $('seasonRail');
     if (!box) return;
+
+    const played = new Set(playedWeekList());
+    const next = Y.stats.nextMatchday(new Date(), playedWeekList());
+    const nextWeek = next ? Number(next.meta.week) : null;
+
     box.innerHTML = Y.stats.schedule().map(meta => {
-      const cls = meta.holiday ? 'is-holiday' : (meta.label === 'Πέμπτη' ? 'is-thursday' : '');
-      return '<i class="' + cls + '"></i>';
+      const week = Number(meta.week);
+      const isNext = week === nextWeek;
+      const cls = [
+        played.has(week) ? 'is-played' : '',
+        isNext ? 'is-next' : ''
+      ].filter(Boolean).join(' ');
+      const note = isNext
+        ? (next.isLive ? 'Τώρα' : 'Επόμενη')
+        : meta.holiday
+          ? '×2 κλήρωση'
+          : (meta.label === 'Πέμπτη' ? 'Πέμπτη' : '');
+
+      return '<li' + (cls ? ' class="' + cls + '"' : '') + '>' +
+        '<span class="rail-week">' + String(week).padStart(2, '0') + '</span>' +
+        '<span class="rail-date">' + railDate(week) + '</span>' +
+        '<span class="rail-note">' + note + '</span>' +
+        '</li>';
     }).join('');
+  }
+
+  function railDate(week) {
+    const date = Y.stats.weekDate(week);
+    if (!date) return '—';
+    return date.toLocaleDateString('el-GR', { day: 'numeric', month: 'short', timeZone: TZ });
   }
 
   /* ---------------- countdown / season ---------------- */
@@ -225,7 +251,7 @@
       const note = $('nextNote');
       if (note) {
         if (next.isLive) {
-          note.textContent = 'Είμαστε live! Μπες στο Party Mode και στο YouTube για την αγωνιστική ' + next.meta.week + '.';
+          note.textContent = 'Η αγωνιστική είναι σε εξέλιξη. Μπες στο Party Mode και στο YouTube.';
         } else if (next.meta.holiday) {
           note.textContent = 'Εορταστική αγωνιστική: δύο τυχαίοι παίκτες κερδίζουν από ένα Χ2.';
         } else if (next.meta.label === 'Πέμπτη') {
@@ -245,7 +271,7 @@
     const total = Y.stats.schedule().length || 12;
     if ($('seasonProgressText')) $('seasonProgressText').textContent = played + ' / ' + total;
     if ($('seasonProgressBar')) $('seasonProgressBar').style.width = Math.min(100, (played / total) * 100) + '%';
-    if ($('boardRound')) $('boardRound').textContent = String(played).padStart(2, '0');
+    if ($('boardRound')) $('boardRound').textContent = String(played);
     if ($('boardSeason')) $('boardSeason').textContent = cfg.season.label;
 
     const status = $('seasonStatus');
@@ -257,7 +283,9 @@
 
     const note = $('boardNote');
     if (note) {
-      if (state.standings.length > 16) {
+      if (played === 0 && state.standings.length) {
+        note.textContent = 'Η σεζόν δεν έχει ξεκινήσει. Η πρώτη αγωνιστική είναι στις ' + formatShort(Y.stats.weekDate(1)) + '. Σε ισοπαλία πόντων μετράνε τα wild cards, μετά τα concept και το καλύτερο εβδομαδιαίο σκορ.';
+      } else if (state.standings.length > 16) {
         note.textContent = played >= total
           ? 'Οι 16 πρώτοι προκρίνονται στα pots. Ισοπαλία: wild cards → concept → καλύτερη εβδομάδα.'
           : 'Προσωρινή κατάταξη. Η γραμμή μετά τη 16η θέση δείχνει τη ζώνη πρόκρισης. Ισοπαλία: wild cards → concept → καλύτερη εβδομάδα.';
@@ -271,6 +299,8 @@
       if (next) $('nextWeek').textContent = String(next.meta.week);
       else $('nextWeek').textContent = '—';
     }
+
+    renderSeasonRail();
   }
 
   /* ---------------- standings ---------------- */
@@ -405,7 +435,7 @@
   function renderLeaders() {
     const box = $('leaderStrip');
     if (!box) return;
-    if (!state.standings.length) {
+    if (!state.standings.length || !state.standings[0].points) {
       box.innerHTML = '';
       return;
     }
@@ -456,7 +486,6 @@
     if (s.meta.holiday) flags.push('<span class="md-flag md-flag--holiday">Εορταστική</span>');
     if (s.meta.label === 'Πέμπτη') flags.push('<span class="md-flag md-flag--thursday">Πέμπτη</span>');
     if (s.status === 'live') flags.push('<span class="md-flag md-flag--live">Live τώρα</span>');
-    if (s.status === 'upcoming') flags.push('<span class="md-flag md-flag--upcoming">Έρχεται</span>');
     if (s.hasResults) flags.push('<span class="md-flag">Ολοκληρώθηκε</span>');
 
     const body = s.hasResults ? playedBody(s) : upcomingBody(s);
@@ -582,14 +611,15 @@
     const pots = Y.stats.pots(top);
 
     if (!top.length) {
-      box.innerHTML = '<p class="loading-row">Τα pots συμπληρώνονται από τη γενική κατάταξη.</p>';
+      box.innerHTML = '<p class="empty-state">Τα pots συμπληρώνονται από τη γενική κατάταξη.</p>';
       return;
     }
 
     box.innerHTML = pots.map(pot => {
-      const rows = pot.rows.map(r =>
-        '<div class="pot-slot"><em>#' + r.rank + '</em><span>' + escapeHtml(upperName(r.nickname)) + '</span><span class="pot-rank">' + r.points + 'π</span></div>'
-      ).join('');
+      const rows = pot.rows.map((r, i) => {
+        const position = (pot.pot - 1) * 4 + i + 1;
+        return '<div class="pot-slot"><em>#' + position + '</em><span>' + escapeHtml(upperName(r.nickname)) + '</span><span class="pot-rank">' + r.points + 'π</span></div>';
+      }).join('');
       const empty = new Array(Math.max(0, 4 - pot.rows.length)).fill('<div class="pot-slot is-empty"><em>—</em><span>Κενή θέση</span></div>').join('');
       return '' +
         '<div class="pot-card">' +
@@ -605,7 +635,7 @@
 
     const drawn = state.groups.some(g => g.hasDraw);
     if (!drawn) {
-      box.innerHTML = '<p class="loading-row">Η κλήρωση θα γίνει μετά την 12η αγωνιστική. Οι 4 όμιλοι θα σχηματιστούν με έναν παίκτη από κάθε pot.</p>';
+      box.innerHTML = '<p class="empty-state">Η κλήρωση θα γίνει μετά την 12η αγωνιστική. Οι 4 όμιλοι θα σχηματιστούν με έναν παίκτη από κάθε pot.</p>';
       return;
     }
 
@@ -667,7 +697,7 @@
     if (!hasBracket) {
       const groupsDrawn = state.groups.some(g => g.hasDraw);
       if (!groupsDrawn) {
-        box.innerHTML = '<p class="loading-row">Το bracket θα συμπληρωθεί μετά τη φάση ομίλων.</p>';
+        box.innerHTML = '<p class="empty-state">Το bracket θα συμπληρωθεί μετά τη φάση ομίλων.</p>';
         return;
       }
 
@@ -799,7 +829,7 @@
 
     const leaderPoints = state.standings[0] ? state.standings[0].points : 0;
     const pct = leaderPoints > 0 ? Math.max(2, Math.min(100, (row.points / leaderPoints) * 100)) : 0;
-    $('pmXpVal').textContent = row.points + ' / ' + leaderPoints + ' πόντοι';
+    $('pmXpVal').textContent = row.points + ' / ' + leaderPoints;
     requestAnimationFrame(() => {
       $('pmXpFill').style.width = pct + '%';
     });
@@ -864,14 +894,14 @@
         datasets: [{
           label: 'Θέση',
           data: data,
-          borderColor: '#E8B94A',
-          backgroundColor: 'rgba(87,199,188,.12)',
+          borderColor: '#E9EDF0',
+          backgroundColor: 'rgba(233,237,240,.07)',
           borderWidth: 2,
-          pointBackgroundColor: '#071523',
-          pointBorderColor: '#E8B94A',
+          pointBackgroundColor: '#101821',
+          pointBorderColor: '#E9EDF0',
           pointBorderWidth: 2,
-          pointRadius: 4,
-          pointHoverRadius: 6,
+          pointRadius: 3,
+          pointHoverRadius: 5,
           fill: true,
           tension: 0.32
         }]
@@ -883,11 +913,11 @@
         plugins: {
           legend: { display: false },
           tooltip: {
-            backgroundColor: 'rgba(7,21,35,.96)',
-            borderColor: '#57C7BC',
+            backgroundColor: 'rgba(16,24,33,.97)',
+            borderColor: 'rgba(233,237,240,.16)',
             borderWidth: 1,
-            titleColor: '#F1E6CC',
-            bodyColor: '#FFD577',
+            titleColor: '#EFE7D7',
+            bodyColor: '#E9EDF0',
             bodyFont: { family: 'JetBrains Mono, monospace', size: 12 },
             callbacks: { label: ctx => 'Θέση ' + ctx.parsed.y }
           }
@@ -899,14 +929,14 @@
             max: maxRank,
             ticks: {
               stepSize: Math.max(1, Math.round(maxRank / 6)),
-              color: '#72899A',
+              color: '#79848E',
               font: { size: 11, family: 'JetBrains Mono, monospace' }
             },
-            grid: { color: 'rgba(87,199,188,.1)' },
-            title: { display: true, text: 'Θέση', color: '#72899A', font: { size: 10 } }
+            grid: { color: 'rgba(233,237,240,.08)' },
+            title: { display: true, text: 'Θέση', color: '#79848E', font: { size: 10 } }
           },
           x: {
-            ticks: { color: '#72899A', font: { size: 10 } },
+            ticks: { color: '#79848E', font: { size: 10 } },
             grid: { display: false }
           }
         }
@@ -945,7 +975,7 @@
 
       if (honey) {
         msg.className = 'form-msg ok';
-        msg.textContent = 'Ευχαριστούμε! Η αίτησή σου καταχωρήθηκε.';
+        msg.textContent = 'Ευχαριστούμε. Η αίτησή σου καταχωρήθηκε.';
         form.reset();
         return;
       }
@@ -978,7 +1008,7 @@
 
         if (res.ok) {
           msg.className = 'form-msg ok';
-          msg.textContent = 'Ευχαριστούμε, ' + firstName.toUpperCase() + '! Η αίτησή σου καταχωρήθηκε και θα ελεγχθεί πριν την πρώτη αγωνιστική.';
+          msg.textContent = 'Ευχαριστούμε, ' + firstName.toUpperCase() + '. Η αίτησή σου καταχωρήθηκε και θα ελεγχθεί πριν την πρώτη αγωνιστική.';
           form.reset();
         } else {
           msg.className = 'form-msg err';
