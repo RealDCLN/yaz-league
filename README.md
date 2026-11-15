@@ -58,7 +58,8 @@ Static site (HTML / CSS / JS, χωρίς build step) με προαιρετικό
 - Χρώματα: `#0B1117` ink · `#101821` surface · `#EFE7D7` paper · `#E5432F` pin red
 - Ένα accent: το pin red. Καμία gradient, glow ή σκιά χρώματος.
 - Λεπτομέρειες: η γραμμή του Top 16 στην κατάταξη, ο κανόνας των 12 αγωνιστικών στο hero, τα 4 pots ως στήλες
-- Assets: `assets/favicon.svg`, `assets/og-image.png`
+- Γεωγραφία: dot-matrix παγκόσμιος χάρτης στο hero, στο footer και στο 404· τοπογραφικές ισοϋψείς στην περγαμηνή του ημερολογίου
+- Assets: `assets/world-dots.svg` και `assets/topo-lines.svg` είναι **mask sources** (μαύρο stroke) και παίρνουν χρώμα/όψη από το CSS. `assets/favicon.svg`, `assets/og-image.png`
 
 ---
 

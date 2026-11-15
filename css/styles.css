@@ -186,8 +186,20 @@ em{font-style:normal}
 .nav-toggle[aria-expanded="true"] span:nth-child(3){transform:translateY(-6.5px) rotate(-45deg)}
 
 /* ============================ HERO ============================ */
-.hero{position:relative;padding:80px 0 0}
+.hero{position:relative;padding:80px 0 0;overflow:hidden}
+.hero-map{
+  position:absolute;inset:0;z-index:0;pointer-events:none;
+  -webkit-mask-image:radial-gradient(64% 96% at 77% 42%, #000 0%, rgba(0,0,0,.75) 50%, transparent 94%);
+  mask-image:radial-gradient(64% 96% at 77% 42%, #000 0%, rgba(0,0,0,.75) 50%, transparent 94%);
+}
+.hero-map span{
+  position:absolute;inset:-8% -2%;
+  background-color:var(--text-2);opacity:.32;
+  -webkit-mask:url("../assets/world-dots.svg") center/contain no-repeat;
+  mask:url("../assets/world-dots.svg") center/contain no-repeat;
+}
 .hero-grid{
+  position:relative;z-index:1;
   display:grid;grid-template-columns:1fr;gap:48px;align-items:center;
   padding-bottom:64px;
 }
@@ -284,7 +296,7 @@ em{font-style:normal}
 .next-note{font-size:13px;line-height:1.55;color:var(--text-3);margin:0}
 
 /* season rule */
-.season-rail-wrap{border-top:1px solid var(--line);padding-top:24px;padding-bottom:32px}
+.season-rail-wrap{position:relative;z-index:1;border-top:1px solid var(--line);padding-top:24px;padding-bottom:32px}
 .rail-label{
   font-family:var(--mono);font-size:11px;font-weight:400;line-height:16px;
   letter-spacing:.02em;color:var(--text-3);margin:0 0 20px;
@@ -449,7 +461,10 @@ em{font-style:normal}
 }
 .board-coords b{color:var(--text-2);font-weight:400;font-variant-numeric:tabular-nums}
 
-.table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+/* No overflow container here: the sticky table head must be positioned
+   against the page scrollport, not a nested one, or it parks itself
+   over the first rows. The table already fits at every breakpoint. */
+.table-scroll{overflow:visible}
 
 .board-table{width:100%;border-collapse:collapse;min-width:720px;font-size:14px}
 .board-table thead th{
@@ -537,11 +552,19 @@ em{font-style:normal}
 
 /* ============================ PAPER BAND ============================ */
 .band-paper{
+  position:relative;overflow:hidden;
   background:var(--paper);
   color:var(--paper-text);
   border-top:1px solid var(--line-paper-2);
   border-bottom:1px solid var(--line-paper-2);
 }
+.band-paper::before{
+  content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
+  background-color:var(--paper-text-3);opacity:.065;
+  -webkit-mask:url("../assets/topo-lines.svg") center top/1200px 800px repeat;
+  mask:url("../assets/topo-lines.svg") center top/1200px 800px repeat;
+}
+.band-paper > .wrap{position:relative;z-index:1}
 .band-paper .label{color:var(--paper-text-3)}
 .band-paper .label::before{background:var(--red-ink)}
 .band-paper .section-title{color:var(--paper-text)}
@@ -824,9 +847,22 @@ em{font-style:normal}
 
 /* ============================ FOOTER ============================ */
 .site-footer{
+  position:relative;overflow:hidden;
   border-top:1px solid var(--line);background:var(--ink-0);
   padding:48px 0 24px;color:var(--text);
 }
+.footer-map{
+  position:absolute;z-index:0;right:-6%;bottom:-38%;width:min(820px,62%);aspect-ratio:2/1;
+  pointer-events:none;
+  -webkit-mask-image:linear-gradient(180deg, transparent 0%, #000 46%, #000 74%, transparent 100%);
+  mask-image:linear-gradient(180deg, transparent 0%, #000 46%, #000 74%, transparent 100%);
+}
+.footer-map span{
+  position:absolute;inset:0;background-color:var(--text-3);opacity:.45;
+  -webkit-mask:url("../assets/world-dots.svg") center/contain no-repeat;
+  mask:url("../assets/world-dots.svg") center/contain no-repeat;
+}
+.site-footer > .wrap{position:relative;z-index:1}
 .footer-grid{display:grid;grid-template-columns:1fr;gap:32px;padding-bottom:32px;border-bottom:1px solid var(--line)}
 .footer-title{
   font-family:var(--brand);font-size:18px;font-weight:600;letter-spacing:.08em;
@@ -981,6 +1017,7 @@ em{font-style:normal}
 }
 
 @media (max-width:899px){
+  .hero-map{display:none}
   .nav-toggle{display:flex}
   .main-nav{
     position:absolute;top:100%;left:0;right:0;
