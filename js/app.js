@@ -182,6 +182,9 @@
           : (meta.label === 'Πέμπτη' ? 'Πέμπτη' : '');
 
       return '<li' + (cls ? ' class="' + cls + '"' : '') + '>' +
+        (isNext
+          ? '<span class="rail-pin" aria-hidden="true"><svg viewBox="0 0 24 32"><path class="pin-body" d="M12 1C6.9 1 2.75 5.1 2.75 10.2 2.75 16.9 12 30 12 30s9.25-13.1 9.25-19.8C21.25 5.1 17.1 1 12 1z"/><circle class="pin-hole" cx="12" cy="10.2" r="3.6"/></svg></span>'
+          : '') +
         '<span class="rail-week">' + String(week).padStart(2, '0') + '</span>' +
         '<span class="rail-date">' + railDate(week) + '</span>' +
         '<span class="rail-note">' + note + '</span>' +
@@ -358,6 +361,7 @@
       }
 
       const rankClass = row.rank <= 3 ? 'rank-' + row.rank : '';
+      const podium = natural && row.points > 0 && index < 3 ? ' pos-' + (index + 1) : '';
       const qualified = (row.position || row.rank) <= 16;
       const badges = [];
       if (row.wildcards) badges.push('<span class="wild-badge is-on" title="Wild cards">W' + row.wildcards + '</span>');
@@ -365,7 +369,7 @@
       if (row.concept) badges.push('<span class="concept-badge is-on" title="Concept bonus">C' + row.concept + '</span>');
 
       rows.push('' +
-        '<tr class="' + rankClass + (qualified ? ' is-qualified' : '') + '">' +
+        '<tr class="' + rankClass + (qualified ? ' is-qualified' : '') + podium + '">' +
           '<td class="col-rank">' +
             '<div class="rank-cell">' +
               '<span class="rank-badge">' + row.rank + '</span>' +

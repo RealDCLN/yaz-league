@@ -14,6 +14,11 @@
   --ink-3:#16202B;
   --ink-4:#1D2A36;
 
+  /* podium, used only where a place is actually earned */
+  --medal-1:#D9B36B;
+  --medal-2:#C6D0DA;
+  --medal-3:#C98A5C;
+
   /* paper */
   --paper:#EFE7D7;
   --paper-2:#F7F2E7;
@@ -253,6 +258,8 @@ em{font-style:normal}
 }
 .live-badge.is-on{display:inline-flex}
 .live-badge i{width:6px;height:6px;border-radius:50%;background:var(--red)}
+.live-badge.is-on i{animation:livePulse 2.2s var(--ease) infinite}
+@keyframes livePulse{0%,100%{opacity:1}50%{opacity:.3}}
 
 .next-week{
   font-family:var(--serif);font-size:28px;line-height:1.15;font-weight:500;
@@ -290,8 +297,15 @@ em{font-style:normal}
 .sp-head{display:flex;justify-content:space-between;align-items:baseline;gap:16px;margin-bottom:8px}
 .sp-head span{font-size:12px;line-height:16px;color:var(--text-3)}
 .sp-head span:last-child{font-family:var(--mono);color:var(--text-2);font-variant-numeric:tabular-nums}
-.sp-track{height:4px;background:var(--ink-4);border-radius:2px;overflow:hidden}
+.sp-track{position:relative;height:6px;background:var(--ink-4);border-radius:3px;overflow:hidden}
 .sp-fill{height:100%;width:0;background:var(--paper);transition:width 500ms var(--ease)}
+/* 12 matchdays, drawn as 12 segments */
+.sp-track::after{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background-image:repeating-linear-gradient(90deg,
+    transparent 0 calc(100% / 12 - 2px),
+    var(--ink-2) calc(100% / 12 - 2px) calc(100% / 12));
+}
 
 .next-note{font-size:13px;line-height:1.55;color:var(--text-3);margin:0}
 
@@ -313,8 +327,12 @@ em{font-style:normal}
 .season-rail li::before{
   content:"";position:absolute;left:0;top:-1px;width:1px;height:10px;background:var(--line-2);
 }
-.season-rail li.is-next::before{width:2px;height:22px;background:var(--red)}
+.season-rail li.is-next::before{display:none}
 .season-rail li.is-played::before{height:16px;background:var(--text-2)}
+.rail-pin{position:absolute;left:-6px;top:-16px;width:13px;height:17px;z-index:1}
+.rail-pin svg{display:block;width:100%;height:100%}
+.rail-pin .pin-body{fill:var(--red)}
+.rail-pin .pin-hole{fill:var(--ink-1)}
 .rail-week{font-family:var(--mono);font-size:10px;line-height:14px;color:var(--text-3);font-variant-numeric:tabular-nums}
 .rail-date{font-size:12px;line-height:16px;color:var(--text-2);white-space:nowrap}
 .rail-note{font-family:var(--mono);font-size:10px;line-height:14px;color:var(--text-3);min-height:14px}
@@ -411,6 +429,9 @@ em{font-style:normal}
 .score-ladder{list-style:none;margin:0;padding:0;display:grid;gap:6px}
 .score-ladder li{display:grid;grid-template-columns:36px 1fr 28px;align-items:center;gap:12px}
 .score-ladder span{font-family:var(--mono);font-size:11px;line-height:14px;color:var(--text-3)}
+.score-ladder li:nth-child(1) span{color:var(--medal-1)}
+.score-ladder li:nth-child(2) span{color:var(--medal-2)}
+.score-ladder li:nth-child(3) span{color:var(--medal-3)}
 .score-ladder i{display:block;height:10px;background:var(--ink-3);border-radius:2px;overflow:hidden}
 .score-ladder i b{display:block;height:100%;width:var(--w);background:var(--text-3)}
 .score-ladder li:first-child i b{background:var(--red)}
@@ -496,7 +517,11 @@ em{font-style:normal}
   font-variant-numeric:tabular-nums;
 }
 .rank-1 .rank-badge,.rank-2 .rank-badge,.rank-3 .rank-badge{color:var(--paper)}
+.pos-1 .rank-badge{color:var(--medal-1)}
+.pos-2 .rank-badge{color:var(--medal-2)}
+.pos-3 .rank-badge{color:var(--medal-3)}
 .board-table tbody tr:first-child td:first-child{box-shadow:inset 2px 0 0 var(--red)}
+.board-table tbody tr.pos-1 td:first-child{box-shadow:inset 2px 0 0 var(--medal-1)}
 
 .delta{font-family:var(--mono);font-size:10px;line-height:1;color:var(--text-3)}
 .delta.up,.delta.down,.delta.flat{color:var(--text-3)}
@@ -761,6 +786,10 @@ em{font-style:normal}
   display:block;font-family:var(--mono);font-size:11px;line-height:16px;
   color:var(--text-3);margin-bottom:8px;
 }
+.prize-card:nth-child(1) .prize-medal{color:var(--medal-1)}
+.prize-card:nth-child(2) .prize-medal{color:var(--medal-2)}
+.prize-card:nth-child(3) .prize-medal{color:var(--medal-3)}
+.prize-card:nth-child(4) .prize-medal{color:var(--red-text)}
 .prize-card h3{font-size:16px;line-height:1.3;color:var(--paper);margin:0 0 6px}
 .prize-card p{font-size:13px;line-height:1.6;color:var(--text-2);margin:0;max-width:38ch}
 
