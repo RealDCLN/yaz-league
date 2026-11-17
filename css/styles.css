@@ -520,8 +520,13 @@ em{font-style:normal}
 .pos-1 .rank-badge{color:var(--medal-1)}
 .pos-2 .rank-badge{color:var(--medal-2)}
 .pos-3 .rank-badge{color:var(--medal-3)}
-.board-table tbody tr:first-child td:first-child{box-shadow:inset 2px 0 0 var(--red)}
-.board-table tbody tr.pos-1 td:first-child{box-shadow:inset 2px 0 0 var(--medal-1)}
+/* The rank marker sits in the gutter so it never touches the rank number. */
+.board-table tbody tr:first-child td:first-child{position:relative}
+.board-table tbody tr:first-child td:first-child::before{
+  content:"";position:absolute;left:-10px;top:0;bottom:0;width:2px;
+  background:var(--red);
+}
+.board-table tbody tr.pos-1 td:first-child::before{background:var(--medal-1)}
 
 .delta{font-family:var(--mono);font-size:10px;line-height:1;color:var(--text-3)}
 .delta.up,.delta.down,.delta.flat{color:var(--text-3)}
