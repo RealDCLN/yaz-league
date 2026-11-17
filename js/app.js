@@ -79,6 +79,7 @@
       state.bracket = Y.stats.bracket(phasePayload);
 
       renderLeaders();
+      renderPlayerCount();
       renderBoard();
       renderMatchdays();
       renderPhases();
@@ -952,6 +953,72 @@
   }
 
   /* ---------------- signup ---------------- */
+
+  function renderPlayerCount() {
+    const box = $('signupCount');
+    const numEl = $('playerTotal');
+    if (!box || !numEl) return;
+
+    const total = state.players.length;
+    const lab = $('playerTotalLab');
+    const copy = $('signupCountCopy');
+
+    if (lab) lab.textContent = total === 1 ? 'παίκτης μέχρι στιγμής' : 'παίκτες μέχρι στιγμής';
+    if (copy) {
+      copy.innerHTML = total
+        ? 'Ο χάρτης γεμίζει. <strong>Εσύ πού είσαι;</strong>'
+        : 'Ο χάρτης περιμένει τον πρώτο. <strong>Κάνε την αρχή.</strong>';
+    }
+
+    box.hidden = false;
+    animateCount(numEl, total);
+  }
+
+  function animateCount(el, total) {
+    const paint = n => { el.textContent = String(n); };
+
+    if (total <= 0) {
+      paint(total);
+      return;
+    }
+
+    const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduced || typeof window.requestAnimationFrame !== 'function') {
+      paint(total);
+      return;
+    }
+
+    const run = () => {
+      const duration = 900;
+      const start = window.performance && performance.now ? performance.now() : Date.now();
+      const step = now => {
+        const progress = Math.min(1, (now - start) / duration);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        if (progress < 1) {
+          paint(Math.round(total * eased));
+          window.requestAnimationFrame(step);
+        } else {
+          paint(total);
+        }
+      };
+      paint(0);
+      window.requestAnimationFrame(step);
+    };
+
+    if (typeof window.IntersectionObserver !== 'function') {
+      run();
+      return;
+    }
+
+    const io = new window.IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        io.disconnect();
+        run();
+      });
+    }, { threshold: 0.4 });
+    io.observe(el.closest('.signup-count') || el);
+  }
 
   function wireForm() {
     const form = $('signupForm');

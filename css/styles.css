@@ -836,6 +836,44 @@ em{font-style:normal}
 .rules-footnote strong{color:var(--paper)}
 
 /* ============================ SIGNUP ============================ */
+/* Player count — social proof above the form */
+.signup-count{
+  position:relative;overflow:hidden;
+  display:grid;grid-template-columns:1fr;gap:12px;
+  margin:0 0 32px;padding:18px 20px 16px;
+  background:var(--ink-2);
+  border:1px solid var(--line-2);
+  border-left:2px solid var(--red);
+  border-radius:var(--r-lg);
+}
+.signup-count::before{
+  content:"";position:absolute;right:-30px;top:-26px;width:240px;height:120px;
+  background-color:var(--text-3);opacity:.08;pointer-events:none;
+  -webkit-mask:url("../assets/world-dots.svg") center/contain no-repeat;
+  mask:url("../assets/world-dots.svg") center/contain no-repeat;
+}
+.signup-count > *{position:relative;z-index:1}
+.signup-count-figure{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 10px}
+.signup-count-num{
+  font-family:var(--mono);font-size:clamp(30px,7vw,38px);font-weight:400;line-height:1;
+  color:var(--paper);font-variant-numeric:tabular-nums;
+}
+.signup-count-lab{
+  display:inline-flex;align-items:center;gap:7px;
+  font-size:12px;line-height:16px;color:var(--text-3);
+}
+.signup-count-lab i{flex:none;width:5px;height:5px;border-radius:50%;background:var(--red)}
+.signup-count-copy{margin:0;font-family:var(--serif);font-size:17px;line-height:1.4;color:var(--paper-3)}
+.signup-count-copy strong{font-weight:500;color:var(--paper)}
+.signup-count-cta{
+  justify-self:start;display:inline-flex;align-items:center;gap:8px;
+  font-family:var(--mono);font-size:11px;line-height:16px;color:var(--text-2);
+  text-decoration:none;border-bottom:1px solid var(--line-2);padding-bottom:3px;
+  transition:color 160ms var(--ease),border-color 160ms var(--ease);
+}
+.signup-count-cta:hover{color:var(--paper);border-color:var(--paper)}
+.signup-count-cta span{font-size:12px;line-height:1}
+
 .signup-grid{display:grid;grid-template-columns:1fr;gap:40px;align-items:start}
 .signup-form{
   background:var(--ink-2);border:1px solid var(--line-2);border-radius:var(--r-lg);
@@ -1035,6 +1073,11 @@ em{font-style:normal}
   .ledger-card{border-top:1px solid var(--line-2);border-bottom:0}
   .terms-grid{grid-template-columns:1fr 1fr;gap:48px}
   .signup-row{grid-template-columns:1fr 1fr}
+  .signup-count{grid-template-columns:auto 1fr auto;align-items:center;gap:28px;padding:20px 24px}
+  .signup-count-figure{flex-direction:column;align-items:flex-start;gap:6px;padding-right:28px;border-right:1px solid var(--line)}
+  .signup-count-num{font-size:38px}
+  .signup-count-copy{font-size:18px;max-width:38ch}
+  .signup-count-cta{justify-self:end;white-space:nowrap}
   .signup-grid{grid-template-columns:1.15fr .85fr;gap:64px}
   .footer-grid{grid-template-columns:1fr auto;align-items:end}
   .season-rail{grid-template-columns:repeat(12,1fr)}
