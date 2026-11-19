@@ -21,6 +21,7 @@
     summaries: [],
     groups: [],
     bracket: null,
+    previousByPlayerId: {},
     sort: { key: 'points', dir: 'desc' },
     chart: null,
     schema: {}
@@ -36,6 +37,7 @@
     wireForm();
     wireBoardSorting();
     renderSeasonRail();
+    renderHistory();
 
     const yearEl = $('year');
     if (yearEl) yearEl.textContent = new Date().getFullYear();
@@ -79,6 +81,7 @@
       state.bracket = Y.stats.bracket(phasePayload);
 
       renderLeaders();
+      renderHistory();
       renderPlayerCount();
       renderBoard();
       renderMatchdays();
@@ -467,6 +470,77 @@
       '</div>';
   }
 
+  /* ---------------- previous season ---------------- */
+
+  function renderHistory() {
+    const sheet = $('historySheet');
+    if (!sheet || !YAZ.history) return;
+
+    const history = YAZ.history.build(state.players);
+    state.previousByPlayerId = history.byPlayerId;
+
+    const overlap = history.matched
+      ? '<b>' + history.matched + '</b> από ' + history.total + ' παίκτες αγωνίζονται και φέτος'
+      : history.total + ' παίκτες';
+
+    const topRows = history.top.map(entry => {
+      const rank = entry.rank;
+      const medal = rank <= 3 ? 'var(--medal-' + rank + ')' : 'var(--line-paper-2)';
+      return '<li' + (rank === 1 ? ' class="is-champion"' : '') + ' style="--medal:' + medal + '">' +
+        '<span class="ht-rank">' + String(rank).padStart(2, '0') + '</span>' +
+        '<span class="ht-name">' + historyEntryHtml(entry, false) + '</span>' +
+        (rank === 1 ? '<span class="ht-tag">Πρωταθλητής</span>' : '') +
+      '</li>';
+    }).join('');
+
+    const bands = history.bands.map(band => {
+      const names = band.names.map(entry => '<li>' + historyEntryHtml(entry, true) + '</li>').join('');
+      return '<div class="history-band">' +
+        '<div class="hb-range">' + escapeHtml(band.range) + '<span>θέσεις</span></div>' +
+        '<div class="hb-body"><ul class="hb-names">' + names + '</ul></div>' +
+      '</div>';
+    }).join('');
+
+    sheet.innerHTML = '' +
+      '<div class="history-sheet-head">' +
+        '<span class="hsh-season">Αρχείο · ' + escapeHtml(history.season) + '</span>' +
+        '<span>' + overlap + '</span>' +
+      '</div>' +
+      '<div class="history-grid">' +
+        '<div class="history-block">' +
+          '<div class="history-block-head"><h3>Θέσεις 1–4 · νικητές ομίλων</h3><span>Με σειρά</span></div>' +
+          '<ol class="history-top">' + topRows + '</ol>' +
+        '</div>' +
+        '<div class="history-block history-block--bands">' +
+          '<div class="history-block-head"><h3>Θέσεις 5–20</h3><span>Χωρίς σειρά · αλφαβητικά</span></div>' +
+          '<div class="history-bands">' + bands + '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="history-foot">' +
+        '<span><i class="history-current" aria-hidden="true"></i>Αγωνίζεται και στη Winter 2026-27 — πάτησε το όνομα για το προφίλ.</span>' +
+        '<a href="#katataxi">Δες την τρέχουσα κατάταξη →</a>' +
+      '</div>';
+  }
+
+  function historyEntryHtml(entry, chip) {
+    const chipClass = chip ? ' history-chip' : '';
+
+    if (!entry.playerId) {
+      return '<span class="' + (chip ? 'history-chip' : '') + '">' + escapeHtml(entry.name) + '</span>';
+    }
+
+    const renamed = entry.currentName && entry.currentName.toUpperCase() !== entry.name.toUpperCase();
+    const tooltip = renamed
+      ? entry.name + ' · σήμερα ' + entry.currentName
+      : entry.name + ' · προφίλ Winter 2026-27';
+
+    return '<button class="history-player' + chipClass + '" type="button" data-player="' + escapeAttr(entry.playerId) + '" title="' + escapeAttr(tooltip) + '">' +
+      escapeHtml(entry.name) +
+      '<i class="history-current" aria-hidden="true"></i>' +
+      '<span class="sr-only"> — αγωνίζεται και στη σεζόν Winter 2026-27</span>' +
+    '</button>';
+  }
+
   /* ---------------- matchdays ---------------- */
 
   function renderMatchdays() {
@@ -787,7 +861,7 @@
       if (ev.key === 'Escape' && !modal.hidden) closeModal();
     });
     document.addEventListener('click', (ev) => {
-      const btn = ev.target.closest('.md-player');
+      const btn = ev.target.closest('.md-player, .history-player');
       if (!btn) return;
       const id = btn.getAttribute('data-player');
       const row = state.standings.find(r => String(r.id) === id);
@@ -830,6 +904,8 @@
     if (row.wildcards) badges.push('<span class="pm-badge pm-badge--gold">' + row.wildcards + ' wild card' + (row.wildcards > 1 ? 's' : '') + '</span>');
     if (row.x2) badges.push('<span class="pm-badge pm-badge--pin">' + row.x2 + ' × Χ2</span>');
     if (row.concept) badges.push('<span class="pm-badge pm-badge--teal">' + row.concept + ' concept</span>');
+    const previous = state.previousByPlayerId[String(row.id)];
+    if (previous) badges.push('<span class="pm-badge pm-badge--history">' + escapeHtml(previous.label) + '</span>');
     $('pmBadges').innerHTML = badges.join('');
 
     const leaderPoints = state.standings[0] ? state.standings[0].points : 0;
