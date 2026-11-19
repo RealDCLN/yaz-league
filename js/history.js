@@ -25,7 +25,7 @@ window.YAZ = window.YAZ || {};
       { rank: 4, name: 'KARIPIDIS' }
     ],
     bands: [
-      { range: '5–8', names: ['AMT78793', 'Fill', 'Ntantas', 'Konios'] },
+      { range: '5–8', names: ['AMT78793', 'FILL', 'NTANTAS', 'KONIOS'] },
       { range: '9–12', names: ['CHRISF2011', 'DREWW22', 'KOSTAKIS98', 'SAVVAS213'] },
       { range: '13–16', names: ['KATS1MANIS', 'O EMPIRE', 'VARDAVAKYSS', 'JIDAKI19'] },
       { range: '17–20', names: ['ELENAPAPACHRIST', 'VIC99', 'STEF299', 'PAVLOS.SCH34'] }

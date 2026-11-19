@@ -524,18 +524,20 @@
 
   function historyEntryHtml(entry, chip) {
     const chipClass = chip ? ' history-chip' : '';
+    const displayName = upperName(entry.name);
 
     if (!entry.playerId) {
-      return '<span class="' + (chip ? 'history-chip' : '') + '">' + escapeHtml(entry.name) + '</span>';
+      return '<span class="' + (chip ? 'history-chip' : '') + '">' + escapeHtml(displayName) + '</span>';
     }
 
-    const renamed = entry.currentName && entry.currentName.toUpperCase() !== entry.name.toUpperCase();
+    const displayCurrent = upperName(entry.currentName);
+    const renamed = displayCurrent && displayCurrent !== displayName;
     const tooltip = renamed
-      ? entry.name + ' · σήμερα ' + entry.currentName
-      : entry.name + ' · προφίλ Winter 2026-27';
+      ? displayName + ' · σήμερα ' + displayCurrent
+      : displayName + ' · προφίλ Winter 2026-27';
 
     return '<button class="history-player' + chipClass + '" type="button" data-player="' + escapeAttr(entry.playerId) + '" title="' + escapeAttr(tooltip) + '">' +
-      escapeHtml(entry.name) +
+      escapeHtml(displayName) +
       '<i class="history-current" aria-hidden="true"></i>' +
       '<span class="sr-only"> — αγωνίζεται και στη σεζόν Winter 2026-27</span>' +
     '</button>';
