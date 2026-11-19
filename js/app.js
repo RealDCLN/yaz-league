@@ -508,7 +508,10 @@
       '</div>' +
       '<div class="history-grid">' +
         '<div class="history-block">' +
-          '<div class="history-block-head"><h3>Θέσεις 1–4 · νικητές ομίλων</h3><span>Με σειρά</span></div>' +
+          '<div class="history-block-head history-block-head--final">' +
+            '<h3 class="history-final"><span class="hf-eyebrow">Final 4</span><span class="hf-title">Bracket</span></h3>' +
+            '<span>Θέσεις 1–4 · με σειρά</span>' +
+          '</div>' +
           '<ol class="history-top">' + topRows + '</ol>' +
         '</div>' +
         '<div class="history-block history-block--bands">' +

@@ -821,6 +821,16 @@ em{font-style:normal}
   color:var(--paper-text);margin:0;letter-spacing:.02em;
 }
 .history-block-head span{font-family:var(--mono);font-size:10px;line-height:14px;color:var(--paper-text-3)}
+.history-block-head--final{align-items:flex-end;margin-bottom:14px}
+.history-final{display:flex;align-items:baseline;gap:9px;margin:0}
+.history-final .hf-eyebrow{
+  font-family:var(--mono);font-size:10px;line-height:1;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--red-ink);padding-bottom:2px;
+}
+.history-final .hf-title{
+  font-family:var(--serif);font-size:22px;line-height:1;font-weight:500;
+  letter-spacing:-.01em;color:var(--paper-text);
+}
 
 .history-top{list-style:none;margin:0;padding:0}
 .history-top li{
