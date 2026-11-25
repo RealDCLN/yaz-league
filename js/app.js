@@ -1000,10 +1000,12 @@
         ).join('') + '</div>'
       : '';
 
-    renderChart(row);
-
+    // Το modal πρέπει να είναι ορατό πριν φτιαχτεί το chart, αλλιώς το
+    // canvas μετριέται 0×0 και η γραφική παράσταση δεν ζωγραφίζεται.
     modal.hidden = false;
     document.body.style.overflow = 'hidden';
+
+    renderChart(row);
     $('pmClose').focus();
   }
 
@@ -1024,6 +1026,11 @@
     const labels = hist.map(h => 'Αγ. ' + h.week);
     const data = hist.map(h => h.rank);
     const maxRank = Math.max(state.standings.length, ...data, 2);
+
+    // Η κορυφή (θέση 1) και ο πάτος (maxRank) πέφτουν πάνω στο όριο του
+    // chartArea, οπότε η κουκκίδα κοβόταν στη μέση. Αφήνουμε λίγο χώρο
+    // πάνω/κάτω και κρατάμε μόνο ακέραια ticks (θέσεις).
+    const inset = Math.max(0.5, maxRank * 0.04);
 
     state.chart = new window.Chart(canvas.getContext('2d'), {
       type: 'line',
@@ -1063,8 +1070,12 @@
         scales: {
           y: {
             reverse: true,
-            min: 1,
-            max: maxRank,
+            min: 1 - inset,
+            max: maxRank + inset,
+            afterBuildTicks: (axis) => {
+              axis.ticks = axis.ticks.filter(t =>
+                Number.isInteger(t.value) && t.value >= 1 && t.value <= maxRank);
+            },
             ticks: {
               stepSize: Math.max(1, Math.round(maxRank / 6)),
               color: '#79848E',
@@ -1074,6 +1085,7 @@
             title: { display: true, text: 'Θέση', color: '#79848E', font: { size: 10 } }
           },
           x: {
+            offset: true,
             ticks: { color: '#79848E', font: { size: 10 } },
             grid: { display: false }
           }
