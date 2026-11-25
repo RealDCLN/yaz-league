@@ -201,7 +201,15 @@
       return;
     }
 
-    sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+    // Τα reads του admin δεν πρέπει ποτέ να σερβίρονται από browser cache:
+    // μια παλιά απάντηση (π.χ. λίστα εκκρεμών αιτήσεων) θα έδειχνε λάθος
+    // δεδομένα. Το Supabase REST δεν στέλνει Cache-Control, οπότε το
+    // κλειδώνουμε ρητά στο fetch.
+    sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey, {
+      global: {
+        fetch: (input, init) => window.fetch(input, Object.assign({}, init, { cache: 'no-store' }))
+      }
+    });
 
     try {
       const { data: { session } } = await sb.auth.getSession();

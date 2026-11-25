@@ -46,6 +46,12 @@ window.YAZ = window.YAZ || {};
           persistSession: false,
           autoRefreshToken: false,
           detectSessionInUrl: false
+        },
+        // Το Supabase REST δεν στέλνει Cache-Control. Χωρίς αυτό, μια
+        // παλιά απάντηση θα μπορούσε να μείνει στον browser και να
+        // δείχνει παρωχημένη κατάταξη μετά από διόρθωση αποτελεσμάτων.
+        global: {
+          fetch: (input, init) => window.fetch(input, Object.assign({}, init, { cache: 'no-store' }))
         }
       });
     }
