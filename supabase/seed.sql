@@ -17,6 +17,15 @@
 
 select setseed(0.20261120);
 
+-- Ασφάλεια: το seed προσθέτει 24 παίκτες και δεν είναι idempotent.
+-- Σε βάση που έχει ήδη δεδομένα θα δημιουργούσε διπλότυπα.
+do $$
+begin
+  if exists (select 1 from public.players) then
+    raise exception 'Το seed.sql τρέχει μόνο σε άδεια βάση (υπάρχουν ήδη παίκτες). Ενεργοποίησε το TRUNCATE παραπάνω αν θέλεις reset.';
+  end if;
+end $$;
+
 insert into public.players (nickname, is_patreon) values
   ('MR. LAG', false),
   ('VISIT KASTORIA', true),

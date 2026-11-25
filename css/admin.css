@@ -71,6 +71,12 @@
 }
 .admin-login .form-msg.ok{color:var(--paper-text-2)}
 .admin-login .form-msg.err{color:var(--red-ink)}
+/* Το .btn-primary είναι paper-on-paper μέσα στο paper panel. */
+.admin-login .btn-primary{
+  background:var(--ink-1);color:var(--paper);border-color:var(--ink-1);
+}
+.admin-login .btn-primary:hover{background:var(--ink-0);border-color:var(--ink-0)}
+.admin-login .btn-primary:disabled{opacity:.55}
 .admin-form{display:grid;gap:16px}
 
 /* ============================ CARDS ============================ */

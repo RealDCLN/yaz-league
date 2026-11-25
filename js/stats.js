@@ -300,19 +300,8 @@ window.YAZ = window.YAZ || {};
         return String(a.row.nickname).localeCompare(String(b.row.nickname), 'el');
       });
 
-      let lastPts = null;
-      let lastWc = null;
-      let lastRank = 0;
       snapshot.forEach((entry, i) => {
-        let rank;
-        if (lastPts !== null && entry.pts === lastPts && entry.wc === lastWc) {
-          rank = lastRank;
-        } else {
-          rank = i + 1;
-          lastRank = rank;
-          lastPts = entry.pts;
-          lastWc = entry.wc;
-        }
+        const rank = i + 1;
         if (!entry.row.rankHistory) entry.row.rankHistory = [];
         entry.row.rankHistory.push({ week, rank, points: entry.pts, wildcards: entry.wc });
       });
@@ -331,18 +320,11 @@ window.YAZ = window.YAZ || {};
 
     list.sort(tiebreak);
 
-    let lastPts = null;
-    let lastWc = null;
-    let lastRank = 0;
+    /* Μοναδική θέση για κάθε παίκτη. Η σειρά προκύπτει από το tiebreak
+       (πόντοι → wild cards → concept → καλύτερη εβδομάδα → χάρτης+quiz
+       → όνομα), ώστε η γραμμή του Top 16 να μην κόβει ισόπαλους. */
     list.forEach((row, i) => {
-      if (lastPts !== null && row.points === lastPts && row.wildcards === lastWc) {
-        row.rank = lastRank;
-      } else {
-        row.rank = i + 1;
-        lastRank = row.rank;
-        lastPts = row.points;
-        lastWc = row.wildcards;
-      }
+      row.rank = i + 1;
       row.position = i + 1;
       row.group = groupForRank(row.rank);
       const h = row.rankHistory || [];
@@ -362,13 +344,15 @@ window.YAZ = window.YAZ || {};
   function pots(rows) {
     const cfg = config();
     const potCount = num((cfg.format && cfg.format.pots)) || 4;
+    const size = Math.max(1, num(cfg.groupSize) || 4);
     const out = [];
     for (let p = 1; p <= potCount; p++) {
       out.push({
         pot: p,
+        size,
         label: 'Pot ' + p,
-        range: ((p - 1) * 4 + 1) + '–' + (p * 4),
-        rows: rows.slice((p - 1) * 4, p * 4)
+        range: ((p - 1) * size + 1) + '–' + (p * size),
+        rows: rows.slice((p - 1) * size, p * size)
       });
     }
     return out;

@@ -454,7 +454,7 @@ em{font-style:normal}
 .x2-card{padding:16px 0;border-top:1px solid var(--line)}
 .x2-card dt{font-family:var(--mono);font-size:11px;line-height:16px;color:var(--text-3);margin-bottom:6px}
 .x2-card dd{margin:0;font-size:15px;line-height:1.6;color:var(--text);font-variant-numeric:tabular-nums}
-.x2-price{display:block;margin-top:6px;font-family:var(--mono);font-size:11px;line-height:16px;color:var(--text-3)}
+.x2-card .x2-price{display:block;margin-top:6px;font-family:var(--mono);font-size:11px;line-height:16px;color:var(--text-3)}
 
 /* ============================ LEADERBOARD ============================ */
 .leader-strip{
@@ -636,7 +636,7 @@ em{font-style:normal}
 .md-event{padding:16px 0;border-top:1px solid var(--line-paper)}
 .md-event:last-child{border-bottom:0}
 .md-event-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:10px}
-.md-event-head h4{
+.md-event-head h3{
   font-family:var(--mono);font-size:11px;line-height:16px;font-weight:400;
   color:var(--paper-text-3);margin:0;
 }

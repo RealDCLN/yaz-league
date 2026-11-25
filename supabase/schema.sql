@@ -489,9 +489,14 @@ begin
     return new;
   end if;
 
-  ip := nullif(split_part(coalesce(hdrs ->> 'x-forwarded-for', ''), ',', 1), '');
+  -- Το πρώτο στοιχείο του X-Forwarded-For το ελέγχει ο client. Το
+  -- τελευταίο το προσθέτει ο proxy, οπότε είναι το αξιόπιστο.
+  ip := nullif(btrim(coalesce(
+    (regexp_match(coalesce(hdrs ->> 'x-forwarded-for', ''), '([^,]+)\s*$'))[1],
+    ''
+  )), '');
   if ip is null then
-    ip := nullif(hdrs ->> 'cf-connecting-ip', '');
+    ip := nullif(btrim(hdrs ->> 'cf-connecting-ip'), '');
   end if;
   if ip is null then
     -- Δεν μπορούμε να ταυτοποιήσουμε IP (π.χ. SQL editor). Fail open.

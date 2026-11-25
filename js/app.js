@@ -290,12 +290,20 @@
 
     const note = $('boardNote');
     if (note) {
+      const eligible = state.standings.filter(r => r.matchdays > 0).length;
+      const qualifiers = Number(cfg.format && cfg.format.qualifiers) || 16;
+      const tiebreakNote = ' Ισοπαλία: wild cards → concept → καλύτερη εβδομάδα.';
+
       if (played === 0 && state.standings.length) {
         note.textContent = 'Η σεζόν δεν έχει ξεκινήσει. Η πρώτη αγωνιστική είναι στις ' + formatShort(Y.stats.weekDate(1)) + '. Σε ισοπαλία πόντων μετράνε τα wild cards, μετά τα concept και το καλύτερο εβδομαδιαίο σκορ.';
-      } else if (state.standings.length > 16) {
-        note.textContent = played >= total
-          ? 'Οι 16 πρώτοι προκρίνονται στα pots. Ισοπαλία: wild cards → concept → καλύτερη εβδομάδα.'
-          : 'Προσωρινή κατάταξη. Η γραμμή μετά τη 16η θέση δείχνει τη ζώνη πρόκρισης. Ισοπαλία: wild cards → concept → καλύτερη εβδομάδα.';
+      } else if (state.standings.length > qualifiers) {
+        if (played >= total) {
+          note.textContent = 'Οι ' + qualifiers + ' πρώτοι προκρίνονται στα pots.' + tiebreakNote;
+        } else if (eligible >= qualifiers) {
+          note.textContent = 'Προσωρινή κατάταξη. Η γραμμή μετά τη ' + qualifiers + 'η θέση δείχνει τη ζώνη πρόκρισης.' + tiebreakNote;
+        } else {
+          note.textContent = 'Προσωρινή κατάταξη. Η γραμμή πρόκρισης εμφανίζεται όταν έχουν αγωνιστεί ' + qualifiers + ' παίκτες.' + tiebreakNote;
+        }
       } else {
         note.textContent = 'Σε ισοπαλία πόντων μετράνε τα wild cards, μετά τα concept και το καλύτερο εβδομαδιαίο σκορ.';
       }
@@ -357,16 +365,20 @@
     const natural = isNaturalOrder();
     const rows = [];
     let cutInserted = false;
+    const qualifiers = Number(cfg.format && cfg.format.qualifiers) || 16;
+    const potCount = Number(cfg.format && cfg.format.pots) || 4;
+    const eligible = state.standings.filter(r => r.matchdays > 0).length;
+    const showCut = natural && eligible >= qualifiers;
 
     list.forEach((row, index) => {
-      if (natural && !cutInserted && index === 16) {
-        rows.push('<tr class="cut-row"><td colspan="9"><span class="cut-label"><i></i>Γραμμή πρόκρισης · Top 16 · Pots 1–4</span></td></tr>');
+      if (showCut && !cutInserted && index === qualifiers) {
+        rows.push('<tr class="cut-row"><td colspan="9"><span class="cut-label"><i></i>Γραμμή πρόκρισης · Top ' + qualifiers + ' · Pots 1–' + potCount + '</span></td></tr>');
         cutInserted = true;
       }
 
       const rankClass = row.rank <= 3 ? 'rank-' + row.rank : '';
       const podium = natural && row.points > 0 && index < 3 ? ' pos-' + (index + 1) : '';
-      const qualified = (row.position || row.rank) <= 16;
+      const qualified = (row.position || row.rank) <= qualifiers;
       const badges = [];
       if (row.wildcards) badges.push('<span class="wild-badge is-on" title="Wild cards">W' + row.wildcards + '</span>');
       if (row.x2) badges.push('<span class="x2-badge is-on" title="Χ2 που χρησιμοποιήθηκαν">×2</span>');
@@ -426,6 +438,20 @@
   }
 
   function wireBoardSorting() {
+    // Τα headers είναι ταξινομήσιμα μόνο με ποντίκι· δώσε και
+    // πληκτρολόγιο (Tab + Enter/Space).
+    document.querySelectorAll('#boardTable thead th[data-sort]').forEach(th => {
+      th.tabIndex = 0;
+    });
+
+    document.addEventListener('keydown', (ev) => {
+      if (ev.key !== 'Enter' && ev.key !== ' ') return;
+      const th = ev.target.closest('#boardTable thead th[data-sort]');
+      if (!th) return;
+      ev.preventDefault();
+      th.click();
+    });
+
     document.addEventListener('click', (ev) => {
       const th = ev.target.closest('#boardTable thead th[data-sort]');
       if (!th) return;
@@ -573,11 +599,12 @@
     if (s.hasResults) flags.push('<span class="md-flag">Ολοκληρώθηκε</span>');
 
     const body = s.hasResults ? playedBody(s) : upcomingBody(s);
+    const totalWeeks = Y.stats.schedule().length || 12;
 
     return '' +
       '<details class="matchday-card' + (s.hasResults ? '' : ' matchday-card--upcoming') + '"' + (open ? ' open' : '') + '>' +
         '<summary>' +
-          '<span class="md-week">Αγ. ' + s.week + ' / 12</span>' +
+          '<span class="md-week">Αγ. ' + s.week + ' / ' + totalWeeks + '</span>' +
           '<span class="md-date">' + formatShort(s.date) + '</span>' +
           '<span class="md-flags">' + flags.join('') + '</span>' +
           '<span class="md-caret" aria-hidden="true">▾</span>' +
@@ -598,7 +625,7 @@
     if (!winner) {
       return '' +
         '<div class="md-event md-event--' + kind + '">' +
-          '<div class="md-event-head"><h4>' + title + '</h4><span>Αγ. ' + week + '</span></div>' +
+          '<div class="md-event-head"><h3>' + title + '</h3><span>Αγ. ' + week + '</span></div>' +
           '<p class="md-empty">Δεν έχει καταχωρηθεί αποτέλεσμα.</p>' +
         '</div>';
     }
@@ -620,7 +647,7 @@
 
     return '' +
       '<div class="md-event md-event--' + kind + '">' +
-        '<div class="md-event-head"><h4>' + title + '</h4><span>' + all.length + ' παίκτες</span></div>' +
+        '<div class="md-event-head"><h3>' + title + '</h3><span>' + all.length + ' παίκτες</span></div>' +
         '<div class="md-winner">' +
           '<span class="md-winner-crown" aria-hidden="true">◆</span>' +
           '<button class="md-player md-winner-name" type="button" data-player="' + escapeAttr(winner.playerId) + '">' + escapeHtml(upperName(winner.nickname)) + '</button>' +
@@ -651,7 +678,7 @@
 
     return '' +
       '<div class="md-event md-wild">' +
-        '<div class="md-event-head"><h4>Wild Card</h4><span>Χάρτης + Quiz</span></div>' +
+        '<div class="md-event-head"><h3>Wild Card</h3><span>Χάρτης + Quiz</span></div>' +
         '<div class="md-winner">' +
           '<span class="md-winner-crown" aria-hidden="true">W</span>' +
           winnerHtml +
@@ -665,15 +692,15 @@
   function upcomingBody(s) {
     return '' +
       '<div class="md-event">' +
-        '<div class="md-event-head"><h4>Concept Map</h4><span>' + formatShort(s.date) + '</span></div>' +
+        '<div class="md-event-head"><h3>Concept Map</h3><span>' + formatShort(s.date) + '</span></div>' +
         '<p class="md-empty">25 τοποθεσίες, ένα κρυφό concept. Το μυστικό αποκαλύπτεται στο τέλος.</p>' +
       '</div>' +
       '<div class="md-event">' +
-        '<div class="md-event-head"><h4>Quiz</h4><span>' + formatShort(s.date) + '</span></div>' +
+        '<div class="md-event-head"><h3>Quiz</h3><span>' + formatShort(s.date) + '</span></div>' +
         '<p class="md-empty">25 ερωτήσεις γεωγραφίας. Ίδια κλίμακα πόντων με τον χάρτη.</p>' +
       '</div>' +
       '<div class="md-event md-wild">' +
-        '<div class="md-event-head"><h4>Wild Card</h4><span>' + formatShort(s.date) + '</span></div>' +
+        '<div class="md-event-head"><h3>Wild Card</h3><span>' + formatShort(s.date) + '</span></div>' +
         '<p class="md-empty">Ο παίκτης με τους περισσότερους συνολικούς πόντους παίρνει το wild card.</p>' +
         (s.meta.holiday ? '<p class="md-x2"><b>×2:</b> δύο τυχαίοι παίκτες θα κληρωθούν απόψε.</p>' : '') +
       '</div>';
@@ -691,7 +718,10 @@
     const box = $('potsGrid');
     if (!box) return;
 
-    const top = state.standings.slice(0, 16);
+    // Μόνο όσοι έχουν αγωνιστεί μπορούν να μπουν στα pots. Αλλιώς οι
+    // 0-ποντοι παίκτες εμφανίζονται ως «θέσεις 13–16» από την 1η εβδομάδα.
+    const qualifiers = Number(cfg.format && cfg.format.qualifiers) || 16;
+    const top = state.standings.filter(r => r.matchdays > 0).slice(0, qualifiers);
     const pots = Y.stats.pots(top);
 
     if (!top.length) {
@@ -700,11 +730,12 @@
     }
 
     box.innerHTML = pots.map(pot => {
+      const size = pot.size || 4;
       const rows = pot.rows.map((r, i) => {
-        const position = (pot.pot - 1) * 4 + i + 1;
+        const position = (pot.pot - 1) * size + i + 1;
         return '<div class="pot-slot"><em>#' + position + '</em><span>' + escapeHtml(upperName(r.nickname)) + '</span><span class="pot-rank">' + r.points + 'π</span></div>';
       }).join('');
-      const empty = new Array(Math.max(0, 4 - pot.rows.length)).fill('<div class="pot-slot is-empty"><em>—</em><span>Κενή θέση</span></div>').join('');
+      const empty = new Array(Math.max(0, size - pot.rows.length)).fill('<div class="pot-slot is-empty"><em>—</em><span>Κενή θέση</span></div>').join('');
       return '' +
         '<div class="pot-card">' +
           '<div class="pot-card-head"><strong>Pot ' + pot.pot + '</strong><span>θέσεις ' + pot.range + '</span></div>' +
@@ -863,7 +894,24 @@
       if (ev.target === modal) closeModal();
     });
     document.addEventListener('keydown', (ev) => {
-      if (ev.key === 'Escape' && !modal.hidden) closeModal();
+      if (modal.hidden) return;
+      if (ev.key === 'Escape') { closeModal(); return; }
+      if (ev.key !== 'Tab') return;
+
+      // Κράτα το focus μέσα στο modal.
+      const focusable = Array.from(modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'))
+        .filter(el => !el.disabled && el.offsetParent !== null);
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (ev.shiftKey && document.activeElement === first) {
+        ev.preventDefault();
+        last.focus();
+      } else if (!ev.shiftKey && document.activeElement === last) {
+        ev.preventDefault();
+        first.focus();
+      }
     });
     document.addEventListener('click', (ev) => {
       const btn = ev.target.closest('.md-player, .history-player');
@@ -894,7 +942,11 @@
     const modal = $('playerModal');
     if (!modal) return;
 
-    const pot = (row.position || row.rank) <= 16 ? Math.floor(((row.position || row.rank) - 1) / 4) + 1 : null;
+    const potSize = Math.max(1, Number(cfg.groupSize) || 4);
+    const qualifiers = Number(cfg.format && cfg.format.qualifiers) || 16;
+    const pot = (row.position || row.rank) <= qualifiers
+      ? Math.floor(((row.position || row.rank) - 1) / potSize) + 1
+      : null;
     const banner = $('pmTierBanner');
     banner.className = 'pm-tier-banner';
     $('pmTierName').textContent = pot ? 'Pot ' + pot + ' · Top 16' : 'Εκτός Top 16';
@@ -1121,9 +1173,17 @@
       const consent = form.consent.checked;
       const honey = form.website.value;
 
-      form.querySelectorAll('input').forEach(i => i.classList.remove('invalid'));
+      form.querySelectorAll('input').forEach(i => {
+        i.classList.remove('invalid');
+        i.removeAttribute('aria-invalid');
+      });
       msg.className = 'form-msg';
       msg.textContent = '';
+
+      const markInvalid = el => {
+        el.classList.add('invalid');
+        el.setAttribute('aria-invalid', 'true');
+      };
 
       if (honey) {
         msg.className = 'form-msg ok';
@@ -1133,12 +1193,12 @@
       }
 
       const problems = [];
-      if (nickname.length < 2) { problems.push('Το όνομα είναι υποχρεωτικό.'); form.nickname.classList.add('invalid'); }
-      if (firstName.length < 2) { problems.push('Το username στο GeoGuessr είναι υποχρεωτικό.'); form.first_name.classList.add('invalid'); }
+      if (nickname.length < 2) { problems.push('Το όνομα είναι υποχρεωτικό.'); markInvalid(form.nickname); }
+      if (firstName.length < 2) { problems.push('Το username στο GeoGuessr είναι υποχρεωτικό.'); markInvalid(form.first_name); }
       if (!Number.isInteger(birthYear) || birthYear < 1900 || birthYear > currentYear) {
-        problems.push('Συμπλήρωσε ένα έγκυρο έτος γέννησης.'); form.birth_year.classList.add('invalid');
+        problems.push('Συμπλήρωσε ένα έγκυρο έτος γέννησης.'); markInvalid(form.birth_year);
       }
-      if (!city.length) { problems.push('Η περιοχή εκπροσώπησης είναι υποχρεωτική.'); form.city.classList.add('invalid'); }
+      if (!city.length) { problems.push('Η περιοχή εκπροσώπησης είναι υποχρεωτική.'); markInvalid(form.city); }
       if (!consent) { problems.push('Πρέπει να αποδεχτείς τους κανόνες για να συμμετάσχεις.'); }
 
       if (problems.length) {
@@ -1166,7 +1226,7 @@
           msg.className = 'form-msg err';
           const text = String(res.error || '');
           const isRateLimited = /Πολλές αιτήσεις|rate limit|too many/i.test(text);
-          const isDuplicate = /duplicate key|registrations_pending_nickname_uniq/i.test(text);
+          const isDuplicate = /duplicate key|registrations_pending_(first_name|nickname)_uniq/i.test(text);
           msg.textContent = isRateLimited
             ? 'Έγιναν πολλές αιτήσεις σε λίγο χρόνο. Δοκίμασε ξανά σε λίγα λεπτά.'
             : isDuplicate
