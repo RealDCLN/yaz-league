@@ -30,3 +30,10 @@ jobs:
             echo "::error::A .env file is tracked. Remove it and rotate any exposed secrets."
             exit 1
           fi
+
+      - name: Ensure no service-role key in client code
+        run: |
+          if grep -rInE 'service_role|sb_secret_|SUPABASE_SERVICE_ROLE_KEY' js index.html admin.html netlify.toml; then
+            echo "::error::A service-role key or reference was found in client code."
+            exit 1
+          fi

@@ -1,293 +1,322 @@
-# YAZ LEAGUE · WINTER 2026-27
+# YAZ LEAGUE · Winter 2026-27
 
-**«Το απόλυτο πρωτάθλημα γεωγραφίας»** — η επίσημη ιστοσελίδα της YAZ LEAGUE, της διοργάνωσης γεωγραφίας του **DE.VOYAGEUR**.
+**The official website and admin panel for YAZ LEAGUE — a geography league hosted by DE.VOYAGEUR.**
 
-Static site (HTML / CSS / JS, χωρίς build step) με προαιρετικό backend στο **Supabase**.
+A dependency-free static front end (HTML / CSS / vanilla JavaScript) backed by Supabase, deployed automatically from GitHub to Netlify.
 
-- Site: https://yaz-league.netlify.app
-- Repo: https://github.com/RealDCLN/yaz-league
-- Admin: `/admin` (σύνδεση με τον λογαριασμό διαχειριστή του Supabase)
+[![Live site](https://img.shields.io/badge/live-yaz--league.netlify.app-E5432F?style=flat-square)](https://yaz-league.netlify.app)
+[![Backend: Supabase](https://img.shields.io/badge/backend-Supabase-3ECF8E?style=flat-square&logo=supabase&logoColor=white)](https://supabase.com)
+[![License: MIT](https://img.shields.io/badge/license-MIT-0B1117?style=flat-square)](LICENSE)
+[![Validate](https://github.com/RealDCLN/yaz-league/actions/workflows/validate.yml/badge.svg)](https://github.com/RealDCLN/yaz-league/actions/workflows/validate.yml)
+
+[Live site](https://yaz-league.netlify.app) · [Admin panel](https://yaz-league.netlify.app/admin) · [Security policy](SECURITY.md) · [Ελληνικά](docs/OPERATIONS.el.md)
+
+![YAZ LEAGUE homepage](assets/og-image.png)
 
 ---
 
-## Η διοργάνωση
+## Overview
+
+YAZ LEAGUE is a 12-matchday GeoGuessr competition. Every matchday combines a **Concept Map** with a **geography quiz**; the top 16 players qualify for four groups and an eight-player knockout bracket.
+
+The site publishes the live standings, matchday results, player profiles, X2 multipliers, the group stage and the Final-8 bracket. A separate admin panel handles result entry, registrations, multipliers and the knockout phase.
+
+The public site and league content are in Greek; the codebase and this README are in English.
+
+### Season format
 
 | | |
 |---|---|
-| **Σεζόν** | Winter 2026-27 |
-| **Ημέρα & ώρα** | Κάθε Παρασκευή **19:30** (εξαίρεση: Πέμπτη **3/12**) |
-| **Πλατφόρμα** | GeoGuessr **Party Mode** + ζωντανή μετάδοση στο YouTube |
-| **Προκριματικά** | **12 αγωνιστικές** |
-| **Πρόκριση** | Top **16** → 4 pots → 4 όμιλοι → **Final-8** |
-| **Τελικός** | 1v1 GeoQuiz (προημιτελικά, ημιτελικά, τελικός + μικρός τελικός) |
+| **Season** | Winter 2026-27 |
+| **Matchdays** | 12 (Fridays at 19:30 Europe/Athens; one Thursday exception) |
+| **Platform** | GeoGuessr Party Mode + live YouTube broadcast |
+| **Qualification** | Top 16 → 4 pots → 4 groups → Final-8 |
+| **Final** | 1v1 GeoQuiz (quarter-finals, semi-finals, final + third-place match) |
 
-### Αγωνιστική
+Each matchday:
 
-1. **Concept Map** — χάρτης με ~25 τοποθεσίες που μοιράζονται ένα κοινό concept. Οι 10 πρώτοι παίρνουν **12, 10, 8, 7, 6, 5, 4, 3, 2, 1** πόντους. Ο πρώτος που βρίσκει το concept παίρνει **+3**.
-2. **Γεωγραφικό Quiz** — 25 ερωτήσεων, ίδια κλίμακα πόντων.
-3. **Wild Card** — ο παίκτης με τους περισσότερους συνολικούς πόντους (χάρτης + quiz) της αγωνιστικής κερδίζει **1 wild card**. Σε ισοπαλία το παίρνουν όλοι οι ισόπαλοι πρώτοι.
+1. **Concept Map** — ~25 locations sharing a hidden concept. The top 10 score **12, 10, 8, 7, 6, 5, 4, 3, 2, 1** points. The first player to identify the concept gets **+3**.
+2. **Geography Quiz** — 25 questions, same points scale.
+3. **Wild Card** — the player with the most combined points (map + quiz) that matchday earns one wild card. Tied leaders all receive one.
 
-Μέγιστο ανά αγωνιστική: **12 + 12 + 3 = 27 πόντοι**.
+Maximum per matchday: **27 points** (12 + 12 + 3).
 
-### Χ2
+### X2 multipliers
 
-- **Patreon VIVRE CARD (5€/μήνα):** ένα Χ2 τον **Δεκέμβριο** και ένα τον **Ιανουάριο** για όσους έχουν ενεργή μηνιαία συνδρομή.
-- **Εορταστικές αγωνιστικές 25/12 & 01/01:** δύο τυχαίοι παίκτες κερδίζουν από ένα Χ2.
-- Το Χ2 διπλασιάζει τους πόντους **ολόκληρης της αγωνιστικής** (χάρτης + quiz + concept bonus).
-- Κάθε παίκτης μπορεί να έχει **ένα μόνο Χ2 ανά αγωνιστική**.
-
-### Φάσεις
-
-- Μετά τις 12 εβδομάδες, οι **16 πρώτοι** χωρίζονται σε 4 γκρουπ δυναμικότητας: **1–4, 5–8, 9–12, 13–16**.
-- Κλήρωση: ένας παίκτης από κάθε pot σε κάθε όμιλο (A–D).
-- Φάση ομίλων: 4 όμιλοι × 4 παίκτες, round robin. Οι **2 πρώτοι** κάθε ομίλου προκρίνονται.
-- Final-8: προημιτελικά → ημιτελικά → τελικός, όλα σε **1v1 GeoQuiz**. Ο μικρός τελικός κρίνει το χάλκινο.
-
-### Βραβεία
-
-- Μετάλλια στους **3 πρώτους**.
-- Κεντρικό βραβείο στον πρωταθλητή (ανακοινώνεται στην πορεία).
+- **Patreon VIVRE CARD:** one X2 in December and one in January.
+- **Holiday matchdays (25/12 & 01/01):** two randomly drawn players receive an X2.
+- An X2 doubles the **whole matchday** (map + quiz + concept bonus).
+- One X2 per player per matchday.
 
 ---
 
-## Σχεδιαστική κατεύθυνση
+## Features
 
-Νυχτερινό πρόγραμμα αγώνων: χαρτί και μελάνι, ένα κόκκινο pin, αριθμοί σε στήλες και ένας χάρακας που διατρέχει τη σεζόν. Η πλοήγηση μένει ήσυχη και το χρώμα πηγαίνει σε δύο σημεία — την κάρτα της επόμενης αγωνιστικής και την κατάταξη.
-
-- Γραμματοσειρές: **IBM Plex Serif** (τίτλοι, ελληνικό κείμενο), **Inter** (κείμενο), **JetBrains Mono** (νούμερα, meta), **Cinzel** (μόνο το wordmark)
-- Χρώματα: `#0B1117` ink · `#101821` surface · `#EFE7D7` paper · `#E5432F` pin red
-- Ένα accent: το pin red. Καμία gradient, glow ή σκιά χρώματος.
-- Λεπτομέρειες: η γραμμή του Top 16 στην κατάταξη, ο κανόνας των 12 αγωνιστικών στο hero, τα 4 pots ως στήλες
-- Γεωγραφία: dot-matrix παγκόσμιος χάρτης στο hero, στο footer και στο 404· τοπογραφικές ισοϋψείς στην περγαμηνή του ημερολογίου
-- Assets: `assets/world-dots.svg` και `assets/topo-lines.svg` είναι **mask sources** (μαύρο stroke) και παίρνουν χρώμα/όψη από το CSS. `assets/favicon.svg`, `assets/og-image.png`
-
----
-
-## Δομή αρχείων
-
-```
-yaz-league/
-├── index.html                  Δημόσια σελίδα
-├── admin.html                  Admin portal (/admin)
-├── 404.html
-├── robots.txt
-├── netlify.toml                Build, redirects, security headers
-├── LICENSE
-├── SECURITY.md
-├── js/
-│   ├── config.js               ⚙️ Ημερομηνίες, links, βαθμολογία, format
-│   ├── history.js              Αρχείο προηγούμενης σεζόν + αντιστοίχιση παικτών
-│   ├── seed.js                 Demo δεδομένα (24 παίκτες, 12 αγωνιστικές, φάσεις)
-│   ├── stats.js                Κατάταξη, wild cards, Χ2, όμιλοι, bracket
-│   ├── data.js                 Supabase ή demo, εγγραφές
-│   ├── app.js                  Δημόσια σελίδα
-│   └── admin.js                Admin panel
-├── css/
-│   ├── styles.css              Δημόσια σελίδα
-│   ├── admin-base.css          Tokens & primitives για το admin
-│   └── admin.css               Admin panel
-├── assets/
-├── scripts/
-│   └── git-push.bat            Βοηθητικό script για commit + push (Windows)
-└── supabase/
-    ├── schema.sql              Πλήρες schema (source of truth)
-    ├── seed.sql                Demo δεδομένα
-    └── migrations/
-        └── 008_admin_allowlist.sql   Admin allowlist (μία φορά σε υπάρχουσα βάση)
-```
-
-Τα αποτελέσματα της προηγούμενης σεζόν είναι στατικά στο `js/history.js` (δεν χρειάζονται πίνακες στη Supabase). Οι θέσεις 1–4 αποθηκεύονται με σειρά· οι θέσεις 5–20 ως γκρουπ χωρίς εσωτερική κατάταξη. Η αντιστοίχιση με τους παίκτες της τρέχουσας σεζόν γίνεται με κανονικοποιημένο username, ενώ το `ALIASES` καλύπτει μικρές αλλαγές ονόματος.
+- **Live leaderboard** with deterministic tie-breaking (points → wild cards → concept bonus → best matchday → map + quiz → name).
+- **Matchday results** with concept bonus, X2 multipliers and wild cards.
+- **Player profiles** with season totals, placements, form and a rank-progress chart.
+- **Season 1 archive** linked to current player profiles by normalized username.
+- **Group stage and Final-8 bracket**, including the draw from four pots.
+- **Public registration form** with client-side and database-level validation.
+- **Admin panel** for matchdays, X2/Patreon, groups/bracket, registrations, players and result history.
+- **Demo mode** that runs the full season from a deterministic seed when Supabase is not configured.
+- **Responsive, accessible UI** with no framework and no build step.
+- **Hardened deployment**: CSP, SRI-pinned CDN scripts, security headers and an admin route excluded from search engines.
 
 ---
 
-## Demo mode
+## Design notes
 
-Το site τρέχει αμέσως χωρίς καμία ρύθμιση:
+The visual language is an editorial, map-inspired match-night programme: paper and ink, one pin-red accent, and numbers set in columns.
 
-1. Κατέβασε τον φάκελο.
-2. Άνοιξε το `index.html`.
-
-Αν `supabaseUrl` / `supabaseAnonKey` είναι κενά, φορτώνεται το `js/seed.js`: 24 παίκτες, πλήρης σεζόν 12 αγωνιστικών, Χ2, όμιλοι και ολοκληρωμένο Final-8. Η φόρμα εγγραφής δείχνει επιτυχία αλλά **δεν αποθηκεύει** πουθενά.
+- **Type:** IBM Plex Serif for headings and Greek copy, Inter for body text, JetBrains Mono for numerals and metadata, Cinzel for the wordmark.
+- **Palette:** ink `#0B1117`, surface `#101821`, paper `#EFE7D7`, pin red `#E5432F`.
+- **Restraint:** no gradients, glows or coloured shadows; the red is reserved for the next-match card and the leaderboard.
+- **Geography:** the dot-matrix world map and topographic contour lines are SVG mask sources, recoloured by CSS.
+- **Accessibility:** skip link, semantic landmarks, visible focus states, `prefers-reduced-motion` support and ARIA labels on charts, dialogs and live regions.
 
 ---
 
-## Supabase setup
+## Tech stack
 
-### 1. Project
+| Layer | Technology |
+|---|---|
+| Front end | HTML5, CSS3, vanilla JavaScript (ES2020), no framework, no build step |
+| Data & auth | Supabase (PostgreSQL, PostgREST, Supabase Auth) |
+| Charts | Chart.js 4.4.1 (pinned, SRI) |
+| Hosting | Netlify (static publish + redirects + headers) |
+| CI | GitHub Actions (JavaScript syntax, `.env` and service-role guards) |
 
-[supabase.com](https://supabase.com) → New project.
+---
 
-### 2. Schema
+## Architecture
 
-SQL Editor → New query → επικόλλησε **ολόκληρο** το `supabase/schema.sql` → Run.
-
-Το schema είναι idempotent. Περιλαμβάνει:
-
-- `players`, `matches`, `results`, `registrations`
-- `multipliers` (Χ2), `group_members`, `phase_matches`
-- `admins` — allowlist με τα email των διαχειριστών
-- RLS, column-level grants, anti-spam trigger
-- `public.is_admin()` — ελέγχει το JWT email απέναντι στο `public.admins`
-
-### 3. Υπάρχουσα βάση
-
-Αν η βάση έχει ήδη στηθεί, το `schema.sql` μπορεί να ξανατρέξει με ασφάλεια.
-Για το admin allowlist τρέξε μία φορά:
-
-```
-supabase/migrations/008_admin_allowlist.sql
+```text
+Browser
+├── index.html / admin.html / 404.html
+├── css/                    design system and page styles
+├── js/config.js            runtime configuration (schedule, scoring, links)
+├── js/data.js              Supabase or demo data layer
+├── js/stats.js             pure ranking, multiplier and bracket calculations
+├── js/app.js               public page rendering
+├── js/admin.js             admin panel
+├── js/seed.js              deterministic demo season
+└── js/history.js           static Season 1 archive
+        │
+        │ HTTPS (PostgREST + Auth)
+        ▼
+Supabase
+├── players, matches, results
+├── registrations, multipliers
+├── group_members, phase_matches
+└── admins (server-side allowlist)
 ```
 
-Το migration μεταφέρει αυτόματα τον παλιό hardcoded διαχειριστή στην
-allowlist πριν αλλάξει η `is_admin()`, οπότε δεν χάνεις πρόσβαση.
+- `js/config.js` is the single place for season dates, scoring, league format and external links.
+- `js/stats.js` contains no DOM code, so it can be reused and tested independently.
+- `js/data.js` falls back to `js/seed.js` when Supabase is not configured; the rest of the app does not need to know which mode is active.
+- The public page reads only non-sensitive player fields. Private registration data is only available to an authenticated admin.
 
-### 4. Admin user
+### Data model
 
-1. Authentication → Users → Add user → το email του διοργανωτή.
-2. Πρόσθεσέ το στην allowlist:
+| Table | Purpose |
+|---|---|
+| `players` | Public username (`first_name`), private name (`nickname`), birth year, city, Patreon flag |
+| `matches` | One row per matchday and discipline (`map` / `quiz`) |
+| `results` | Placement, base points, raw score and concept bonus |
+| `registrations` | Pending public sign-ups, readable only by the admin |
+| `multipliers` | X2 awards and the matchday they are used on |
+| `group_members` | Group draw result and pot/seed |
+| `phase_matches` | Group matches, quarter-finals, semi-finals, final and third-place match |
+| `admins` | Email allowlist used by `public.is_admin()` |
 
-```sql
-insert into public.admins (email) values ('you@example.com');
+Computed values — effective points, wild cards and standings — are derived at read time rather than stored twice.
+
+---
+
+## Security model
+
+The repository is intended to be public. Security relies on database rules, not on hiding the front end.
+
+- The Supabase **publishable/anon key** in `js/config.js` is public by design. It can only read data allowed by Row Level Security and column-level grants.
+- **RLS is enabled on every table.** The `admins` allowlist table is not readable with the anon key.
+- **Column grants** limit anonymous access to `id, first_name, joined_at, is_active, is_patreon` on `players`. Private fields (`nickname`, `birth_year`, `city`) are admin-only.
+- **Admin access is enforced server-side.** `public.is_admin()` compares the verified JWT email against `public.admins`; the browser cannot grant itself the role.
+- **Registration hardening:** the public form can only insert pending registrations, and a database trigger rate-limits requests to 5 per 15 minutes per hashed IP.
+- **CSP and SRI:** `netlify.toml` sets a restrictive Content Security Policy and every CDN script uses a pinned version with a Subresource Integrity hash.
+- **No service-role key** is present in the repository or the front end. The service-role/secret key must remain server-side only.
+- `/admin` is excluded from search engines with `X-Robots-Tag` and `robots.txt`.
+
+If you find a vulnerability, please follow [SECURITY.md](SECURITY.md) and report it privately rather than opening a public issue.
+
+---
+
+## Local development
+
+No installation or build step is required.
+
+```bash
+git clone https://github.com/RealDCLN/yaz-league.git
+cd yaz-league
+python -m http.server 8080
 ```
 
-Το `/admin` συνδέεται με Supabase Auth και ελέγχει τον ρόλο server-side.
-Το email του διαχειριστή **δεν** είναι hardcoded στον κώδικα.
+Then open <http://localhost:8080>. Opening `index.html` directly also works.
 
-### 5. Keys
+### Demo mode
 
-Project Settings → API:
+Leave `supabaseUrl` and `supabaseAnonKey` empty in `js/config.js` to run the deterministic demo season: 24 players, 12 matchdays, X2 multipliers, groups and a completed Final-8. The registration form shows success but does not persist anything.
 
-- Project URL → `js/config.js` → `supabaseUrl`
-- Publishable / anon key → `js/config.js` → `supabaseAnonKey`
+The checked-in configuration points at the live Supabase project. To preview demo mode without touching the deployed configuration, temporarily blank those two values (and restore them afterwards).
 
-> Το publishable/anon key είναι δημόσιο by design. Ποτέ `service_role` /
-> secret key στο front-end ή στο repo.
+### Validation
 
-### 6. Demo seed (προαιρετικό)
+```bash
+for file in js/*.js; do node --check "$file"; done
+```
 
-SQL Editor → `supabase/seed.sql` → Run (μόνο σε άδεια βάση). Σπέρνει 24 παίκτες, 12 αγωνιστικές και τα Patreon Χ2. Τους ομίλους τους κάνεις από το admin.
-
----
-
-## Admin panel
-
-`https://yaz-league.netlify.app/admin`
-
-### Αγωνιστική
-
-1. Διάλεξε αγωνιστική — η ημερομηνία συμπληρώνεται από το πρόγραμμα.
-2. Συμπλήρωσε δύο λίστες: **Concept Map** και **Quiz**, με σειρά κατάταξης.
-3. Οι πόντοι υπολογίζονται αυτόματα. Τσέκαρε **+3** σε **έναν** παίκτη του χάρτη.
-4. Η προεπισκόπηση δείχνει σύνολο, Χ2 και wild card.
-5. **Αποθήκευση αγωνιστικής** — γράφει και τα δύο σκέλη της εβδομάδας.
-
-Η ίδια οθόνη ανοίγει υπάρχουσα αγωνιστική για διόρθωση. Η αποθήκευση αντικαθιστά τα αποτελέσματα της εβδομάδας.
-
-### Χ2 & Patreon
-
-- Ενεργοποίησε/απενεργοποίησε **Patreon** ανά παίκτη.
-- Για κάθε συνδρομητή διάλεξε σε ποια εβδομάδα του **Δεκεμβρίου** και του **Ιανουαρίου** χρησιμοποιεί το Χ2.
-- Στις εορταστικές αγωνιστικές πάτησε **Κλήρωση 2 παικτών**. Το Χ2 εφαρμόζεται αυτόματα στην ίδια αγωνιστική (μπορείς να το αλλάξεις).
-- Ο πίνακας **Χ2 ανά αγωνιστική** δείχνει όλους τους πολλαπλασιαστές ανά εβδομάδα. Το «ένα Χ2 ανά παίκτη ανά αγωνιστική» επιβάλλεται από unique index στη βάση.
-
-### Φάσεις
-
-1. Όταν ολοκληρωθούν οι 12 αγωνιστικές, πάτησε **Κλήρωση ομίλων**. Γίνεται τυχαία κλήρωση μέσα σε κάθε pot και δημιουργούνται οι 24 αγώνες.
-2. Καταχώρισε τα σκορ των ομίλων. Δεν επιτρέπεται ισοπαλία στο 1v1.
-3. **Προχώρησε στην επόμενη φάση**:
-   - όμιλοι → προημιτελικά
-   - προημιτελικά → ημιτελικά
-   - ημιτελικά → τελικός + μικρός τελικός
-4. Αν αλλάξεις σκορ προηγούμενης φάσης, το panel ζητά επιβεβαίωση και καθαρίζει τις επόμενες φάσεις ώστε να μη μείνει stale bracket.
-5. **Επαναφορά φάσεων** διαγράφει όμιλοι + bracket, όχι τα προκριματικά.
-
-### Εγγραφές
-
-Έγκριση → δημιουργεί παίκτη. Απόρριψη → κλείνει την αίτηση. Το όνομα, το έτος γέννησης και η περιοχή μένουν ιδιωτικά. Το username του GeoGuessr εμφανίζεται δημόσια στην κατάταξη.
-
-### Ιστορικό
-
-Άνοιγμα αγωνιστικής για επεξεργασία ή διαγραφή και των δύο σκελών.
+The same check runs in GitHub Actions on every push to `main` and every pull request. The workflow also fails if a `.env` file is tracked or a service-role key appears in client code.
 
 ---
 
-## Ρυθμίσεις
+## Configuration
 
-Όλα στο `js/config.js`:
+Everything the site needs at runtime lives in `js/config.js`:
 
 ```js
 schedule: [
   { week: 1, date: '2026-11-20T19:30:00+02:00' },
-  ...
+  // ...
   { week: 3, date: '2026-12-03T19:30:00+02:00', label: 'Πέμπτη' },
   { week: 6, date: '2026-12-25T19:30:00+02:00', holiday: true },
   { week: 7, date: '2027-01-01T19:30:00+02:00', holiday: true }
 ]
 ```
 
-- Άλλαξε την πρώτη ημερομηνία για μετακίνηση ολόκληρης της σεζόν.
-- `points`, `conceptBonus`, `multiplier`, `format` ελέγχουν βαθμολογία και δομή.
-- `links.patreon` μπορεί να μείνει κενό· το site δείχνει «Ρώτα στο Discord».
-- Τα ονόματα εμφανίζονται πάντα ΚΕΦΑΛΑΙΑ (client + DB trigger).
+- `points`, `conceptBonus`, `multiplier` and `format` control scoring and league structure.
+- `links` holds the Discord, TikTok, YouTube, Instagram and Patreon destinations.
+- `links.patreon` may stay empty; the site then shows a Discord prompt instead of a broken link.
+- Player names are displayed in uppercase (enforced by both the client and a database trigger).
+
+---
+
+## Supabase setup
+
+1. Create a project at [supabase.com](https://supabase.com).
+2. Open **SQL Editor → New query**, paste the entire [`supabase/schema.sql`](supabase/schema.sql) and run it. The schema is idempotent and includes tables, constraints, indexes, RLS, grants, triggers and the admin allowlist.
+3. Create the admin user under **Authentication → Users**, then add the email to the allowlist:
+
+   ```sql
+   insert into public.admins (email) values ('you@example.com');
+   ```
+
+4. Copy **Project URL** and the **publishable/anon key** from **Project Settings → API** into `js/config.js`. If you use a different Supabase project, also update the two Supabase hosts in the `connect-src` directive of the CSP in `netlify.toml`.
+5. Optionally run [`supabase/seed.sql`](supabase/seed.sql) on an empty database for demo data.
+
+Existing installations can also run [`supabase/migrations/008_admin_allowlist.sql`](supabase/migrations/008_admin_allowlist.sql) once. It moves the previous hardcoded admin into the allowlist before replacing `is_admin()`.
+
+> Never place a `service_role` / secret key in the front end, `js/config.js` or the repository.
+
+---
+
+## Admin panel
+
+The panel is available at `/admin` and authenticates through Supabase Auth. Only emails in `public.admins` can use it.
+
+- **Matchday** — choose a matchday, enter the Concept Map and Quiz rankings, mark the single concept bonus, preview the result and save. Existing matchdays open for correction.
+- **X2 & Patreon** — toggle Patreon status, assign December/January X2 weeks and draw the two holiday multipliers.
+- **Phases** — draw the four groups from the pots, enter 1v1 scores and advance the bracket. Changing an earlier round clears later rounds to avoid stale results.
+- **Registrations** — approve or reject pending sign-ups; approval creates a player.
+- **Players** — manage public usernames, private names, birth years, cities and Patreon status.
+- **History** — open or delete both disciplines of a matchday.
+
+Full Greek documentation for the organizer is in [`docs/OPERATIONS.el.md`](docs/OPERATIONS.el.md).
 
 ---
 
 ## Deployment
 
-### Netlify (συνδεδεμένο GitHub repo)
+Netlify is connected to the GitHub repository and deploys every push to `main`.
 
-Το `netlify.toml` ορίζει:
+`netlify.toml` publishes only the site files:
 
 ```toml
 command = "rm -rf dist && mkdir -p dist && cp index.html admin.html 404.html robots.txt dist/ && cp -R assets css js dist/"
 publish = "dist"
 ```
 
-Δηλαδή δημοσιεύονται μόνο τα αρχεία του site — όχι README, SQL, `.env`, `.bat` ή `.git`.
+README, SQL, `.env`, docs and helper scripts stay in the repository but are never copied to the public directory. The same file also defines the `/admin` redirect and security headers.
 
-Κάθε push στο `main` κάνει auto-deploy. Το `/admin` δουλεύει μέσω redirect.
+---
 
-### Τοπικά
+## Project structure
 
-Άνοιξε το `index.html`, ή σήκωσε έναν static server:
-
-```bash
-python -m http.server 8080
+```text
+yaz-league/
+├── index.html                     Public site
+├── admin.html                     Admin panel (/admin)
+├── 404.html
+├── robots.txt
+├── netlify.toml                   Build, redirects, security headers
+├── js/
+│   ├── config.js                  Season dates, links, scoring, format
+│   ├── history.js                 Season 1 archive + player matching
+│   ├── seed.js                    Deterministic demo season
+│   ├── stats.js                   Standings, wild cards, X2, groups, bracket
+│   ├── data.js                    Supabase or demo data layer
+│   ├── app.js                     Public page
+│   └── admin.js                   Admin panel
+├── css/
+│   ├── styles.css                 Public site
+│   ├── admin-base.css             Admin design tokens and primitives
+│   └── admin.css                  Admin panel
+├── assets/                        Favicon, social image, SVG patterns
+├── supabase/
+│   ├── schema.sql                 Full schema (source of truth)
+│   ├── seed.sql                   Demo data
+│   └── migrations/
+│       └── 008_admin_allowlist.sql
+├── docs/
+│   └── OPERATIONS.el.md           Greek organizer documentation
+├── scripts/
+│   └── git-push.bat               Windows commit + push helper
+├── .github/
+│   ├── workflows/validate.yml
+│   ├── ISSUE_TEMPLATE/
+│   ├── PULL_REQUEST_TEMPLATE.md
+│   ├── CODEOWNERS
+│   └── dependabot.yml
+├── .editorconfig
+├── .gitattributes
+├── .gitignore
+├── .env.example
+├── CONTRIBUTING.md
+├── CODE_OF_CONDUCT.md
+├── SECURITY.md
+├── LICENSE
+└── README.md
 ```
 
 ---
 
-## Ασφάλεια
+## Season 1 archive
 
-- Το δημόσιο API εκδίδει μόνο `id, first_name, joined_at, is_active, is_patreon` από τους παίκτες.
-- `nickname` (το ιδιωτικό όνομα), `birth_year`, `city` είναι διαθέσιμα **μόνο** στον admin. Το δημόσιο `first_name` είναι το username του GeoGuessr.
-- RLS παντού + column-level grants.
-- Ο έλεγχος admin γίνεται server-side με `public.is_admin()` από το JWT
-  και την allowlist `public.admins`. Ο πίνακας δεν είναι προσβάσιμος με
-  το anon key.
-- Anti-spam: 5 αιτήσεις / 15 λεπτά ανά IP hash.
-- CSP, SRI στα CDN scripts, security headers στο `netlify.toml`.
+Season 1 results are static in [`js/history.js`](js/history.js); no database tables are required. Ranks 1–4 are stored in order, while ranks 5–20 are stored as unordered bands. Current profiles are matched by normalized username, with an `ALIASES` map for small name changes.
 
 ---
 
-## Τεχνικές σημειώσεις
+## Contributing
 
-- **Χ2 και κατάταξη:** τα `results.points` αποθηκεύουν τους base πόντους. Το διπλασιασμό τον εφαρμόζει το `stats.js` διαβάζοντας το `multipliers.used_week`. Έτσι διορθώνεται/αφαιρείται Χ2 χωρίς να ξαναγραφτούν αποτελέσματα.
-- **Wild cards:** υπολογίζονται από τα συνολικά effective points κάθε εβδομάδας (χάρτης + quiz). Δεν αποθηκεύονται σε ξεχωριστό table.
-- **Ισοπαλία κατάταξης:** πόντοι → wild cards → concept → καλύτερη εβδομάδα → χάρτης+quiz → όνομα. Κάθε θέση είναι μοναδική.
-- **1v1:** δεν επιτρέπεται ισοπαλία. Το admin ζητά διαφορετικά σκορ.
-- **`supabase/schema.sql` είναι το source of truth.** Περιλαμβάνει όλο το
-  τρέχον schema (Χ2, όμιλοι, bracket, RLS, admin allowlist) και είναι
-  idempotent — μπορεί να ξανατρέξει πάνω σε υπάρχουσα βάση.
+Contributions, bug reports and documentation fixes are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) before opening an issue or pull request.
 
 ---
 
-## Άδεια
+## License
 
-Ο κώδικας διατίθεται με τη [MIT License](LICENSE).
+The source code is available under the [MIT License](LICENSE).
 
-Τα λογότυπα, τα γραφικά, τα ονόματα παικτών και το περιεχόμενο της
-διοργάνωσης δεν καλύπτονται από την άδεια.
+Logos, artwork, player names and league content are not covered by the license.
 
-Για αναφορές ασφαλείας δες το [SECURITY.md](SECURITY.md) — παρακαλώ όχι
-δημόσια issues.
+---
+
+Built by [DCLN](https://github.com/RealDCLN) for **DE.VOYAGEUR**.

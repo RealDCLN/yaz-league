@@ -10,6 +10,12 @@ Use GitHub's private vulnerability reporting instead:
 Include what you found, how to reproduce it, and the potential impact. You can
 expect an initial response within a few days.
 
+## Supported versions
+
+Only the current `main` branch and the deployed site at
+<https://yaz-league.netlify.app> are supported. There are no maintained release
+branches.
+
 ## Scope
 
 This repository contains a static HTML/CSS/JS front-end and the SQL used to

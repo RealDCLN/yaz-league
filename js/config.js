@@ -11,6 +11,8 @@ window.YAZ.config = {
   /* --- Supabase -------------------------------------------------
      Άφησέ τα κενά για να τρέξει το site με τα δείγματα (demo mode).
      Τα βρίσκεις στο Supabase > Project Settings > API.
+     Το publishable/anon key είναι δημόσιο by design· η ασφάλεια
+     βασίζεται σε RLS και column grants, όχι στο κλειδί.
      ------------------------------------------------------------- */
   supabaseUrl: 'https://bgjprkmpyraflesqovos.supabase.co',
   supabaseAnonKey: 'sb_publishable_Rbk2eZBgaYOUm7jxceGA5Q_gSVq1qKT',

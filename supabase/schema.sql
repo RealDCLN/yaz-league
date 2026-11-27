@@ -7,9 +7,8 @@
 --
 --  Το αρχείο είναι idempotent: μπορείς να το ξανατρέξεις πάνω σε
 --  υπάρχουσα βάση για να εφαρμόσεις τις διορθώσεις ασφαλείας.
---  Αν έχεις ήδη βάση, μπορείς αντί για όλο το αρχείο να τρέξεις
---  τα supabase/migrations/003_security_hardening.sql και
---  supabase/migrations/004_username_birth_year_city.sql.
+--  Για το admin allowlist υπάρχει και το
+--  supabase/migrations/008_admin_allowlist.sql.
 -- ============================================================
 
 create extension if not exists "pgcrypto";
