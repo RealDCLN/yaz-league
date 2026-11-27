@@ -1063,6 +1063,11 @@ button.history-chip{color:var(--paper-text);border-color:var(--line-paper-2)}
 
 .footer-bottom{display:flex;flex-wrap:wrap;gap:8px 24px;justify-content:space-between;padding-top:20px}
 .footer-bottom p{margin:0;font-size:12px;line-height:16px;color:var(--text-3)}
+.footer-bottom a{
+  color:var(--text-2);text-decoration:none;
+  transition:color 160ms var(--ease);
+}
+.footer-bottom a:hover{color:var(--paper)}
 
 /* ============================ MODAL ============================ */
 .modal{
