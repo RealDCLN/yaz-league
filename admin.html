@@ -60,9 +60,9 @@
 
   <section id="appView" class="admin-view" hidden>
     <div class="admin-banner alert alert-warn" id="schemaWarn" hidden>
-      <strong>Λείπει το migration 005.</strong>
+      <strong>Λείπει μέρος του schema.</strong>
       Τα αποτελέσματα αγωνιστικών δουλεύουν κανονικά. Για Χ2, Patreon, ομίλους και Final-8 τρέξε
-      <code>supabase/migrations/005_winter_2026_27.sql</code> στο Supabase SQL Editor.
+      <code>supabase/schema.sql</code> στο Supabase SQL Editor.
     </div>
 
     <nav class="admin-tabs" aria-label="Ενότητες διαχείρισης">
@@ -159,7 +159,7 @@
       <div class="admin-card">
         <h2 class="admin-h2">Χ2 &amp; Patreon</h2>
         <p class="admin-lead">Οι συνδρομητές VIVRE CARD έχουν ένα Χ2 για τον Δεκέμβριο και ένα για τον Ιανουάριο. Στις εορταστικές αγωνιστικές κληρώνονται δύο ακόμη Χ2. Το Χ2 διπλασιάζει τους πόντους της αγωνιστικής.</p>
-        <div class="alert alert-warn" id="x2Warn" hidden>Το migration 005 δεν έχει τρέξει. Οι λειτουργίες Χ2 είναι προσωρινά ανενεργές.</div>
+        <div class="alert alert-warn" id="x2Warn" hidden>Το schema δεν έχει ενημερωθεί. Οι λειτουργίες Χ2 είναι προσωρινά ανενεργές.</div>
 
         <div class="x2-layout">
           <section class="x2-section">
@@ -201,7 +201,7 @@
           </div>
           <span class="admin-status-chip" id="phaseStatus">Προκριματικά</span>
         </div>
-        <div class="alert alert-warn" id="phaseWarn" hidden>Το migration 005 δεν έχει τρέξει. Οι φάσεις είναι προσωρινά ανενεργές.</div>
+        <div class="alert alert-warn" id="phaseWarn" hidden>Το schema δεν έχει ενημερωθεί. Οι φάσεις είναι προσωρινά ανενεργές.</div>
 
         <div class="phase-actions">
           <button class="btn btn-primary btn-sm" id="drawGroupsBtn" type="button">Κλήρωση ομίλων</button>

@@ -3,7 +3,7 @@
    Data layer: Supabase όταν υπάρχει configuration, αλλιώς demo.
 
    Το site διαβάζει προαιρετικά και τα νέα objects (multipliers,
-   group_members, phase_matches). Αν το migration 005 δεν έχει
+   group_members, phase_matches). Αν το schema δεν έχει
    τρέξει ακόμη, η δημόσια σελίδα δουλεύει κανονικά χωρίς Χ2/φάσεις
    αντί να σπάσει.
 
@@ -87,14 +87,14 @@ window.YAZ = window.YAZ || {};
       .limit(10000);
     if (!res.error) return { rows: res.data || [], patreon: true };
 
-    // Το migration 005 (is_patreon) μπορεί να λείπει.
+    // Το is_patreon μπορεί να λείπει από παλιό schema.
     res = await sb.from('players')
       .select(PUBLIC_PLAYER_COLUMNS_NO_PATREON)
       .order('first_name', { ascending: true })
       .limit(10000);
     if (!res.error) return { rows: res.data || [], patreon: false };
 
-    // Παλιό schema/migration 006: δημόσιο είναι ακόμη το nickname.
+    // Παλιό schema: δημόσιο είναι ακόμη το nickname.
     res = await sb.from('players')
       .select(LEGACY_PLAYER_COLUMNS)
       .order('nickname', { ascending: true })

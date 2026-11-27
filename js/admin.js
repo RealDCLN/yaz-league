@@ -1081,7 +1081,7 @@
     box.querySelectorAll('[data-patreon]').forEach(cb => {
       cb.addEventListener('change', async () => {
         const id = cb.getAttribute('data-patreon');
-        if (!schema.patreon) return alert('Τρέξε πρώτα το migration 005.');
+        if (!schema.patreon) return alert('Τρέξε πρώτα το supabase/schema.sql.');
         const value = cb.checked;
         if (!value) {
           const used = usedPatreonMultipliers(id);
@@ -1126,7 +1126,7 @@
   }
 
   async function setPatreonWeek(playerId, source, week, selectEl) {
-    if (!schema.multipliers) return alert('Τρέξε πρώτα το migration 005.');
+    if (!schema.multipliers) return alert('Τρέξε πρώτα το supabase/schema.sql.');
     if (week != null) {
       const conflict = cache.multipliers.find(m =>
         String(m.player_id) === String(playerId) &&
@@ -1206,7 +1206,7 @@
   }
 
   async function drawHoliday(week) {
-    if (!schema.multipliers) return alert('Τρέξε πρώτα το migration 005.');
+    if (!schema.multipliers) return alert('Τρέξε πρώτα το supabase/schema.sql.');
     const existing = cache.multipliers.filter(m => m.source === 'holiday' && num(m.awarded_week) === week);
     if (existing.length >= 2) return;
 
@@ -1606,7 +1606,7 @@
   }
 
   async function drawGroups() {
-    if (!schema.groups || !schema.phases) return alert('Τρέξε πρώτα το migration 005.');
+    if (!schema.groups || !schema.phases) return alert('Τρέξε πρώτα το supabase/schema.sql.');
 
     const rows = standingsNow();
     const qualified = qualifierRows(rows);
@@ -1693,7 +1693,7 @@
   }
 
   async function advancePhase() {
-    if (!schema.groups || !schema.phases) return alert('Τρέξε πρώτα το migration 005.');
+    if (!schema.groups || !schema.phases) return alert('Τρέξε πρώτα το supabase/schema.sql.');
     if (!cache.groupMembers.length) return alert('Πρώτα κάνε την κλήρωση των ομίλων.');
 
     const groups = S.groupTables(phasePayload());
@@ -1762,7 +1762,7 @@
   }
 
   async function resetPhases() {
-    if (!schema.groups || !schema.phases) return alert('Τρέξε πρώτα το migration 005.');
+    if (!schema.groups || !schema.phases) return alert('Τρέξε πρώτα το supabase/schema.sql.');
     if (!confirm('Να διαγραφούν ΟΛΟΙ οι όμιλοι και το bracket; Τα αποτελέσματα των προκριματικών δεν αγγίζονται.')) return;
 
     try {

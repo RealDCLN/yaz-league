@@ -1,11 +1,3 @@
-Site: https://yaz-league.netlify.app
-https://github.com/RealDCLN/yaz-league
-Stack: static HTML/CSS/JS  GitHub  Netlify auto-deploy
-Supabase backend (project: bgjprkmpyraflesqovos)
-Admin at /admin, logged in with admin@example.com
-
-
-
 # YAZ LEAGUE · WINTER 2026-27
 
 **«Το απόλυτο πρωτάθλημα γεωγραφίας»** — η επίσημη ιστοσελίδα της YAZ LEAGUE, της διοργάνωσης γεωγραφίας του **DE.VOYAGEUR**.
@@ -80,6 +72,8 @@ yaz-league/
 ├── 404.html
 ├── robots.txt
 ├── netlify.toml                Build, redirects, security headers
+├── LICENSE
+├── SECURITY.md
 ├── js/
 │   ├── config.js               ⚙️ Ημερομηνίες, links, βαθμολογία, format
 │   ├── history.js              Αρχείο προηγούμενης σεζόν + αντιστοίχιση παικτών
@@ -93,16 +87,13 @@ yaz-league/
 │   ├── admin-base.css          Tokens & primitives για το admin
 │   └── admin.css               Admin panel
 ├── assets/
+├── scripts/
+│   └── git-push.bat            Βοηθητικό script για commit + push (Windows)
 └── supabase/
     ├── schema.sql              Πλήρες schema (source of truth)
     ├── seed.sql                Demo δεδομένα
     └── migrations/
-        ├── 002_first_name_only.sql
-        ├── 003_security_hardening.sql
-        ├── 004_username_birth_year_city.sql
-        ├── 005_winter_2026_27.sql   ← Χ2, Patreon, όμιλοι, bracket
-        ├── 006_public_username.sql  ← δημόσιο username, ιδιωτικό όνομα
-        └── 007_registration_rate_limit.sql ← αξιόπιστο IP στο anti-spam
+        └── 008_admin_allowlist.sql   Admin allowlist (μία φορά σε υπάρχουσα βάση)
 ```
 
 Τα αποτελέσματα της προηγούμενης σεζόν είναι στατικά στο `js/history.js` (δεν χρειάζονται πίνακες στη Supabase). Οι θέσεις 1–4 αποθηκεύονται με σειρά· οι θέσεις 5–20 ως γκρουπ χωρίς εσωτερική κατάταξη. Η αντιστοίχιση με τους παίκτες της τρέχουσας σεζόν γίνεται με κανονικοποιημένο username, ενώ το `ALIASES` καλύπτει μικρές αλλαγές ονόματος.
@@ -134,37 +125,33 @@ SQL Editor → New query → επικόλλησε **ολόκληρο** το `sup
 
 - `players`, `matches`, `results`, `registrations`
 - `multipliers` (Χ2), `group_members`, `phase_matches`
+- `admins` — allowlist με τα email των διαχειριστών
 - RLS, column-level grants, anti-spam trigger
-- `public.is_admin()` — γύρνα το `admin_email` στο δικό σου email
+- `public.is_admin()` — ελέγχει το JWT email απέναντι στο `public.admins`
 
-### 3. Migration σε υπάρχουσα βάση
+### 3. Υπάρχουσα βάση
 
-Αν η βάση έχει ήδη τα παλιά tables, τρέξε μόνο:
+Αν η βάση έχει ήδη στηθεί, το `schema.sql` μπορεί να ξανατρέξει με ασφάλεια.
+Για το admin allowlist τρέξε μία φορά:
 
 ```
-supabase/migrations/005_winter_2026_27.sql
-supabase/migrations/006_public_username.sql
-supabase/migrations/007_registration_rate_limit.sql
+supabase/migrations/008_admin_allowlist.sql
 ```
 
-Το **005** προσθέτει `players.is_patreon`, `multipliers`, `group_members`, `phase_matches`, policies και grants. **Δεν** πειράζει παίκτες, αγωνιστικές ή αποτελέσματα.
-
-Το **006** αλλάζει τα δημόσια grants και τα unique indexes ώστε δημόσιο να είναι το `first_name` (username) και ιδιωτικό το `nickname` (όνομα). **Δεν** κάνει swap τιμών και είναι idempotent.
-
-Το **007** διορθώνει το anti-spam trigger ώστε να χρησιμοποιεί την τελευταία (αξιόπιστη) IP του `X-Forwarded-For` αντί για την πρώτη, που μπορεί να την ορίσει ο client.
-
-Χωρίς το migration 005:
-
-- Η κατάταξη και η καταχώριση αγωνιστικών δουλεύουν κανονικά.
-- Το admin εμφανίζει προειδοποίηση και τα tabs **Χ2 & Patreon** / **Φάσεις** δεν μπορούν να γράψουν.
-
-Χωρίς το migration 006:
-
-- Η κατάταξη θα συνεχίσει να δείχνει το παλιό δημόσιο πεδίο (`nickname`).
+Το migration μεταφέρει αυτόματα τον παλιό hardcoded διαχειριστή στην
+allowlist πριν αλλάξει η `is_admin()`, οπότε δεν χάνεις πρόσβαση.
 
 ### 4. Admin user
 
-Authentication → Users → Add user → email ίδιο με το `admin_email` του `is_admin()`.
+1. Authentication → Users → Add user → το email του διοργανωτή.
+2. Πρόσθεσέ το στην allowlist:
+
+```sql
+insert into public.admins (email) values ('you@example.com');
+```
+
+Το `/admin` συνδέεται με Supabase Auth και ελέγχει τον ρόλο server-side.
+Το email του διαχειριστή **δεν** είναι hardcoded στον κώδικα.
 
 ### 5. Keys
 
@@ -173,7 +160,8 @@ Project Settings → API:
 - Project URL → `js/config.js` → `supabaseUrl`
 - Publishable / anon key → `js/config.js` → `supabaseAnonKey`
 
-> Ποτέ `service_role` / secret key στο front-end.
+> Το publishable/anon key είναι δημόσιο by design. Ποτέ `service_role` /
+> secret key στο front-end ή στο repo.
 
 ### 6. Demo seed (προαιρετικό)
 
@@ -274,7 +262,9 @@ python -m http.server 8080
 - Το δημόσιο API εκδίδει μόνο `id, first_name, joined_at, is_active, is_patreon` από τους παίκτες.
 - `nickname` (το ιδιωτικό όνομα), `birth_year`, `city` είναι διαθέσιμα **μόνο** στον admin. Το δημόσιο `first_name` είναι το username του GeoGuessr.
 - RLS παντού + column-level grants.
-- Ο έλεγχος admin γίνεται server-side με `public.is_admin()` από το JWT.
+- Ο έλεγχος admin γίνεται server-side με `public.is_admin()` από το JWT
+  και την allowlist `public.admins`. Ο πίνακας δεν είναι προσβάσιμος με
+  το anon key.
 - Anti-spam: 5 αιτήσεις / 15 λεπτά ανά IP hash.
 - CSP, SRI στα CDN scripts, security headers στο `netlify.toml`.
 
@@ -286,5 +276,18 @@ python -m http.server 8080
 - **Wild cards:** υπολογίζονται από τα συνολικά effective points κάθε εβδομάδας (χάρτης + quiz). Δεν αποθηκεύονται σε ξεχωριστό table.
 - **Ισοπαλία κατάταξης:** πόντοι → wild cards → concept → καλύτερη εβδομάδα → χάρτης+quiz → όνομα. Κάθε θέση είναι μοναδική.
 - **1v1:** δεν επιτρέπεται ισοπαλία. Το admin ζητά διαφορετικά σκορ.
-- **Migration 005 είναι απαραίτητο** για Χ2/φάσεις. Χωρίς αυτό, το site δουλεύει με graceful degradation.
-- **Migration 006** είναι απαραίτητο για να εμφανίζεται το username στην κατάταξη. Το `first_name` είναι το δημόσιο username, το `nickname` το ιδιωτικό όνομα.
+- **`supabase/schema.sql` είναι το source of truth.** Περιλαμβάνει όλο το
+  τρέχον schema (Χ2, όμιλοι, bracket, RLS, admin allowlist) και είναι
+  idempotent — μπορεί να ξανατρέξει πάνω σε υπάρχουσα βάση.
+
+---
+
+## Άδεια
+
+Ο κώδικας διατίθεται με τη [MIT License](LICENSE).
+
+Τα λογότυπα, τα γραφικά, τα ονόματα παικτών και το περιεχόμενο της
+διοργάνωσης δεν καλύπτονται από την άδεια.
+
+Για αναφορές ασφαλείας δες το [SECURITY.md](SECURITY.md) — παρακαλώ όχι
+δημόσια issues.

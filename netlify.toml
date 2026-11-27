@@ -17,8 +17,9 @@
   status = 200
 
 # ------------------------------------------------------------
-# Μην σερβίρεις ποτέ αρχεία του repo/βάσης ως στατικά assets.
-# (Το publish = "." δημοσιεύει όλο τον φάκελο.)
+# Defense in depth: only dist/ is published, so repo files are not
+# reachable anyway. These rules keep old links returning 404 if the
+# publish directory ever changes.
 # ------------------------------------------------------------
 # Explicit rules first: Netlify reliably shadows these root files.
 [[redirects]]
@@ -29,6 +30,12 @@
 
 [[redirects]]
   from = "/git-push.bat"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/scripts/*"
   to = "/404.html"
   status = 404
   force = true

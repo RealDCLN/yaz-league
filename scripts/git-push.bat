@@ -3,8 +3,8 @@ setlocal enabledelayedexpansion
 title Git Auto Push
 
 rem Always run from the folder the .bat lives in
-cd /d "%~dp0"
-set "GIT=git -c safe.directory=*"
+cd /d "%~dp0\.."
+set "GIT=git"
 
 echo === Git Auto Push ===
 echo Folder: %cd%

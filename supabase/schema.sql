@@ -1,7 +1,9 @@
 -- ============================================================
 --  YAZ LEAGUE - Supabase schema
 --  Τρέξε ολόκληρο αυτό το αρχείο στο Supabase > SQL Editor > New query.
---  ΠΡΙΝ ΤΟ ΤΡΕΞΕΙΣ: άλλαξε το ADMIN_EMAIL παρακάτω στο email του διοργανωτή.
+--  Μετά το πρώτο run πρόσθεσε τον διαχειριστή στην allowlist:
+--    insert into public.admins (email) values ('you@example.com');
+--  (Το πρόγραμμα δεν περιέχει hardcoded admin email.)
 --
 --  Το αρχείο είναι idempotent: μπορείς να το ξανατρέξεις πάνω σε
 --  υπάρχουσα βάση για να εφαρμόσεις τις διορθώσεις ασφαλείας.
@@ -287,6 +289,45 @@ create unique index if not exists phase_matches_slot_uniq
 create index if not exists idx_phase_matches_phase on public.phase_matches (phase);
 
 -- ------------------------------------------------------------
+--  Admin allowlist
+--  Ο διαχειριστής ορίζεται εδώ, όχι hardcoded στον κώδικα.
+--  Η is_admin() τη διαβάζει server-side από το επαληθευμένο JWT.
+-- ------------------------------------------------------------
+create table if not exists public.admins (
+  email      text primary key,
+  created_at timestamptz not null default now()
+);
+
+-- Μετανάστευση από παλιό hardcoded admin email (αν υπάρχει):
+-- διάβασε το email από την προηγούμενη is_admin() και βάλ' το στην
+-- allowlist ΠΡΙΝ αντικατασταθεί η συνάρτηση. Έτσι το site δεν χάνει
+-- ποτέ πρόσβαση όταν ξανατρέξει το schema.
+do $$
+declare
+  src text;
+  previous_admin text;
+begin
+  select p.prosrc into src
+  from pg_proc p
+  join pg_namespace n on n.oid = p.pronamespace
+  where n.nspname = 'public' and p.proname = 'is_admin'
+  limit 1;
+
+  if src is not null then
+    previous_admin := (regexp_match(
+      src,
+      'admin_email\s+constant\s+text\s*:=\s*''([^'']+)'''
+    ))[1];
+
+    if previous_admin is not null then
+      insert into public.admins (email)
+      values (lower(btrim(previous_admin)))
+      on conflict (email) do nothing;
+    end if;
+  end if;
+end $$;
+
+-- ------------------------------------------------------------
 --  RLS
 -- ------------------------------------------------------------
 alter table public.players       enable row level security;
@@ -296,9 +337,9 @@ alter table public.registrations enable row level security;
 alter table public.multipliers   enable row level security;
 alter table public.group_members enable row level security;
 alter table public.phase_matches enable row level security;
+alter table public.admins        enable row level security;
 
--- Βοηθητική συνάρτηση: είναι ο συνδεδεμένος χρήστης ο διαχειριστής;
--- >>> ΑΛΛΑΞΕ ΤΟ EMAIL ΕΔΩ <<<
+-- Βοηθητική συνάρτηση: είναι ο συνδεδεμένος χρήστης διαχειριστής;
 -- Το email έρχεται από το υπογεγραμμένο JWT του Supabase, οπότε δεν
 -- μπορεί να πλαστογραφηθεί από τον browser.
 create or replace function public.is_admin()
@@ -309,9 +350,15 @@ security definer
 set search_path = ''
 as $$
 declare
-  admin_email constant text := 'admin@example.com';
+  caller_email text;
 begin
-  return lower(coalesce(auth.jwt() ->> 'email', '')) = lower(admin_email);
+  caller_email := lower(coalesce(auth.jwt() ->> 'email', ''));
+  if caller_email = '' then
+    return false;
+  end if;
+  return exists (
+    select 1 from public.admins a where a.email = caller_email
+  );
 end;
 $$;
 
@@ -409,6 +456,7 @@ revoke all on public.registrations from anon;
 revoke all on public.multipliers   from anon;
 revoke all on public.group_members from anon;
 revoke all on public.phase_matches from anon;
+revoke all on public.admins        from anon;
 
 -- Το REVOKE ALL ON TABLE δεν πειράζει column-level grants. Καθάρισε
 -- ρητά και τυχόν παλιά column grant στο first_name.
@@ -424,6 +472,7 @@ revoke all on public.registrations from public;
 revoke all on public.multipliers   from public;
 revoke all on public.group_members from public;
 revoke all on public.phase_matches from public;
+revoke all on public.admins        from public;
 revoke create on schema public from anon, authenticated;
 grant usage on schema public to anon, authenticated;
 
@@ -449,6 +498,7 @@ revoke all on public.registrations from authenticated;
 revoke all on public.multipliers   from authenticated;
 revoke all on public.group_members from authenticated;
 revoke all on public.phase_matches from authenticated;
+revoke all on public.admins        from authenticated;
 
 grant select, insert, update, delete on public.players to authenticated;
 grant select, insert, update, delete on public.matches to authenticated;

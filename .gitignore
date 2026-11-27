@@ -14,6 +14,10 @@ desktop.ini
 
 # Netlify build output
 dist/
+.netlify/
+
+# Dependencies (το site δεν έχει build step)
+node_modules/
 
 # Logs / temp
 *.log
